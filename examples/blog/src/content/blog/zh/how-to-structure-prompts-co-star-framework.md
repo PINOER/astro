@@ -2,7 +2,7 @@
 title: "如何写出完美的 AI 提示词：CO-STAR 框架终极指南"
 description: "学习如何使用 CO-STAR 框架为 ChatGPT 和 Claude 构建结构化提示词，通过 5 个简单步骤提升 AI 的回答准确率与生产力。"
 pubDate: "2026-07-20"
-heroImage: "../../../assets/co-star-framework-guide.svg"
+heroImage: "/co-star-framework-guide.svg"
 lang: "zh"
 ---
 
