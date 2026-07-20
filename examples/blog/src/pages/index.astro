@@ -1,185 +1,144 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from '../components/FormattedDate.astro';
+
+// 自动读取 src/content/blog/ 目录下的所有文章并按时间倒序排列
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HelpMini — Lightweight AI Tools & Micro Efficiency Assistants</title>
-  <meta name="description" content="Discover supercharged micro AI tools, workflows, and prompts. Designed for creators, developers, and marketers to boost productivity 10x.">
-  <style>
-    :root {
-      --bg-color: #0b0f17;
-      --card-bg: rgba(22, 28, 45, 0.6);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --card-hover-border: rgba(99, 102, 241, 0.5);
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --accent: #06b6d4;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --radius: 12px;
-    }
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			:root {
+				--accent: #6366f1;
+				--accent-dark: #4f46e5;
+			}
+			main {
+				width: 960px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em;
+			}
+			.hero {
+				text-align: center;
+				padding: 3em 0 2em;
+			}
+			.hero h1 {
+				font-size: 3rem;
+				font-weight: 800;
+				margin-bottom: 0.5em;
+				line-height: 1.2;
+			}
+			.hero p {
+				font-size: 1.25rem;
+				color: #64748b;
+				max-width: 600px;
+				margin: 0 auto 2em;
+			}
+			.badge {
+				display: inline-block;
+				background: rgba(99, 102, 241, 0.1);
+				color: var(--accent);
+				border: 1px solid rgba(99, 102, 241, 0.2);
+				padding: 0.3em 0.8em;
+				border-radius: 20px;
+				font-size: 0.85rem;
+				font-weight: 600;
+				margin-bottom: 1em;
+			}
+			.section-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+				margin: 2em 0 1em;
+				border-bottom: 2px solid #f1f5f9;
+				padding-bottom: 0.5em;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+			}
+			ul li a {
+				display: block;
+			}
+			.title {
+				margin: 0;
+				color: rgb(var(--black));
+				line-height: 1.2;
+				font-size: 1.25rem;
+			}
+			.date {
+				margin: 0;
+				color: rgb(var(--gray));
+				font-size: 0.9rem;
+			}
+			ul li a:hover .title {
+				color: var(--accent);
+			}
+			@media (max-width: 720px) {
+				ul li {
+					width: 100%;
+				}
+				.hero h1 {
+					font-size: 2.2rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<!-- Hero 介绍区 -->
+			<section class="hero">
+				<div class="badge">🚀 Mini-tools for Big Help</div>
+				<h1>HelpMini</h1>
+				<p>Lightweight AI tools, prompts, and actionable guides to boost your everyday productivity 10x.</p>
+			</section>
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-
-    .glow-bg {
-      position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
-      width: 600px; height: 350px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 70%);
-      filter: blur(80px); z-index: -1;
-    }
-
-    header { max-width: 1200px; margin: 0 auto; width: 100%; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-size: 1.5rem; font-weight: 800; color: #fff; text-decoration: none; }
-    .logo span { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-    .nav-right { display: flex; gap: 16px; align-items: center; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; margin-right: 16px; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text-main); }
-
-    /* 多语言切换下拉框 */
-    .lang-select {
-      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); color: var(--text-main);
-      padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; outline: none; cursor: pointer;
-    }
-    .lang-select option { background: var(--bg-color); color: #fff; }
-
-    .btn-submit {
-      background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: #fff;
-      padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none;
-    }
-
-    .hero { max-width: 800px; margin: 60px auto 40px; text-align: center; padding: 0 24px; }
-    .badge { display: inline-block; padding: 6px 12px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 20px; font-size: 0.85rem; color: #a5b4fc; margin-bottom: 16px; }
-    .hero h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 16px; letter-spacing: -1px; }
-    .hero p { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 32px; }
-
-    .search-box { position: relative; max-width: 560px; margin: 0 auto; }
-    .search-box input { width: 100%; padding: 16px 20px 16px 48px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: var(--radius); color: #fff; font-size: 1rem; outline: none; }
-    .search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; fill: var(--text-muted); }
-
-    main { max-width: 1200px; margin: 0 auto; width: 100%; padding: 0 24px 80px; flex: 1; }
-    .categories { display: flex; gap: 12px; margin-bottom: 32px; overflow-x: auto; padding-bottom: 8px; }
-    .cat-btn { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); color: var(--text-muted); padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; cursor: pointer; white-space: nowrap; }
-    .cat-btn.active, .cat-btn:hover { background: rgba(99, 102, 241, 0.15); border-color: var(--primary); color: #fff; }
-
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 20px; text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform 0.2s, border-color 0.2s; }
-    .card:hover { transform: translateY(-4px); border-color: var(--card-hover-border); }
-    .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .card-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-    .card-title-group h3 { font-size: 1.1rem; font-weight: 700; color: #fff; }
-    .card-tag { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; }
-    .card p { font-size: 0.9rem; color: var(--text-muted); flex: 1; margin-bottom: 16px; }
-    .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; }
-    .card-link-text { color: var(--primary); font-weight: 600; }
-
-    footer { border-top: 1px solid var(--card-border); text-align: center; padding: 30px 24px; color: var(--text-muted); font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-
-  <div class="glow-bg"></div>
-
-  <header>
-    <a href="/" class="logo"><span>HelpMini</span>.com</a>
-    <div class="nav-right">
-      <nav class="nav-links">
-        <a href="#tools">Tools</a>
-        <a href="#blog">Blog</a>
-      </nav>
-      <!-- 多语言选择器 -->
-      <select class="lang-select" onchange="location = this.value;">
-        <option value="/" selected>🌐 English</option>
-        <option value="/zh/">简体中文</option>
-        <option value="/es/">Español</option>
-        <option value="/ja/">日本語</option>
-      </select>
-      <a href="#submit" class="btn-submit">Submit AI</a>
-    </div>
-  </header>
-
-  <section class="hero">
-    <div class="badge">🚀 Mini-tools for Big Help</div>
-    <h1>Micro AI Tools for Massive Productivity</h1>
-    <p>Hand-picked lightweight AI assistants, prompts, and micro-workflows to boost your work 10x.</p>
-    
-    <div class="search-box">
-      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="text" id="searchInput" placeholder="Search AI tools, prompts, or use cases..." onkeyup="filterTools()">
-    </div>
-  </section>
-
-  <main>
-    <div class="categories">
-      <button class="cat-btn active" onclick="filterCategory('all')">🔥 All Tools</button>
-      <button class="cat-btn" onclick="filterCategory('writing')">✍️ Writing & SEO</button>
-      <button class="cat-btn" onclick="filterCategory('dev')">💻 Code & Dev</button>
-      <button class="cat-btn" onclick="filterCategory('image')">🎨 Image & Design</button>
-      <button class="cat-btn" onclick="filterCategory('workflow')">⚡ Workflows</button>
-    </div>
-
-    <div class="grid" id="toolGrid">
-      <a href="#" class="card" data-category="writing">
-        <div class="card-header">
-          <div class="card-icon">📝</div>
-          <div class="card-title-group">
-            <h3>Prompt Refiner</h3>
-            <span class="card-tag">Writing & SEO</span>
-          </div>
-        </div>
-        <p>Turn rough ideas into highly optimized prompts for ChatGPT and Claude instantly.</p>
-        <div class="card-footer">
-          <span>Free Tool</span>
-          <span class="card-link-text">Try Now →</span>
-        </div>
-      </a>
-
-      <a href="#" class="card" data-category="dev">
-        <div class="card-header">
-          <div class="card-icon">⚡</div>
-          <div class="card-title-group">
-            <h3>JSON Schema AI</h3>
-            <span class="card-tag">Code & Dev</span>
-          </div>
-        </div>
-        <p>Generate strict, valid JSON Schemas from natural language descriptions.</p>
-        <div class="card-footer">
-          <span>Developer Tools</span>
-          <span class="card-link-text">Try Now →</span>
-        </div>
-      </a>
-    </div>
-  </main>
-
-  <footer>
-    <p>© 2026 HelpMini.com — All rights reserved. Powered by Astro & Cloudflare Pages.</p>
-  </footer>
-
-  <script>
-    function filterCategory(cat) {
-      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      document.querySelectorAll('.card').forEach(card => {
-        card.style.display = (cat === 'all' || card.getAttribute('data-category') === cat) ? 'flex' : 'none';
-      });
-    }
-
-    function filterTools() {
-      const input = document.getElementById('searchInput').value.toLowerCase();
-      document.querySelectorAll('.card').forEach(card => {
-        const title = card.querySelector('h3').innerText.toLowerCase();
-        const desc = card.querySelector('p').innerText.toLowerCase();
-        card.style.display = (title.includes(input) || desc.includes(input)) ? 'flex' : 'none';
-      });
-    }
-  </script>
-</body>
+			<!-- 博客内容区 -->
+			<h2 class="section-title">Latest Articles & Guides</h2>
+			<section>
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={`/blog/${post.slug}/`}>
+									{post.data.heroImage && (
+										<img width={720} height={360} src={post.data.heroImage} alt="" />
+									)}
+									<h4 class="title">{post.data.title}</h4>
+									<p class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
 </html>
