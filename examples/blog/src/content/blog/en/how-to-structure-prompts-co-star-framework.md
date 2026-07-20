@@ -14,7 +14,7 @@ To solve this, leading prompt engineers use a structured methodology called the 
 
 ---
 
-## What is the CO-STAR Prompt Framework?
+## What is the CO-STAR Prompt Framework??
 
 The CO-STAR framework is a battle-tested formula that breaks down a prompt into 6 essential components:
 
