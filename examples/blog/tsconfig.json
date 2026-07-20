@@ -5,4 +5,10 @@
   "compilerOptions": {
     "strictNullChecks": true
   }
+    "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    }
+  }
 }
