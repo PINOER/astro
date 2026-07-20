@@ -3,13 +3,6 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-import { getCollection } from 'astro:content';
-import FormattedDate from '../components/FormattedDate.astro';
-
-// 自动读取 src/content/blog/ 目录下的所有文章并按时间倒序排列
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
 ---
 
 <!doctype html>
@@ -18,125 +11,135 @@ const posts = (await getCollection('blog')).sort(
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
 			:root {
-				--accent: #6366f1;
-				--accent-dark: #4f46e5;
+				--primary: #6366f1;
+				--primary-hover: #4f46e5;
+				--accent: #06b6d4;
+				--bg-dark: #0f172a;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+				--card-bg: #1e293b;
+				--card-border: #334155;
 			}
 			main {
-				width: 960px;
+				width: 1000px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 3em 1em;
+				padding: 3em 1em 5em;
 			}
 			.hero {
 				text-align: center;
-				padding: 3em 0 2em;
-			}
-			.hero h1 {
-				font-size: 3rem;
-				font-weight: 800;
-				margin-bottom: 0.5em;
-				line-height: 1.2;
-			}
-			.hero p {
-				font-size: 1.25rem;
-				color: #64748b;
-				max-width: 600px;
-				margin: 0 auto 2em;
+				padding: 2em 0 3em;
 			}
 			.badge {
 				display: inline-block;
-				background: rgba(99, 102, 241, 0.1);
-				color: var(--accent);
-				border: 1px solid rgba(99, 102, 241, 0.2);
-				padding: 0.3em 0.8em;
+				background: rgba(99, 102, 241, 0.15);
+				color: #a5b4fc;
+				border: 1px solid rgba(99, 102, 241, 0.3);
+				padding: 0.4em 1em;
 				border-radius: 20px;
 				font-size: 0.85rem;
 				font-weight: 600;
-				margin-bottom: 1em;
+				margin-bottom: 1.2em;
 			}
-			.section-title {
-				font-size: 1.5rem;
-				font-weight: 700;
-				margin: 2em 0 1em;
-				border-bottom: 2px solid #f1f5f9;
-				padding-bottom: 0.5em;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
+			.hero h1 {
+				font-size: 3.2rem;
+				font-weight: 800;
+				margin-bottom: 0.4em;
 				line-height: 1.2;
-				font-size: 1.25rem;
+				letter-spacing: -1px;
 			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
+			.hero p {
+				font-size: 1.2rem;
+				color: var(--text-muted);
+				max-width: 600px;
+				margin: 0 auto 2em;
+			}
+			.tool-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+				gap: 1.5rem;
+				margin-top: 2rem;
+			}
+			.tool-card {
+				background: var(--card-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.5rem;
+				text-decoration: none;
+				color: var(--text-main);
+				display: flex;
+				flex-direction: column;
+				transition: transform 0.2s, border-color 0.2s;
+			}
+			.tool-card:hover {
+				transform: translateY(-4px);
+				border-color: var(--primary);
+			}
+			.tool-icon {
+				font-size: 2rem;
+				margin-bottom: 0.8rem;
+			}
+			.tool-card h3 {
+				font-size: 1.2rem;
+				font-weight: 700;
+				margin-bottom: 0.5rem;
+			}
+			.tool-card p {
 				font-size: 0.9rem;
+				color: var(--text-muted);
+				flex: 1;
+				margin-bottom: 1rem;
+				line-height: 1.5;
 			}
-			ul li a:hover .title {
+			.tool-tag {
+				font-size: 0.75rem;
 				color: var(--accent);
+				font-weight: 600;
+				text-transform: uppercase;
 			}
 			@media (max-width: 720px) {
-				ul li {
-					width: 100%;
-				}
-				.hero h1 {
-					font-size: 2.2rem;
-				}
+				.hero h1 { font-size: 2.2rem; }
 			}
 		</style>
 	</head>
 	<body>
 		<Header />
 		<main>
-			<!-- Hero 介绍区 -->
 			<section class="hero">
-				<div class="badge">🚀 Mini-tools for Big Help</div>
+				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
-				<p>Lightweight AI tools, prompts, and actionable guides to boost your everyday productivity 10x.</p>
+				<p>Lightweight, instant, and supercharged AI tools designed to save you hours every week.</p>
 			</section>
 
-			<!-- 博客内容区 -->
-			<h2 class="section-title">Latest Articles & Guides</h2>
 			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.slug}/`}>
-									{post.data.heroImage && (
-										<img width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
+				<h2 style="font-size: 1.5rem; font-weight: 700;">Featured Micro Tools</h2>
+				<div class="tool-grid">
+					
+					<!-- 第一个即将上线的微工具卡片 -->
+					<a href="/tools/prompt-refiner" class="tool-card">
+						<div class="tool-icon">📝</div>
+						<h3>Prompt Structurer & Refiner</h3>
+						<p>Transform rough ideas into structured, high-performing prompts for ChatGPT & Claude.</p>
+						<span class="tool-tag">Free Tool • Instant</span>
+					</a>
+
+					<!-- 占位卡片 2 -->
+					<a href="#" class="tool-card">
+						<div class="tool-icon">📊</div>
+						<h3>Token & Context Limit Checker</h3>
+						<p>Calculate precise token counts for LLMs and avoid context cutoff issues.</p>
+						<span class="tool-tag">Coming Soon</span>
+					</a>
+
+					<!-- 占位卡片 3 -->
+					<a href="#" class="tool-card">
+						<div class="tool-icon">🔍</div>
+						<h3>SEO Meta Title & Desc Generator</h3>
+						<p>Generate Google-friendly meta titles and descriptions optimized for higher CTR.</p>
+						<span class="tool-tag">Coming Soon</span>
+					</a>
+
+				</div>
 			</section>
 		</main>
 		<Footer />
