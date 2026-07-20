@@ -7,20 +7,22 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-// 1. 获取 blog 集合下的所有文章
+// 1. 声明并定义 currentLang 变量（必须在这里定义，下方的 HTML 模板才能读取到）
+const currentLang = 'en';
+
+// 2. 获取 blog 集合下的所有文章
 const allPosts = await getCollection('blog');
 
-// 2. 更加兼容的语言筛选逻辑：
-// 优先检查文章的 data.lang，其次检查文件 id/路径中是否包含 'en/'
+// 3. 语言筛选逻辑：同时兼顾 data.lang 字段和 id 路径前缀
 const posts = allPosts
 	.filter((post) => {
-		const isLangMatch = post.data.lang === 'en';
-		const isPathMatch = post.id.startsWith('en/');
+		const isLangMatch = post.data?.lang === currentLang;
+		const isPathMatch = post.id.startsWith(`${currentLang}/`);
 		return isLangMatch || isPathMatch;
 	})
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-// 3. 规范化生成的文章跳转链接（去掉 .md/.mdx 尾缀，确保路径格式为 /blog/en/post-name/）
+// 4. 规范化文章跳转路径
 const getPostPath = (post: any) => {
 	const cleanId = post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '');
 	return `/blog/${cleanId}/`;
