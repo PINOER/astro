@@ -3,6 +3,7 @@ title: "How to Write Perfect AI Prompts: The Ultimate CO-STAR Framework Guide"
 description: "Learn how to use the CO-STAR framework to structure prompts for ChatGPT and Claude. Boost your AI accuracy and productivity in 5 simple steps."
 pubDate: "2026-07-20"
 heroImage: "../../assets/co-star-framework-guide.svg"
+lang: "en"
 ---
 
 Getting mediocre or vague responses from ChatGPT, Claude, or Gemini? In 90% of cases, the problem isn't the AI model—it's **how your prompt is structured**.
