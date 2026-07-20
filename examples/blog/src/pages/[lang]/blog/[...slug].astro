@@ -1,14 +1,11 @@
 ---
-import { type CollectionEntry, getCollection } from 'astro:content';
+import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
 	return posts.map((post) => {
-		// 优先取 post.slug，若未定义则回退取 post.id（同时移除 .md / .mdx 后缀）
 		const rawPath = post.slug || post.id.replace(/\.(md|mdx)$/, '');
-		
-		// 分解出语言前缀（如 'en' 或 'zh'）和剩余的文件名部分
 		const [lang, ...slugParts] = rawPath.split('/');
 		const slug = slugParts.join('/');
 
@@ -21,7 +18,9 @@ export async function getStaticPaths() {
 
 type Props = CollectionEntry<'blog'>;
 const post = Astro.props;
-const { Content } = await post.render();
+
+// 使用 Astro 新版 API render(post) 替代旧版 post.render()
+const { Content } = await render(post);
 ---
 
 <BlogPost {...post.data}>
