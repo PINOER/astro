@@ -7,15 +7,23 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-// 1. 获取当前页面要求的语言（假设此列表页默认展示英文 'en'，也可以根据路由动态获取）
+// 1. 设置当前列表页展示的语言（默认只展示英文 'en'）
 const currentLang = 'en';
 
-// 2. 核心修改：在 getCollection 中添加 filter 过滤逻辑，只保留符合当前语言的文章
+// 2. 过滤出对应语言的文章，并按日期排序
 const posts = (
 	await getCollection('blog', ({ data }) => {
 		return data.lang === currentLang;
 	})
 ).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 辅助函数：格式化文章路径，防止 post.id 带有 .md 或重复斜杠
+const getPostPath = (post: any) => {
+	// 清理 post.id 中的文件后缀名（如 .md 或 .mdx）
+	const cleanId = post.id.replace(/\.(md|mdx)$/, '');
+	// 如果 cleanId 已经包含了 en/ 或 zh/，直接拼接到 /blog/ 后面
+	return `/blog/${cleanId}/`;
+};
 ---
 
 <!doctype html>
@@ -100,8 +108,8 @@ const posts = (
 					{
 						posts.map((post) => (
 							<li>
-								{/* 3. 核心修改：生成正确的带语言路径的 URL，如 /blog/en/how-to-structure-prompts... */}
-								<a href={`/blog/${post.data.lang}/${post.slug}/`}>
+								{/* 使用处理后的标准链接地址 */}
+								<a href={getPostPath(post)}>
 									{post.data.heroImage && (
 										<Image width={720} height={360} src={post.data.heroImage} alt="" />
 									)}
