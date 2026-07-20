@@ -13,9 +13,13 @@ interface Props {
 	image?: ImageMetadata;
 }
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 
 const { title, description, image = FallbackImage } = Astro.props;
+
+// 清理路径中的语言前缀（用于多语言 hreflang 映射）
+const cleanPath = Astro.url.pathname.replace(/^\/(en|zh|es|de|ja)/, '');
+const siteUrl = Astro.site || Astro.url.origin;
 ---
 
 <!-- Global Metadata -->
@@ -28,7 +32,7 @@ const { title, description, image = FallbackImage } = Astro.props;
 	rel="alternate"
 	type="application/rss+xml"
 	title={SITE_TITLE}
-	href={new URL('rss.xml', Astro.site)}
+	href={new URL('rss.xml', siteUrl)}
 />
 <meta name="generator" content={Astro.generator} />
 
@@ -46,7 +50,12 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image.src, Astro.url)} />
+<meta property="og:image" content={new URL(image.src, siteUrl)} />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
+
+<!-- hreflang 多语言 SEO 标签（新增） -->
+<link rel="alternate" hreflang="en" href={new URL(`/en${cleanPath}`, siteUrl)} />
+<link rel="alternate" hreflang="zh" href={new URL(`/zh${cleanPath}`, siteUrl)} />
+<link rel="alternate" hreflang="x-default" href={new URL(cleanPath || '/', siteUrl)} />
