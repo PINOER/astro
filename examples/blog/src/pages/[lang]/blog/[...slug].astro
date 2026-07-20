@@ -5,11 +5,15 @@ import BlogPost from '../../../layouts/BlogPost.astro';
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
 	return posts.map((post) => {
-		// post.slug 的格式形如 "en/how-to-structure-prompts-co-star-framework"
-		const [lang, ...slugParts] = post.slug.split('/');
+		// 优先取 post.slug，若未定义则回退取 post.id（同时移除 .md / .mdx 后缀）
+		const rawPath = post.slug || post.id.replace(/\.(md|mdx)$/, '');
+		
+		// 分解出语言前缀（如 'en' 或 'zh'）和剩余的文件名部分
+		const [lang, ...slugParts] = rawPath.split('/');
 		const slug = slugParts.join('/');
+
 		return {
-			params: { lang, slug },
+			params: { lang: lang || 'en', slug: slug || '' },
 			props: post,
 		};
 	});
