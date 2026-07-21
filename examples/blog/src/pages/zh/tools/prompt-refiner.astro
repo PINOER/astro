@@ -1,0 +1,214 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+
+const pageTitle = `Prompt Structurer & Refiner — ${SITE_TITLE}`;
+const pageDescription = "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			:root {
+				--primary: #6366f1;
+				--primary-hover: #4f46e5;
+				--bg-card: #1e293b;
+				--border-color: #334155;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+			}
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				border: 1px solid var(--border-color);
+				border-radius: 12px;
+				padding: 2em;
+			}
+			.form-group {
+				margin-bottom: 1.5em;
+			}
+			label {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 0.5em;
+				color: var(--text-main);
+			}
+			textarea, select {
+				width: 100%;
+				padding: 0.8em 1em;
+				background: #0f172a;
+				border: 1px solid var(--border-color);
+				border-radius: 8px;
+				color: #fff;
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+			}
+			textarea:focus, select:focus {
+				border-color: var(--primary);
+			}
+			.btn-generate {
+				width: 100%;
+				background: var(--primary);
+				color: #fff;
+				border: none;
+				padding: 0.9em;
+				font-size: 1rem;
+				font-weight: 700;
+				border-radius: 8px;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+			.btn-generate:hover {
+				background: var(--primary-hover);
+			}
+			.result-area {
+				margin-top: 2em;
+				display: none;
+			}
+			.result-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 0.5em;
+			}
+			.btn-copy {
+				background: rgba(255, 255, 255, 0.1);
+				border: 1px solid var(--border-color);
+				color: #fff;
+				padding: 0.4em 0.8em;
+				border-radius: 6px;
+				cursor: pointer;
+				font-size: 0.85rem;
+			}
+			.btn-copy:hover {
+				background: rgba(255, 255, 255, 0.2);
+			}
+			pre {
+				background: #0f172a;
+				padding: 1.2em;
+				border-radius: 8px;
+				border: 1px solid var(--border-color);
+				white-space: pre-wrap;
+				word-break: break-word;
+				color: #a5b4fc;
+				font-size: 0.9rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>📝 Prompt Structurer & Refiner</h1>
+				<p>Turn basic ideas into expert-level structured prompts for ChatGPT, Claude, and Gemini.</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="form-group">
+					<label for="rawPrompt">Your Basic Idea / Task:</label>
+					<textarea id="rawPrompt" rows="4" placeholder="e.g., Write an SEO article about Shopify dropshipping tips for beginners."></textarea>
+				</div>
+
+				<div class="form-group">
+					<label for="roleSelect">Target Persona / Role:</label>
+					<select id="roleSelect">
+						<option value="Senior SEO Specialist & Content Strategist">Senior SEO Specialist & Content Strategist</option>
+						<option value="Expert Full-Stack Software Engineer">Expert Full-Stack Software Engineer</option>
+						<option value="Direct-Response Copywriter">Direct-Response Copywriter</option>
+						<option value="Product Manager">Product Manager</option>
+					</select>
+				</div>
+
+				<button class="btn-generate" id="generateBtn">Refine & Structure Prompt ✨</button>
+
+				<div class="result-area" id="resultArea">
+					<div class="result-header">
+						<label>Optimized CO-STAR Prompt:</label>
+						<button class="btn-copy" id="copyBtn">📋 Copy Prompt</button>
+					</div>
+					<pre id="outputPrompt"></pre>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			const generateBtn = document.getElementById('generateBtn');
+			const copyBtn = document.getElementById('copyBtn');
+			const rawPrompt = document.getElementById('rawPrompt') as HTMLTextAreaElement;
+			const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
+			const resultArea = document.getElementById('resultArea') as HTMLDivElement;
+			const outputPrompt = document.getElementById('outputPrompt') as HTMLPreElement;
+
+			generateBtn?.addEventListener('click', () => {
+				const input = rawPrompt.value.trim();
+				if (!input) {
+					alert('Please enter a basic prompt idea first!');
+					return;
+				}
+
+				const role = roleSelect.value;
+
+				// CO-STAR 模板拼接逻辑（纯前端运行，零 API 成本）
+				const structuredPrompt = `# ROLE
+Act as a ${role}. You have extensive experience and deep expertise in this domain.
+
+# CONTEXT
+The user needs assistance with the following goal: "${input}". 
+
+# OBJECTIVE
+Provide a comprehensive, highly accurate, and actionable response that fully addresses the task while adhering to industry best practices.
+
+# STYLE & TONE
+- Professional, clear, concise, and engaging.
+- Avoid generic filler text or unnecessary pleasantries.
+- Use bullet points, bold headers, or code blocks where appropriate to maximize readability.
+
+# AUDIENCE
+Designed for professionals or enthusiasts seeking immediate, practical value without ambiguity.
+
+# RESPONSE FORMAT
+Structure your output logically with:
+1. Quick Executive Summary / Key Takeaways
+2. Step-by-Step Action Plan / Solution
+3. Important Pitfalls or Edge Cases to Avoid
+
+Please confirm you understand these instructions and proceed with the response.`;
+
+				outputPrompt.textContent = structuredPrompt;
+				resultArea.style.display = 'block';
+			});
+
+			copyBtn?.addEventListener('click', () => {
+				navigator.clipboard.writeText(outputPrompt.textContent || '');
+				copyBtn.textContent = '✅ Copied!';
+				setTimeout(() => {
+					copyBtn.textContent = '📋 Copy Prompt';
+				}, 2000);
+			});
+		</script>
+	</body>
+</html>
