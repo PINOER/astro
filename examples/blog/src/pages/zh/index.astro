@@ -1,8 +1,9 @@
 ---
-import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+// 使用 src/ 路径别名，避免层级多深导致编译报错
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 ---
 
 <!doctype html>
@@ -14,10 +15,15 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				--primary: #6366f1;
 				--primary-hover: #4f46e5;
 				--accent: #06b6d4;
-				--card-bg: #1e293b;
-				--card-border: #334155;
+				--bg-dark: #0f172a;
 				--text-main: #f8fafc;
 				--text-muted: #94a3b8;
+				--card-bg: rgba(30, 41, 59, 0.7);
+				--card-border: rgba(255, 255, 255, 0.1);
+			}
+			body {
+				background-color: var(--bg-dark);
+				color: var(--text-main);
 			}
 			main {
 				width: 1000px;
@@ -25,46 +31,96 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				margin: auto;
 				padding: 3em 1em 5em;
 			}
-			.hero { text-align: center; padding: 2em 0 3em; }
+			.hero {
+				text-align: center;
+				padding: 3em 0 4em;
+			}
 			.badge {
 				display: inline-block;
 				background: rgba(99, 102, 241, 0.15);
 				color: #a5b4fc;
 				border: 1px solid rgba(99, 102, 241, 0.3);
-				padding: 0.4em 1em;
+				padding: 0.4em 1.2em;
 				border-radius: 20px;
 				font-size: 0.85rem;
 				font-weight: 600;
-				margin-bottom: 1.2em;
+				margin-bottom: 1.5em;
+				box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
 			}
-			.hero h1 { font-size: 3.2rem; font-weight: 800; margin-bottom: 0.4em; }
-			.hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 2em; }
+			/* 科技渐变大标题 */
+			.hero h1 {
+				font-size: 3.5rem;
+				font-weight: 800;
+				margin-bottom: 0.4em;
+				line-height: 1.2;
+				letter-spacing: -1px;
+				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.hero p {
+				font-size: 1.2rem;
+				color: var(--text-muted);
+				max-width: 600px;
+				margin: 0 auto 2em;
+				line-height: 1.6;
+			}
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
 				margin-top: 2rem;
 			}
+			/* 毛玻璃卡片风格 */
 			.tool-card {
 				background: var(--card-bg);
+				backdrop-filter: blur(12px);
 				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 1.5rem;
+				border-radius: 16px;
+				padding: 1.8rem;
 				text-decoration: none;
 				color: var(--text-main);
 				display: flex;
 				flex-direction: column;
-				transition: transform 0.2s, border-color 0.2s;
+				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 			}
-			.tool-card:hover { transform: translateY(-4px); border-color: var(--primary); }
-			.tool-icon { font-size: 2rem; margin-bottom: 0.8rem; }
-			.tool-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
-			.tool-card p { font-size: 0.9rem; color: var(--text-muted); flex: 1; margin-bottom: 1rem; }
-			.tool-tag { font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+			.tool-card:hover {
+				transform: translateY(-6px);
+				border-color: rgba(99, 102, 241, 0.6);
+				box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.3);
+			}
+			.tool-icon {
+				font-size: 2.2rem;
+				margin-bottom: 1rem;
+			}
+			.tool-card h3 {
+				font-size: 1.25rem;
+				font-weight: 700;
+				margin-bottom: 0.6rem;
+			}
+			.tool-card p {
+				font-size: 0.92rem;
+				color: var(--text-muted);
+				flex: 1;
+				margin-bottom: 1.2rem;
+				line-height: 1.6;
+			}
+			.tool-tag {
+				font-size: 0.75rem;
+				color: var(--accent);
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+			@media (max-width: 720px) {
+				.hero h1 { font-size: 2.4rem; }
+			}
 		</style>
 	</head>
 	<body>
-		<Header />
+		<!-- 显式传入 lang="zh" 确保 Header 渲染中文菜单词汇 -->
+		<Header lang="zh" />
 		<main>
 			<section class="hero">
 				<div class="badge">🚀 高效微型 AI 工具箱</div>
@@ -73,7 +129,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 			</section>
 
 			<section>
-				<h2 style="font-size: 1.5rem; font-weight: 700;">精选微工具</h2>
+				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">精选微工具</h2>
 				<div class="tool-grid">
 					
 					<a href="/zh/tools/prompt-refiner" class="tool-card">
@@ -93,6 +149,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 				</div>
 			</section>
 		</main>
-		<Footer />
+		<!-- 显式传入 lang="zh" 确保 Footer 渲染中文版权 -->
+		<Footer lang="zh" />
 	</body>
 </html>
