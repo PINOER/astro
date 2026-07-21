@@ -24,156 +24,214 @@ const getPostPath = (post: any) => {
 		<BaseHead title={`${SITE_TITLE} - 轻量级 AI 工具箱`} description={SITE_DESCRIPTION} />
 		<style>
 			:root {
+				--bg-black: #08090a;
 				--accent: #6366f1;
-				--accent-dark: #4f46e5;
+				--accent-glow: rgba(99, 102, 241, 0.25);
+				--border-color: rgba(255, 255, 255, 0.08);
+				--card-bg: rgba(18, 20, 29, 0.6);
+				--text-title: #f8fafc;
+				--text-muted: #8e9bb0;
 			}
+
+			body {
+				background-color: var(--bg-black);
+				color: var(--text-title);
+				/* 背景放射微光效果 */
+				background-image: 
+					radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.15), transparent 70%),
+					radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.08), transparent 50%);
+				background-attachment: fixed;
+			}
+
 			main {
 				width: 960px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 3em 1em;
+				padding: 4em 1em 6em;
 			}
+
 			.hero {
 				text-align: center;
-				padding: 3em 0 2em;
+				padding: 3em 0 3em;
 			}
-			.hero h1 {
-				font-size: 3rem;
-				font-weight: 800;
-				margin-bottom: 0.5em;
-				line-height: 1.2;
-				color: #0f172a;
-			}
-			.hero p {
-				font-size: 1.25rem;
-				color: #64748b;
-				max-width: 600px;
-				margin: 0 auto 2em;
-			}
+
+			/* 极客发光胶囊 */
 			.badge {
-				display: inline-block;
-				background: rgba(99, 102, 241, 0.1);
-				color: var(--accent);
-				border: 1px solid rgba(99, 102, 241, 0.2);
-				padding: 0.3em 0.8em;
-				border-radius: 20px;
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5rem;
+				background: rgba(255, 255, 255, 0.03);
+				color: #a5b4fc;
+				border: 1px solid rgba(99, 102, 241, 0.3);
+				padding: 0.4em 1em;
+				border-radius: 99px;
 				font-size: 0.85rem;
-				font-weight: 600;
-				margin-bottom: 1em;
+				font-weight: 500;
+				margin-bottom: 1.5em;
+				backdrop-filter: blur(8px);
+				box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
 			}
+
+			/* Vercel 式渐变大标题 */
+			.hero h1 {
+				font-size: 3.8rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				line-height: 1.1;
+				letter-spacing: -0.03em;
+				background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.hero p {
+				font-size: 1.2rem;
+				color: var(--text-muted);
+				max-width: 580px;
+				margin: 0 auto 2em;
+				line-height: 1.6;
+			}
+
 			.section-title {
-				font-size: 1.5rem;
+				font-size: 1.4rem;
 				font-weight: 700;
-				margin: 2em 0 1em;
-				border-bottom: 2px solid #f1f5f9;
-				padding-bottom: 0.5em;
-				color: #0f172a;
+				margin: 3em 0 1.2em;
+				color: #f1f5f9;
+				letter-spacing: -0.02em;
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
 			}
-			/* 微工具网格排版 */
+
+			/* 暗黑极客网格 */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-				gap: 1.5rem;
+				gap: 1.2rem;
 				margin-bottom: 2rem;
 			}
+
+			/* Linear 风格精美透明卡片 */
 			.tool-card {
-				background: #ffffff;
-				border: 1px solid #e2e8f0;
-				border-radius: 12px;
-				padding: 1.5rem;
+				background: var(--card-bg);
+				backdrop-filter: blur(16px);
+				border: 1px solid var(--border-color);
+				border-radius: 14px;
+				padding: 1.6rem;
 				text-decoration: none;
-				color: #0f172a;
+				color: var(--text-title);
 				display: flex;
 				flex-direction: column;
-				transition: 0.2s ease;
+				transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+				position: relative;
+				overflow: hidden;
 			}
+
 			.tool-card:hover {
-				border-color: var(--accent);
-				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
-				transform: translateY(-2px);
+				border-color: rgba(99, 102, 241, 0.5);
+				transform: translateY(-3px);
+				box-shadow: 0 12px 30px -10px var(--accent-glow);
 			}
+
 			.tool-icon {
 				font-size: 1.8rem;
-				margin-bottom: 0.5rem;
+				margin-bottom: 0.8rem;
 			}
+
 			.tool-card h3 {
 				margin: 0 0 0.4rem 0;
 				font-size: 1.15rem;
-				font-weight: 700;
+				font-weight: 600;
+				color: #f8fafc;
 			}
+
 			.tool-card p {
-				font-size: 0.9rem;
-				color: #64748b;
-				margin: 0 0 1rem 0;
+				font-size: 0.88rem;
+				color: var(--text-muted);
+				margin: 0 0 1.2rem 0;
 				flex: 1;
-				line-height: 1.5;
+				line-height: 1.55;
 			}
+
 			.tool-tag {
 				font-size: 0.75rem;
-				color: var(--accent);
+				color: #38bdf8;
 				font-weight: 600;
+				letter-spacing: 0.02em;
 			}
-			/* 博客列表结构 */
+
+			/* 博客文章列表卡片 */
 			ul {
 				display: flex;
 				flex-wrap: wrap;
-				gap: 2rem;
+				gap: 1.5rem;
 				list-style-type: none;
 				margin: 0;
 				padding: 0;
 			}
+
 			ul li {
-				width: calc(50% - 1rem);
+				width: calc(50% - 0.75rem);
 			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-				width: 100%;
-				height: auto;
-			}
+
 			ul li a {
 				display: block;
+				background: var(--card-bg);
+				border: 1px solid var(--border-color);
+				border-radius: 14px;
+				padding: 1.2rem;
+				text-decoration: none;
+				transition: all 0.25s ease;
 			}
+
+			ul li a:hover {
+				border-color: rgba(99, 102, 241, 0.4);
+				transform: translateY(-3px);
+				box-shadow: 0 10px 25px -10px var(--accent-glow);
+			}
+
+			ul li img {
+				margin-bottom: 0.8rem;
+				border-radius: 8px;
+				width: 100%;
+				height: auto;
+				border: 1px solid rgba(255, 255, 255, 0.05);
+			}
+
 			.title {
-				margin: 0;
-				color: #0f172a;
-				line-height: 1.2;
-				font-size: 1.25rem;
+				margin: 0 0 0.4rem 0;
+				color: #f1f5f9;
+				line-height: 1.3;
+				font-size: 1.1rem;
+				font-weight: 600;
 			}
+
 			.date {
 				margin: 0;
-				color: #64748b;
-				font-size: 0.9rem;
+				color: var(--text-muted);
+				font-size: 0.82rem;
 			}
-			ul li a:hover .title {
-				color: var(--accent);
-			}
+
 			@media (max-width: 720px) {
-				ul li {
-					width: 100%;
-				}
-				.hero h1 {
-					font-size: 2.2rem;
-				}
+				ul li { width: 100%; }
+				.hero h1 { font-size: 2.6rem; }
 			}
 		</style>
 	</head>
 	<body>
 		<Header lang="zh" />
 		<main>
-			<!-- Hero 介绍区 -->
+			<!-- Hero 区 -->
 			<section class="hero">
-				<div class="badge">🚀 实用 AI 微型工具集</div>
+				<div class="badge">
+					<span>✨ 高效 AI 极客工具箱</span>
+				</div>
 				<h1>HelpMini</h1>
-				<p>轻量、即时且强劲的 AI 工具，专为每周为你节省数小时而设计。</p>
+				<p>轻量、即时且强劲的 AI 工具与指南，专为每周为你节省数小时而设计。</p>
 			</section>
 
-			<!-- 在线微工具区 -->
-			<h2 class="section-title">精选 AI 微工具</h2>
+			<!-- 微工具区 -->
+			<h2 class="section-title">⚡ 精选 AI 微工具</h2>
 			<div class="tool-grid">
 				<a href="/zh/tools/prompt-refiner" class="tool-card">
 					<div class="tool-icon">📝</div>
@@ -191,7 +249,7 @@ const getPostPath = (post: any) => {
 			</div>
 
 			<!-- 博客内容区 -->
-			<h2 class="section-title">最新文章与指南</h2>
+			<h2 class="section-title">📚 最新文章与指南</h2>
 			<section>
 				<ul>
 					{
