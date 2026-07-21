@@ -146,29 +146,37 @@ const getPathForLang = (lang: string) => {
 	.lang-select-wrapper select {
 		appearance: none;
 		-webkit-appearance: none;
-		background-color: rgba(255, 255, 255, 0.05);
+		background-color: #0f172a; /* 改为固定的暗色背景，防止继承不确定色彩 */
 		border: 1px solid rgba(255, 255, 255, 0.12);
 		border-radius: 8px;
 		padding: 0.35em 2em 0.35em 0.7em;
 		font-size: 0.85rem;
 		font-weight: 600;
-		color: #f8fafc;
+		color: #f8fafc !important; /* 强制设为白色 */
 		cursor: pointer;
 		outline: none;
 		transition: all 0.2s ease;
-		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2094a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+		/* 修复了 Data URI 中的空格转义字符 %20 */
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
 		background-repeat: no-repeat;
 		background-position: right 0.6em center;
 	}
 
 	.lang-select-wrapper select:hover {
 		border-color: rgba(99, 102, 241, 0.6);
-		background-color: rgba(255, 255, 255, 0.08);
+		background-color: #1e293b;
 	}
 
 	.lang-select-wrapper select:focus {
 		border-color: #6366f1;
 		box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+	}
+
+	/* 🎯 关键修复：强制设置下拉菜单选项 (option) 的背景与文字颜色 */
+	.lang-select-wrapper select option {
+		background-color: #0f172a !important; /* 强制选项弹层为深蓝色/黑色 */
+		color: #f8fafc !important;            /* 强制文字为白色 */
+		padding: 0.5em;
 	}
 
 	.social-links,
