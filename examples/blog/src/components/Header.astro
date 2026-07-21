@@ -54,7 +54,7 @@ const getPathForLang = (lang: string) => {
 			</div>
 
 			<!-- 🌙/☀️ 主题一键切换按钮 -->
-			<button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+			<button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button">
 				<span class="icon-dark">🌙</span>
 				<span class="icon-light">☀️</span>
 			</button>
@@ -68,9 +68,8 @@ const getPathForLang = (lang: string) => {
 		</div>
 
 		<div class="social-links">
-			<a href="#" target="_blank">
-				<span class="sr-only">GitHub</span>
-				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24"
+			<a href="#" target="_blank" aria-label="GitHub">
+				<svg viewBox="0 0 16 16" aria-hidden="true" width="20" height="20"
 					><path
 						fill="currentColor"
 						d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
@@ -124,12 +123,14 @@ const getPathForLang = (lang: string) => {
 		align-items: center;
 		justify-content: space-between;
 		max-width: 960px;
+		height: 60px;
 		margin: 0 auto;
 	}
 	.nav-left {
 		display: flex;
 		align-items: center;
 		gap: 0.6rem;
+		flex-shrink: 0;
 	}
 	.internal-links {
 		display: flex;
@@ -137,11 +138,12 @@ const getPathForLang = (lang: string) => {
 		gap: 0.5rem;
 	}
 	nav a {
-		padding: 1.2em 0.6em;
+		padding: 0.5em 0.8em;
 		color: var(--text-muted);
-		border-bottom: 3px solid transparent;
+		border-bottom: 2px solid transparent;
 		text-decoration: none;
 		font-weight: 500;
+		font-size: 0.95rem;
 		transition: color 0.2s, border-color 0.2s;
 	}
 	nav a:hover,
@@ -150,30 +152,35 @@ const getPathForLang = (lang: string) => {
 		border-bottom-color: var(--accent);
 	}
 
-	/* 适配主题变量的语言下拉框 */
+	.lang-select-wrapper {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* 干净且跨平台兼顾的 Select */
 	.lang-select-wrapper select {
 		appearance: none;
 		-webkit-appearance: none;
 		background-color: var(--gray-light);
 		border: 1px solid var(--card-border);
 		border-radius: 8px;
-		padding: 0.35em 2em 0.35em 0.7em;
+		padding: 0.35em 1.8em 0.35em 0.7em;
 		font-size: 0.85rem;
 		font-weight: 600;
 		color: var(--text-main) !important;
 		cursor: pointer;
 		outline: none;
 		transition: all 0.2s ease;
-		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+		background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
 		background-repeat: no-repeat;
-		background-position: right 0.6em center;
+		background-position: right 0.5em center;
+		background-size: 12px;
 	}
 
 	.lang-select-wrapper select:hover {
 		border-color: var(--accent);
 	}
 
-	/* 下拉选项弹窗背景与文字颜色 */
 	.lang-select-wrapper select option {
 		background-color: var(--bg-card) !important;
 		color: var(--text-main) !important;
@@ -192,6 +199,8 @@ const getPathForLang = (lang: string) => {
 		justify-content: center;
 		font-size: 0.9rem;
 		transition: all 0.2s ease;
+		height: 32px;
+		width: 36px;
 	}
 	.theme-toggle-btn:hover {
 		border-color: var(--accent);
@@ -204,7 +213,11 @@ const getPathForLang = (lang: string) => {
 	:global([data-theme="light"]) .icon-light { display: inline; }
 	:global([data-theme="light"]) .icon-dark { display: none; }
 
-	.social-links,
+	.social-links {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
 	.social-links a {
 		display: flex;
 		align-items: center;
@@ -214,9 +227,17 @@ const getPathForLang = (lang: string) => {
 	.social-links a:hover {
 		color: var(--text-main);
 	}
-	@media (max-width: 720px) {
+
+	@media (max-width: 600px) {
 		.social-links {
 			display: none;
+		}
+		nav {
+			padding: 0;
+		}
+		nav a {
+			padding: 0.4em 0.4em;
+			font-size: 0.88rem;
 		}
 	}
 </style>
