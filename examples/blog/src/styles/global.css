@@ -5,14 +5,15 @@
 */
 
 :root {
-	/* 🌙 默认暗黑调色盘 (Dark Theme) */
+	/* 🌙 默认暗黑极客主题 (Dark Theme) */
 	--bg-black: #08090a;
 	--bg-card: rgba(18, 20, 29, 0.75);
-	--border-color: rgba(255, 255, 255, 0.08);
+	--card-border: rgba(255, 255, 255, 0.08);
 	--accent: #6366f1;
-	--accent-glow: rgba(99, 102, 241, 0.25);
+	--accent-hover: #4f46e5;
+	--cyan: #06b6d4;
 	
-	/* 全局文字与基础组件色彩 */
+	/* 文字与基础颜色 */
 	--text-main: #f8fafc;
 	--text-muted: #8e9bb0;
 	--gray-dark: #cbd5e1;
@@ -20,28 +21,51 @@
 	--code-bg: rgba(15, 23, 42, 0.8);
 	--header-bg: rgba(8, 9, 10, 0.8);
 
+	/* 搜索框与下拉框专有变量 */
+	--search-bg: rgba(15, 23, 42, 0.85);
+	--dropdown-bg: rgba(15, 23, 42, 0.95);
+	--dropdown-hover: rgba(99, 102, 241, 0.2);
+
+	/* 标题渐变与光晕 */
+	--hero-title-gradient: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+	--badge-bg: rgba(99, 102, 241, 0.15);
+	--badge-color: #a5b4fc;
+	--badge-border: rgba(99, 102, 241, 0.3);
+
 	/* 背景极光渐变 */
 	--aurora-1: rgba(99, 102, 241, 0.18);
 	--aurora-2: rgba(6, 182, 212, 0.08);
 }
 
-/* ☀️ 优雅护眼的亮色主题配置 (Light Theme) */
+/* ☀️ 优雅护眼浅色主题 (Light Theme) */
 [data-theme="light"] {
-	--bg-black: #f4f6f8;
-	--bg-card: #ffffff;
-	--border-color: #d1d5db;
+	--bg-black: #f4f6f8;        /* 柔和灰底，告别刺眼纯白 */
+	--bg-card: #ffffff;         /* 纯白立体卡片 */
+	--card-border: #e2e8f0;    /* 清晰柔和边框 */
 	--accent: #4f46e5;
-	--accent-glow: rgba(79, 70, 229, 0.15);
-	
-	/* 全局文字调深，保证清晰度 */
-	--text-main: #0f172a;
-	--text-muted: #475569;
+	--accent-hover: #4338ca;
+	--cyan: #0284c7;
+
+	/* 全局文字调深，清晰锐利 */
+	--text-main: #0f172a;       /* 深邃文字色 */
+	--text-muted: #475569;      /* 次要说明文字色 */
 	--gray-dark: #1e293b;
 	--gray-light: #f1f5f9;
 	--code-bg: #f8fafc;
-	--header-bg: rgba(244, 246, 248, 0.9);
+	--header-bg: rgba(244, 246, 248, 0.85);
 
-	/* 背景极光渐变 */
+	/* 搜索框与下拉框亮色适配 */
+	--search-bg: #ffffff;
+	--dropdown-bg: #ffffff;
+	--dropdown-hover: #f1f5f9;
+
+	/* 标题渐变与徽章 */
+	--hero-title-gradient: linear-gradient(135deg, #0f172a 0%, #312e81 50%, #0284c7 100%);
+	--badge-bg: rgba(79, 70, 229, 0.08);
+	--badge-color: #4338ca;
+	--badge-border: rgba(79, 70, 229, 0.2);
+
+	/* 背景极光渐变（微弱自然） */
 	--aurora-1: rgba(99, 102, 241, 0.06);
 	--aurora-2: rgba(6, 182, 212, 0.04);
 }
@@ -68,7 +92,7 @@ main {
 	padding: 3em 1em;
 }
 
-/* 标题层次与字体优化 */
+/* 标题层次与字体 */
 h1, h2, h3, h4, h5, h6 {
 	margin: 0 0 0.6rem 0;
 	color: var(--text-main);
@@ -103,12 +127,12 @@ p {
 	line-height: 1.7;
 }
 
-/* 表单与输入控件样式 */
+/* 表单与输入控件 */
 textarea, input {
 	font-size: 16px;
 	background-color: var(--bg-card);
 	color: var(--text-main);
-	border: 1px solid var(--border-color);
+	border: 1px solid var(--card-border);
 	border-radius: 8px;
 	padding: 0.8em;
 }
@@ -119,7 +143,7 @@ img {
 	border-radius: 8px;
 }
 
-/* 代码块与引用区适配 */
+/* 代码块与引用区 */
 code {
 	padding: 2px 6px;
 	background-color: var(--gray-light);
@@ -131,7 +155,7 @@ pre {
 	padding: 1.2em;
 	border-radius: 8px;
 	background-color: var(--code-bg) !important;
-	border: 1px solid var(--border-color);
+	border: 1px solid var(--card-border);
 	overflow-x: auto;
 }
 pre > code {
@@ -147,7 +171,7 @@ blockquote {
 }
 hr {
 	border: none;
-	border-top: 1px solid var(--border-color);
+	border-top: 1px solid var(--card-border);
 	margin: 2em 0;
 }
 
@@ -171,48 +195,4 @@ hr {
 	clip: rect(1px, 1px, 1px, 1px);
 	clip-path: inset(50%);
 	white-space: nowrap;
-}
-
-/* =========================================================
-   🔥 终极杀招：使用全局通配强刷，穿透 Astro Scoped CSS 隔离
-   ========================================================= */
-
-/* 1. 亮色模式下，强行重置所有元素的文字颜色（除非是带有按键或特定样式的元素） */
-html[data-theme="light"] *,
-html[data-theme="light"] *::before,
-html[data-theme="light"] *::after {
-	color: #0f172a !important; /* 强制设为深深蓝/黑 */
-	border-color: #d1d5db !important;
-}
-
-/* 2. 亮色模式下，修复卡片与容器的深色背景 */
-html[data-theme="light"] body,
-html[data-theme="light"] main,
-html[data-theme="light"] div,
-html[data-theme="light"] section,
-html[data-theme="light"] article,
-html[data-theme="light"] form,
-html[data-theme="light"] input,
-html[data-theme="light"] textarea,
-html[data-theme="light"] select {
-	background-color: #ffffff;
-}
-
-/* 3. 页面背景依然保持柔和灰，与卡片区分开 */
-html[data-theme="light"] body {
-	background-color: #f4f6f8 !important;
-}
-
-/* 4. 保留次要辅助文字的灰度 */
-html[data-theme="light"] .text-muted,
-html[data-theme="light"] small,
-html[data-theme="light"] time,
-html[data-theme="light"] .desc {
-	color: #64748b !important;
-}
-
-/* 5. 链接与按钮主题色保证加深高亮 */
-html[data-theme="light"] a,
-html[data-theme="light"] button {
-	color: #4f46e5;
 }
