@@ -1,0 +1,257 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+const pageTitle = `LLM Token & Context Limit Calculator — ${SITE_TITLE}`;
+const pageDescription = "Calculate exact token counts and estimate API costs across GPT-4o, Claude 3.5, DeepSeek, and Gemini 1.5.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			:root {
+				--primary: #6366f1;
+				--primary-hover: #4f46e5;
+				--accent: #06b6d4;
+				--bg-dark: #0f172a;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+				--card-bg: rgba(30, 41, 59, 0.7);
+				--card-border: rgba(255, 255, 255, 0.1);
+			}
+			body {
+				background-color: var(--bg-dark);
+				color: var(--text-main);
+			}
+			main {
+				width: 850px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--card-bg);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+			}
+			.form-group {
+				margin-bottom: 1.5em;
+			}
+			label {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 0.5em;
+				color: var(--text-main);
+			}
+			textarea {
+				width: 100%;
+				padding: 1em;
+				background: #0f172a;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				color: #fff;
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+				resize: vertical;
+				line-height: 1.5;
+			}
+			textarea:focus {
+				border-color: var(--primary);
+			}
+			.stats-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+				gap: 1rem;
+				margin-top: 1.5em;
+				margin-bottom: 2em;
+			}
+			.stat-card {
+				background: rgba(15, 23, 42, 0.6);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2rem;
+				text-align: center;
+			}
+			.stat-value {
+				font-size: 1.8rem;
+				font-weight: 800;
+				color: var(--accent);
+				margin-bottom: 0.2rem;
+			}
+			.stat-label {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+			.model-comparison {
+				margin-top: 2em;
+				border-top: 1px solid var(--card-border);
+				padding-top: 1.5em;
+			}
+			.model-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.8em 0;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+			}
+			.model-name {
+				font-weight: 600;
+				font-size: 0.95rem;
+			}
+			.progress-bar-bg {
+				flex: 1;
+				height: 8px;
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 4px;
+				margin: 0 1.5rem;
+				overflow: hidden;
+			}
+			.progress-bar-fill {
+				height: 100%;
+				background: var(--primary);
+				border-radius: 4px;
+				width: 0%;
+				transition: width 0.3s ease;
+			}
+			.model-limit {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				min-width: 80px;
+				text-align: right;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>📊 LLM Token & Context Limit Calculator</h1>
+				<p>Estimate tokens, character counts, and model capacity limits instantly.</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="form-group">
+					<label for="inputText">Paste or Type Your Text / Prompt Below:</label>
+					<textarea id="inputText" rows="8" placeholder="Paste your article, code, or prompt here to calculate tokens..."></textarea>
+				</div>
+
+				<div class="stats-grid">
+					<div class="stat-card">
+						<div class="stat-value" id="tokenCount">0</div>
+						<div class="stat-label">Estimated Tokens</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value" id="charCount">0</div>
+						<div class="stat-label">Characters</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value" id="wordCount">0</div>
+						<div class="stat-label">Words</div>
+					</div>
+				</div>
+
+				<div class="model-comparison">
+					<h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1em;">Context Window Usage Comparison</h3>
+					
+					<div class="model-row">
+						<span class="model-name">GPT-4o (128k)</span>
+						<div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-gpt4o"></div></div>
+						<span class="model-limit" id="text-gpt4o">0%</span>
+					</div>
+
+					<div class="model-row">
+						<span class="model-name">Claude 3.5 Sonnet (200k)</span>
+						<div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-claude"></div></div>
+						<span class="model-limit" id="text-claude">0%</span>
+					</div>
+
+					<div class="model-row">
+						<span class="model-name">DeepSeek V3 / R1 (64k)</span>
+						<div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-deepseek"></div></div>
+						<span class="model-limit" id="text-deepseek">0%</span>
+					</div>
+
+					<div class="model-row">
+						<span class="model-name">Gemini 1.5 Pro (2M)</span>
+						<div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-gemini"></div></div>
+						<span class="model-limit" id="text-gemini">0%</span>
+					</div>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			const inputText = document.getElementById('inputText') as HTMLTextAreaElement;
+			const tokenCountEl = document.getElementById('tokenCount') as HTMLDivElement;
+			const charCountEl = document.getElementById('charCount') as HTMLDivElement;
+			const wordCountEl = document.getElementById('wordCount') as HTMLDivElement;
+
+			const models = {
+				gpt4o: { limit: 128000, bar: document.getElementById('bar-gpt4o'), text: document.getElementById('text-gpt4o') },
+				claude: { limit: 200000, bar: document.getElementById('bar-claude'), text: document.getElementById('text-claude') },
+				deepseek: { limit: 64000, bar: document.getElementById('bar-deepseek'), text: document.getElementById('text-deepseek') },
+				gemini: { limit: 2000000, bar: document.getElementById('bar-gemini'), text: document.getElementById('text-gemini') }
+			};
+
+			inputText?.addEventListener('input', () => {
+				const text = inputText.value;
+				const charCount = text.length;
+				
+				// 计算单词数
+				const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+				
+				// 启发式混合 Token 估计（英文 1 token ≈ 4 字符，中文 1 token ≈ 1.5 字符）
+				let tokens = 0;
+				for (let i = 0; i < text.length; i++) {
+					const code = text.charCodeAt(i);
+					if (code > 255) {
+						tokens += 0.65; // CJK 中日韩字符
+					} else {
+						tokens += 0.25; // 英文字符/数字/标点
+					}
+				}
+				const finalTokens = Math.ceil(tokens);
+
+				tokenCountEl.textContent = finalTokens.toLocaleString();
+				charCountEl.textContent = charCount.toLocaleString();
+				wordCountEl.textContent = words.toLocaleString();
+
+				// 更新大模型上下文占比进度条
+				Object.values(models).forEach(m => {
+					if (m.bar && m.text) {
+						const percentage = Math.min(((finalTokens / m.limit) * 100), 100);
+						m.bar.style.width = `${percentage}%`;
+						m.text.textContent = percentage < 0.01 && finalTokens > 0 ? '<0.01%' : `${percentage.toFixed(2)}%`;
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
