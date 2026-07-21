@@ -1,0 +1,213 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+const pageTitle = `JSON & YAML Formatter / Converter — ${SITE_TITLE}`;
+const pageDescription = "Fast, secure, 100% client-side JSON formatter, validator, and YAML converter for developers and store owners.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			:root {
+				--primary: #6366f1;
+				--primary-hover: #4f46e5;
+				--accent: #06b6d4;
+				--bg-dark: #0f172a;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+				--card-bg: rgba(30, 41, 59, 0.7);
+				--card-border: rgba(255, 255, 255, 0.1);
+			}
+			body {
+				background-color: var(--bg-dark);
+				color: var(--text-main);
+			}
+			main {
+				width: 900px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--card-bg);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+				margin-bottom: 1rem;
+				flex-wrap: wrap;
+			}
+			.btn {
+				background: rgba(255, 255, 255, 0.08);
+				border: 1px solid var(--card-border);
+				color: #fff;
+				padding: 0.5em 1em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.btn:hover {
+				background: rgba(99, 102, 241, 0.3);
+				border-color: var(--primary);
+			}
+			.btn-primary {
+				background: var(--primary);
+				border-color: var(--primary);
+			}
+			.btn-primary:hover {
+				background: var(--primary-hover);
+			}
+			.editor-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			textarea {
+				width: 100%;
+				height: 380px;
+				padding: 1em;
+				background: #090d16;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				color: #38bdf8;
+				font-family: monospace;
+				font-size: 0.88rem;
+				box-sizing: border-box;
+				outline: none;
+				resize: vertical;
+				line-height: 1.5;
+			}
+			textarea:focus {
+				border-color: var(--primary);
+			}
+			.status-bar {
+				margin-top: 1rem;
+				font-size: 0.85rem;
+				padding: 0.6em 1em;
+				border-radius: 6px;
+				display: none;
+			}
+			.status-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+			.status-error { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+			@media (max-width: 720px) {
+				.editor-grid { grid-template-columns: 1fr; }
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>⚙️ JSON Formatter & Validator</h1>
+				<p>100% private, client-side JSON formatting, validation, and minification.</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="btn-group">
+					<button class="btn btn-primary" id="btnFormat">Prettify (2 Spaces)</button>
+					<button class="btn" id="btnMinify">Minify JSON</button>
+					<button class="btn" id="btnClear">Clear</button>
+					<button class="btn" id="btnCopy" style="margin-left: auto;">Copy Output</button>
+				</div>
+
+				<div class="editor-grid">
+					<div>
+						<label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Input JSON:</label>
+						<textarea id="jsonInput" placeholder='Paste your raw JSON here... e.g. {"name": "HelpMini", "status": "active"}'></textarea>
+					</div>
+					<div>
+						<label style="display: block; margin-bottom: 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Formatted / Validated Output:</label>
+						<textarea id="jsonOutput" readonly placeholder="Output will appear here..."></textarea>
+					</div>
+				</div>
+
+				<div id="statusBar" class="status-bar"></div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			const jsonInput = document.getElementById('jsonInput') as HTMLTextAreaElement;
+			const jsonOutput = document.getElementById('jsonOutput') as HTMLTextAreaElement;
+			const statusBar = document.getElementById('statusBar') as HTMLDivElement;
+
+			const btnFormat = document.getElementById('btnFormat');
+			const btnMinify = document.getElementById('btnMinify');
+			const btnClear = document.getElementById('btnClear');
+			const btnCopy = document.getElementById('btnCopy');
+
+			function showStatus(msg: string, isError = false) {
+				statusBar.style.display = 'block';
+				statusBar.className = `status-bar ${isError ? 'status-error' : 'status-success'}`;
+				statusBar.textContent = msg;
+			}
+
+			btnFormat?.addEventListener('click', () => {
+				try {
+					const raw = jsonInput.value.trim();
+					if (!raw) return;
+					const parsed = JSON.parse(raw);
+					jsonOutput.value = JSON.stringify(parsed, null, 2);
+					showStatus('Valid JSON! Successfully formatted.');
+				} catch (err: any) {
+					jsonOutput.value = '';
+					showStatus(`Invalid JSON Syntax: ${err.message}`, true);
+				}
+			});
+
+			btnMinify?.addEventListener('click', () => {
+				try {
+					const raw = jsonInput.value.trim();
+					if (!raw) return;
+					const parsed = JSON.parse(raw);
+					jsonOutput.value = JSON.stringify(parsed);
+					showStatus('Valid JSON! Successfully minified.');
+				} catch (err: any) {
+					jsonOutput.value = '';
+					showStatus(`Invalid JSON Syntax: ${err.message}`, true);
+				}
+			});
+
+			btnClear?.addEventListener('click', () => {
+				jsonInput.value = '';
+				jsonOutput.value = '';
+				statusBar.style.display = 'none';
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!jsonOutput.value) return;
+				navigator.clipboard.writeText(jsonOutput.value);
+				btnCopy.textContent = 'Copied!';
+				setTimeout(() => { btnCopy.textContent = 'Copy Output'; }, 2000);
+			});
+		</script>
+	</body>
+</html>
