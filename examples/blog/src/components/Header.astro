@@ -113,7 +113,7 @@ const getPathForLang = (lang: string) => {
 		padding: 0 1em;
 		background: var(--header-bg);
 		backdrop-filter: blur(12px);
-		border-bottom: 1px solid var(--border-color);
+		border-bottom: 1px solid var(--card-border);
 		position: sticky;
 		top: 0;
 		z-index: 100;
@@ -155,7 +155,7 @@ const getPathForLang = (lang: string) => {
 		appearance: none;
 		-webkit-appearance: none;
 		background-color: var(--gray-light);
-		border: 1px solid var(--border-color);
+		border: 1px solid var(--card-border);
 		border-radius: 8px;
 		padding: 0.35em 2em 0.35em 0.7em;
 		font-size: 0.85rem;
@@ -173,8 +173,9 @@ const getPathForLang = (lang: string) => {
 		border-color: var(--accent);
 	}
 
+	/* 下拉选项弹窗背景与文字颜色 */
 	.lang-select-wrapper select option {
-		background-color: var(--bg-black) !important;
+		background-color: var(--bg-card) !important;
 		color: var(--text-main) !important;
 		padding: 0.5em;
 	}
@@ -182,7 +183,7 @@ const getPathForLang = (lang: string) => {
 	/* 暗黑/亮色 切换按钮 */
 	.theme-toggle-btn {
 		background: var(--gray-light);
-		border: 1px solid var(--border-color);
+		border: 1px solid var(--card-border);
 		border-radius: 8px;
 		padding: 0.35em 0.6em;
 		cursor: pointer;
