@@ -1,31 +1,145 @@
 ---
-import AboutHeroImage from 'src/assets/blog-placeholder-about.jpg';
-import Layout from 'src/layouts/BlogPost.astro';
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+const pageTitle = `关于我们 — ${SITE_TITLE}`;
+const pageDescription = "HelpMini 致力于为开发者、营销人员与跨境从业者提供极简、即时且 100% 隐私安全的微型 AI 与开发工具箱。";
 ---
 
-<Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage={AboutHeroImage}
->
-	<p>
-测试
-	</p>
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			:root {
+				--primary: #6366f1;
+				--accent: #06b6d4;
+				--bg-dark: #0f172a;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+				--card-bg: rgba(30, 41, 59, 0.7);
+				--card-border: rgba(255, 255, 255, 0.1);
+			}
+			body {
+				background-color: var(--bg-dark);
+				color: var(--text-main);
+			}
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.about-header {
+				text-align: center;
+				margin-bottom: 3em;
+			}
+			.about-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.4em;
+				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.about-header p {
+				color: var(--text-muted);
+				font-size: 1.15rem;
+			}
+			.content-card {
+				background: var(--card-bg);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2.5em;
+				line-height: 1.8;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+			}
+			.content-card h2 {
+				font-size: 1.4rem;
+				color: #fff;
+				margin: 1.8em 0 0.8em;
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+			.content-card h2:first-child { margin-top: 0; }
+			.content-card p {
+				color: var(--text-muted);
+				margin-bottom: 1.2em;
+			}
+			.feature-list {
+				list-style: none;
+				padding: 0;
+				margin: 0 0 1.5em;
+			}
+			.feature-list li {
+				margin-bottom: 1em;
+				color: var(--text-main);
+			}
+			.feature-list strong { color: #a5b4fc; }
+			.contact-box {
+				background: rgba(99, 102, 241, 0.1);
+				border: 1px solid rgba(99, 102, 241, 0.25);
+				border-radius: 12px;
+				padding: 1.5em;
+				margin-top: 2em;
+				text-align: center;
+			}
+			.contact-box a {
+				color: var(--accent);
+				font-weight: 600;
+				text-decoration: none;
+			}
+			.contact-box a:hover { text-decoration: underline; }
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="about-header">
+				<h1>关于 HelpMini</h1>
+				<p>🚀 用微型工具，解决生产力大问题</p>
+			</div>
 
-	<p>
-测试
-	</p>
+			<div class="content-card">
+				<h2>💡 我们的初衷</h2>
+				<p>
+					<strong>HelpMini</strong> 诞生于一个非常简单的初衷：<strong>在 AI 与数字营销时代，让开发者、营销人员与跨境从业者不再为繁琐的工具链和复杂的操作买单。</strong>
+				</p>
+				<p>
+					在日常工作与开发中，我们常常需要进行提示词结构化优化、Token 消耗计算、SEO 标题预览、JSON 语法排错，或是各种文本编解码。市面上的许多传统工具要么充斥着复杂的广告，要么极其臃肿，甚至悄悄将敏感数据上传到服务器后端，让人用得极不安心。
+				</p>
+				<p>
+					因此，我们打造了 <strong>HelpMini</strong> —— 一个追求<strong>极简、即时、100% 隐私安全</strong>的轻量级微工具矩阵。
+				</p>
 
-	<p>
-测试
-	</p>
+				<h2>⚡ 核心价值观</h2>
+				<ul class="feature-list">
+					<li><strong>⚡ 极速即时 (Instant & Lightweight)：</strong> 没有复杂的注册流程，没有冗长的页面过渡。打开即用，用完即走，每周为你节省数小时的无效耗时。</li>
+					<li><strong>🔒 100% 本地计算与隐私安全 (Client-Side Privacy First)：</strong> 你的敏感 API Key、数据配置与业务文本永远只在你的浏览器本地处理，绝不经过或存储到我们的任何服务器，让你用得完全放心。</li>
+					<li><strong>🎯 场景驱动 (Built for Real Workflows)：</strong> 每一个微工具都源于真实的开发、营销与跨境运营场景，专注于精准击中痛点，去除一切虚浮功能。</li>
+				</ul>
 
-	<p>
-测试
-	</p>
+				<h2>🛠️ 我们提供什么？</h2>
+				<p>在 HelpMini，你可以找到涵盖以下领域的微型工具与深度指南：</p>
+				<ul class="feature-list">
+					<li><strong>AI & Prompt 效率工具：</strong> 提示词结构化优化 (CO-STAR)、LLM Token & 上下文极限计算。</li>
+					<li><strong>开发者与数据辅助工具：</strong> JSON 格式化与语法排错、Base64 & URL 编解码器。</li>
+					<li><strong>SEO 与跨境营销工具：</strong> Google SERP 实时预览与 SEO 元数据生成。</li>
+				</ul>
 
-	<p>
-测试
-	</p>
-</Layout>
+				<div class="contact-box">
+					<h3 style="margin:0 0 0.5em; color:#fff; font-size:1.1rem;">📫 联系与反馈</h3>
+					<p style="margin:0;">如果您有任何新工具的需求建议、 Bug 反馈或商业合作意向，欢迎随时发邮件联系我们：</p>
+					<p style="margin:0.5em 0 0; font-size:1.1rem;">
+						📧 <a href="mailto:162000080@qq.com">162000080@qq.com</a>
+					</p>
+				</div>
+			</div>
+		</main>
+		<Footer lang="zh" />
+	</body>
+</html>
