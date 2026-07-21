@@ -1,52 +1,10 @@
-import os
-from PIL import Image, ImageDraw, ImageFont
-
-# Create image dimensions (1200x630, standard 16:9 social hero image)
-width, height = 1200, 630
-image = Image.new('RGBA', (width, height), '#08090a')
-draw = ImageDraw.Draw(image)
-
-# Draw dark grid lines in background
-for x in range(0, width, 150):
-    draw.line([(x, 0), (x, height)], fill=(255, 255, 255, 8), width=1)
-for y in range(0, height, 150):
-    draw.line([(0, y), (width, y)], fill=(255, 255, 255, 8), width=1)
-
-# Outer container card
-card_rect = [220, 140, 980, 500]
-draw.rounded_rectangle(card_rect, radius=20, fill=(18, 20, 29, 220), outline=(255, 255, 255, 30), width=2)
-
-# Inner Code Box
-code_rect = [260, 210, 940, 450]
-draw.rounded_rectangle(code_rect, radius=12, fill=(9, 13, 22, 255), outline=(255, 255, 255, 20), width=1)
-
-# Mac Window dots
-draw.ellipse([285-5, 232-5, 285+5, 232+5], fill='#ef4444')
-draw.ellipse([300-5, 232-5, 300+5, 232+5], fill='#f59e0b')
-draw.ellipse([315-5, 232-5, 315+5, 232+5], fill='#10b981')
-
-# Badge on top
-badge_rect = [490, 75, 710, 111]
-draw.rounded_rectangle(badge_rect, radius=18, fill=(99, 102, 241, 38), outline=(99, 102, 241, 76), width=1)
-
-# Save SVG file
-svg_content = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <!-- Background Gradient -->
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#08090a"/>
       <stop offset="50%" stop-color="#0f172a"/>
       <stop offset="100%" stop-color="#020617"/>
     </linearGradient>
-    
-    <!-- Neon Accent Gradient -->
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#06b6d4"/>
-      <stop offset="50%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#a855f7"/>
-    </linearGradient>
-
-    <!-- Glow Filter -->
     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="15" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
@@ -70,18 +28,18 @@ svg_content = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" 
   <circle cx="600" cy="120" r="220" fill="#06b6d4" opacity="0.12" filter="url(#glow)" />
   <circle cx="850" cy="280" r="150" fill="#6366f1" opacity="0.08" filter="url(#glow)" />
 
-  <!-- Main Container Card -->
+  <!-- Main Card -->
   <rect x="220" y="140" width="760" height="360" rx="20" fill="rgba(18, 20, 29, 0.75)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
 
   <!-- Code Window -->
   <rect x="260" y="210" width="680" height="240" rx="12" fill="#090d16" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
 
-  <!-- Mac Window Dots -->
+  <!-- Window Control Dots -->
   <circle cx="285" cy="232" r="5" fill="#ef4444" opacity="0.8" />
   <circle cx="300" cy="232" r="5" fill="#f59e0b" opacity="0.8" />
   <circle cx="315" cy="232" r="5" fill="#10b981" opacity="0.8" />
 
-  <!-- Code Syntax Highlights -->
+  <!-- Code Text -->
   <text x="285" y="270" font-family="monospace" font-size="15" fill="#94a3b8">Raw Text: <tspan fill="#38bdf8">HelpMini AI Tools</tspan></text>
   <text x="285" y="305" font-family="monospace" font-size="15" fill="#94a3b8">Base64  : <tspan fill="#4ade80">SGVscE1pbmkgQUkgVG9vbHM=</tspan></text>
   <text x="285" y="340" font-family="monospace" font-size="15" fill="#94a3b8">URL Enc : <tspan fill="#a5b4fc">https%3A%2F%2Fhelpmini.com%2F</tspan></text>
@@ -90,17 +48,8 @@ svg_content = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" 
   <rect x="285" y="380" width="230" height="30" rx="6" fill="rgba(6,182,212,0.15)" stroke="rgba(6,182,212,0.3)" stroke-width="1" />
   <text x="298" y="400" font-family="-apple-system, sans-serif" font-size="12" font-weight="600" fill="#38bdf8">✓ UTF-8 &amp; Client-Side Safe</text>
 
-  <!-- Main Title -->
+  <!-- Title & Badge -->
   <text x="260" y="182" font-family="-apple-system, sans-serif" font-size="22" font-weight="bold" fill="#ffffff">🔤 Base64 &amp; URL Encoder / Decoder</text>
-
-  <!-- Top Pill Badge -->
   <rect x="490" y="75" width="220" height="36" rx="18" fill="rgba(6,182,212,0.15)" stroke="rgba(6,182,212,0.3)" stroke-width="1" />
   <text x="600" y="98" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#38bdf8" text-anchor="middle">⚡ WEB UTILITY TOOL</text>
 </svg>
-'''
-
-os.makedirs('public/images', exist_ok=True)
-with open('public/images/base64-url-converter-hero.svg', 'w', encoding='utf-8') as f:
-    f.write(svg_content)
-
-print("SVG Generated successfully at public/images/base64-url-converter-hero.svg")
