@@ -21,7 +21,7 @@ if (!propLang) {
 	}
 }
 
-// 3. 导航栏文案字典（添加更多语言只需在这里扩展）
+// 3. 导航栏文案字典
 const translations: Record<string, { home: string; blog: string; about: string }> = {
 	en: { home: 'Home', blog: 'Blog', about: 'About' },
 	zh: { home: '首页', blog: '博客', about: '关于' },
@@ -44,20 +44,22 @@ const getPathForLang = (lang: string) => {
 
 <header>
 	<nav>
-<!-- 多语言下拉选择框 -->
+		<div class="nav-left">
+			<!-- 多语言下拉选择框 -->
 			<div class="lang-select-wrapper">
 				<select id="language-select" aria-label="Language selector">
 					<option value={getPathForLang('en')} selected={currentLang === 'en'}>🌐 English</option>
 					<option value={getPathForLang('zh')} selected={currentLang === 'zh'}>🇨🇳 中文</option>
-					
-					<!-- 预留扩展语言 -->
-					<!-- <option value={getPathForLang('es')} selected={currentLang === 'es'}>🇪🇸 Español</option> -->
-					<!-- <option value={getPathForLang('de')} selected={currentLang === 'de'}>🇩🇪 Deutsch</option> -->
-					<!-- <option value={getPathForLang('ja')} selected={currentLang === 'ja'}>🇯🇵 日本語</option> -->
 				</select>
 			</div>
 
-		<!-- <h2><a href={currentLang === 'en' ? '/' : `/${currentLang}/`}>HelpMini</a></h2>  -->
+			<!-- 🌙/☀️ 主题一键切换按钮 -->
+			<button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+				<span class="icon-dark">🌙</span>
+				<span class="icon-light">☀️</span>
+			</button>
+		</div>
+
 		<div class="internal-links">
 			<!-- 动态渲染不同语言的菜单文案 -->
 			<HeaderLink href={currentLang === 'en' ? '/' : `/${currentLang}/`}>{t.home}</HeaderLink>
@@ -68,7 +70,7 @@ const getPathForLang = (lang: string) => {
 		<div class="social-links">
 			<a href="#" target="_blank">
 				<span class="sr-only">GitHub</span>
-				<svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32"
+				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24"
 					><path
 						fill="currentColor"
 						d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
@@ -80,6 +82,7 @@ const getPathForLang = (lang: string) => {
 </header>
 
 <script>
+	// 1. 语言切换器逻辑
 	const selectEl = document.getElementById('language-select') as HTMLSelectElement;
 	if (selectEl) {
 		selectEl.addEventListener('change', (e) => {
@@ -89,26 +92,32 @@ const getPathForLang = (lang: string) => {
 			}
 		});
 	}
+
+	// 2. 主题一键切换逻辑
+	const themeToggleBtn = document.getElementById('theme-toggle');
+	themeToggleBtn?.addEventListener('click', () => {
+		const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+		if (isLight) {
+			document.documentElement.removeAttribute('data-theme');
+			localStorage.setItem('theme', 'dark');
+		} else {
+			document.documentElement.setAttribute('data-theme', 'light');
+			localStorage.setItem('theme', 'light');
+		}
+	});
 </script>
 
 <style>
 	header {
 		margin: 0;
 		padding: 0 1em;
-		background: rgba(8, 9, 10, 0.75);
+		background: var(--header-bg);
 		backdrop-filter: blur(12px);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		border-bottom: 1px solid var(--border-color);
 		position: sticky;
 		top: 0;
 		z-index: 100;
-	}
-	h2 {
-		margin: 0;
-		font-size: 1em;
-	}
-	h2 a {
-		text-decoration: none;
-		color: #f8fafc;
+		transition: background-color 0.3s ease, border-color 0.3s ease;
 	}
 	nav {
 		display: flex;
@@ -117,6 +126,11 @@ const getPathForLang = (lang: string) => {
 		max-width: 960px;
 		margin: 0 auto;
 	}
+	.nav-left {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
 	.internal-links {
 		display: flex;
 		align-items: center;
@@ -124,7 +138,7 @@ const getPathForLang = (lang: string) => {
 	}
 	nav a {
 		padding: 1.2em 0.6em;
-		color: #94a3b8;
+		color: var(--text-muted);
 		border-bottom: 3px solid transparent;
 		text-decoration: none;
 		font-weight: 500;
@@ -132,61 +146,72 @@ const getPathForLang = (lang: string) => {
 	}
 	nav a:hover,
 	nav a.active {
-		color: #f8fafc;
-		border-bottom-color: #6366f1;
+		color: var(--text-main);
+		border-bottom-color: var(--accent);
 	}
 
-	.lang-select-wrapper {
-		margin-left: 0.8rem;
-		display: inline-flex;
-		align-items: center;
-	}
-
-	/* 暗黑科技感 Select */
+	/* 适配主题变量的语言下拉框 */
 	.lang-select-wrapper select {
 		appearance: none;
 		-webkit-appearance: none;
-		background-color: #0f172a; /* 改为固定的暗色背景，防止继承不确定色彩 */
-		border: 1px solid rgba(255, 255, 255, 0.12);
+		background-color: var(--gray-light);
+		border: 1px solid var(--border-color);
 		border-radius: 8px;
 		padding: 0.35em 2em 0.35em 0.7em;
 		font-size: 0.85rem;
 		font-weight: 600;
-		color: #f8fafc !important; /* 强制设为白色 */
+		color: var(--text-main) !important;
 		cursor: pointer;
 		outline: none;
 		transition: all 0.2s ease;
-		/* 修复了 Data URI 中的空格转义字符 %20 */
 		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
 		background-repeat: no-repeat;
 		background-position: right 0.6em center;
 	}
 
 	.lang-select-wrapper select:hover {
-		border-color: rgba(99, 102, 241, 0.6);
-		background-color: #1e293b;
+		border-color: var(--accent);
 	}
 
-	.lang-select-wrapper select:focus {
-		border-color: #6366f1;
-		box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
-	}
-
-	/* 🎯 关键修复：强制设置下拉菜单选项 (option) 的背景与文字颜色 */
 	.lang-select-wrapper select option {
-		background-color: #0f172a !important; /* 强制选项弹层为深蓝色/黑色 */
-		color: #f8fafc !important;            /* 强制文字为白色 */
+		background-color: var(--bg-black) !important;
+		color: var(--text-main) !important;
 		padding: 0.5em;
 	}
+
+	/* 暗黑/亮色 切换按钮 */
+	.theme-toggle-btn {
+		background: var(--gray-light);
+		border: 1px solid var(--border-color);
+		border-radius: 8px;
+		padding: 0.35em 0.6em;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.9rem;
+		transition: all 0.2s ease;
+	}
+	.theme-toggle-btn:hover {
+		border-color: var(--accent);
+	}
+
+	/* 图标按主题动态切换显示 */
+	.icon-light { display: none; }
+	.icon-dark { display: inline; }
+
+	:global([data-theme="light"]) .icon-light { display: inline; }
+	:global([data-theme="light"]) .icon-dark { display: none; }
 
 	.social-links,
 	.social-links a {
 		display: flex;
-		color: #94a3b8;
+		align-items: center;
+		color: var(--text-muted);
 		transition: color 0.2s;
 	}
 	.social-links a:hover {
-		color: #f8fafc;
+		color: var(--text-main);
 	}
 	@media (max-width: 720px) {
 		.social-links {
