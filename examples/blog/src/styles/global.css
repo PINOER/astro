@@ -33,7 +33,7 @@
 	--accent: #4f46e5;
 	--accent-glow: rgba(79, 70, 229, 0.15);
 	
-	/* 全局文字调深，保证高对比度清晰度 */
+	/* 全局文字调深，保证清晰度 */
 	--text-main: #0f172a;
 	--text-muted: #475569;
 	--gray-dark: #1e293b;
@@ -174,48 +174,45 @@ hr {
 }
 
 /* =========================================================
-   🎯 亮色主题平铺选择器修复（无嵌套，兼容所有构建工具）
+   🔥 终极杀招：使用全局通配强刷，穿透 Astro Scoped CSS 隔离
    ========================================================= */
 
-[data-theme="light"] div,
-[data-theme="light"] section,
-[data-theme="light"] article,
-[data-theme="light"] main {
-	color: var(--text-main);
+/* 1. 亮色模式下，强行重置所有元素的文字颜色（除非是带有按键或特定样式的元素） */
+html[data-theme="light"] *,
+html[data-theme="light"] *::before,
+html[data-theme="light"] *::after {
+	color: #0f172a !important; /* 强制设为深深蓝/黑 */
+	border-color: #d1d5db !important;
 }
 
-/* 卡片、工具框、搜索框全局亮色适配 */
-[data-theme="light"] .card,
-[data-theme="light"] .tool-card,
-[data-theme="light"] .content-card,
-[data-theme="light"] .search-box,
-[data-theme="light"] .search-input,
-[data-theme="light"] .contact-box,
-[data-theme="light"] [class*="card"],
-[data-theme="light"] [class*="box"] {
-	background-color: var(--bg-card) !important;
-	color: var(--text-main) !important;
-	border-color: var(--border-color) !important;
+/* 2. 亮色模式下，修复卡片与容器的深色背景 */
+html[data-theme="light"] body,
+html[data-theme="light"] main,
+html[data-theme="light"] div,
+html[data-theme="light"] section,
+html[data-theme="light"] article,
+html[data-theme="light"] form,
+html[data-theme="light"] input,
+html[data-theme="light"] textarea,
+html[data-theme="light"] select {
+	background-color: #ffffff;
 }
 
-/* 强制文字在亮色模式下变黑 */
-[data-theme="light"] h1,
-[data-theme="light"] h2,
-[data-theme="light"] h3,
-[data-theme="light"] h4,
-[data-theme="light"] h5,
-[data-theme="light"] h6,
-[data-theme="light"] p,
-[data-theme="light"] span,
-[data-theme="light"] li,
-[data-theme="light"] label {
-	color: var(--text-main) !important;
+/* 3. 页面背景依然保持柔和灰，与卡片区分开 */
+html[data-theme="light"] body {
+	background-color: #f4f6f8 !important;
 }
 
-/* 辅助说明文字变灰黑 */
-[data-theme="light"] .desc,
-[data-theme="light"] .text-muted,
-[data-theme="light"] [class*="desc"],
-[data-theme="light"] [class*="muted"] {
-	color: var(--text-muted) !important;
+/* 4. 保留次要辅助文字的灰度 */
+html[data-theme="light"] .text-muted,
+html[data-theme="light"] small,
+html[data-theme="light"] time,
+html[data-theme="light"] .desc {
+	color: #64748b !important;
+}
+
+/* 5. 链接与按钮主题色保证加深高亮 */
+html[data-theme="light"] a,
+html[data-theme="light"] button {
+	color: #4f46e5;
 }
