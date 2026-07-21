@@ -50,19 +50,6 @@ const getPathForLang = (lang: string) => {
 			<HeaderLink href={currentLang === 'en' ? '/' : `/${currentLang}/`}>{t.home}</HeaderLink>
 			<HeaderLink href={currentLang === 'en' ? '/blog/' : `/${currentLang}/blog/`}>{t.blog}</HeaderLink>
 			<HeaderLink href={currentLang === 'en' ? '/about/' : `/${currentLang}/about/`}>{t.about}</HeaderLink>
-
-			<!-- 多语言下拉选择框 -->
-			<div class="lang-select-wrapper">
-				<select id="language-select" aria-label="Language selector">
-					<option value={getPathForLang('en')} selected={currentLang === 'en'}>🌐 English</option>
-					<option value={getPathForLang('zh')} selected={currentLang === 'zh'}>🇨🇳 中文</option>
-					
-					<!-- 预留扩展语言 -->
-					<!-- <option value={getPathForLang('es')} selected={currentLang === 'es'}>🇪🇸 Español</option> -->
-					<!-- <option value={getPathForLang('de')} selected={currentLang === 'de'}>🇩🇪 Deutsch</option> -->
-					<!-- <option value={getPathForLang('ja')} selected={currentLang === 'ja'}>🇯🇵 日本語</option> -->
-				</select>
-			</div>
 		</div>
 
 		<div class="social-links">
@@ -75,6 +62,19 @@ const getPathForLang = (lang: string) => {
 					></path></svg
 				>
 			</a>
+<!-- 多语言下拉选择框 -->
+			<div class="lang-select-wrapper">
+				<select id="language-select" aria-label="Language selector">
+					<option value={getPathForLang('en')} selected={currentLang === 'en'}>🌐 English</option>
+					<option value={getPathForLang('zh')} selected={currentLang === 'zh'}>🇨🇳 中文</option>
+					
+					<!-- 预留扩展语言 -->
+					<!-- <option value={getPathForLang('es')} selected={currentLang === 'es'}>🇪🇸 Español</option> -->
+					<!-- <option value={getPathForLang('de')} selected={currentLang === 'de'}>🇩🇪 Deutsch</option> -->
+					<!-- <option value={getPathForLang('ja')} selected={currentLang === 'ja'}>🇯🇵 日本語</option> -->
+				</select>
+			</div>
+
 		</div>
 	</nav>
 </header>
