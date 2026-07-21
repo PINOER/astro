@@ -36,20 +36,6 @@ const searchableItems = [
 	<head>
 		<BaseHead title={`帮你AI工具箱,轻量级 AI 辅助工具 - HelpMini`} description={SITE_DESCRIPTION} />
 		<style>
-			:root {
-				--primary: #6366f1;
-				--primary-hover: #4f46e5;
-				--accent: #06b6d4;
-				--bg-dark: #0f172a;
-				--text-main: #f8fafc;
-				--text-muted: #94a3b8;
-				--card-bg: rgba(30, 41, 59, 0.7);
-				--card-border: rgba(255, 255, 255, 0.1);
-			}
-			body {
-				background-color: var(--bg-dark);
-				color: var(--text-main);
-			}
 			main {
 				width: 1000px;
 				max-width: calc(100% - 2em);
@@ -63,15 +49,16 @@ const searchableItems = [
 			}
 			.badge {
 				display: inline-block;
-				background: rgba(99, 102, 241, 0.15);
-				color: #a5b4fc;
-				border: 1px solid rgba(99, 102, 241, 0.3);
+				background: var(--badge-bg);
+				color: var(--badge-color);
+				border: 1px solid var(--badge-border);
 				padding: 0.4em 1.2em;
 				border-radius: 20px;
 				font-size: 0.85rem;
 				font-weight: 600;
 				margin-bottom: 1.5em;
-				box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+				box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+				transition: all 0.3s ease;
 			}
 			.hero h1 {
 				font-size: 3.5rem;
@@ -79,12 +66,12 @@ const searchableItems = [
 				margin-bottom: 0.4em;
 				line-height: 1.2;
 				letter-spacing: -1px;
-				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				background: var(--hero-title-gradient);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
 			.hero p {
-				font-size: 0.8rem;
+				font-size: 0.95rem;
 				color: var(--text-muted);
 				max-width: 600px;
 				margin: 0 auto 2em;
@@ -100,20 +87,20 @@ const searchableItems = [
 			.search-input-box {
 				width: 100%;
 				padding: 1.1em 1.5em 1.1em 3.2em;
-				background: rgba(15, 23, 42, 0.8);
+				background: var(--search-bg);
 				backdrop-filter: blur(16px);
-				border: 1px solid rgba(99, 102, 241, 0.4);
+				border: 1px solid var(--card-border);
 				border-radius: 16px;
-				color: #fff;
+				color: var(--text-main);
 				font-size: 1.05rem;
 				outline: none;
 				box-sizing: border-box;
-				box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 				transition: all 0.3s ease;
 			}
 			.search-input-box:focus {
-				border-color: #06b6d4;
-				box-shadow: 0 0 35px rgba(6, 182, 212, 0.25);
+				border-color: var(--accent);
+				box-shadow: 0 0 25px var(--accent-glow);
 			}
 			.search-icon {
 				position: absolute;
@@ -131,14 +118,14 @@ const searchableItems = [
 				top: 105%;
 				left: 0;
 				right: 0;
-				background: rgba(15, 23, 42, 0.95);
+				background: var(--dropdown-bg);
 				backdrop-filter: blur(20px);
 				border: 1px solid var(--card-border);
 				border-radius: 14px;
 				max-height: 380px;
 				overflow-y: auto;
 				z-index: 50;
-				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 				display: none;
 				text-align: left;
 			}
@@ -149,15 +136,16 @@ const searchableItems = [
 				padding: 0.9em 1.2em;
 				text-decoration: none;
 				color: var(--text-main);
-				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				border-bottom: 1px solid var(--card-border);
 				transition: background 0.2s;
 			}
 			.search-result-item:hover {
-				background: rgba(99, 102, 241, 0.2);
+				background: var(--dropdown-hover);
 			}
 			.result-item-title {
 				font-weight: 600;
 				font-size: 0.98rem;
+				color: var(--text-main);
 			}
 			.result-item-desc {
 				font-size: 0.82rem;
@@ -173,8 +161,8 @@ const searchableItems = [
 				border-radius: 6px;
 				font-weight: 600;
 			}
-			.type-tool { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
-			.type-blog { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+			.type-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+			.type-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 
 			.tool-grid {
 				display: grid;
@@ -183,7 +171,7 @@ const searchableItems = [
 				margin-top: 1.5rem;
 			}
 			.tool-card {
-				background: var(--card-bg);
+				background: var(--bg-card);
 				backdrop-filter: blur(12px);
 				border: 1px solid var(--card-border);
 				border-radius: 16px;
@@ -193,17 +181,17 @@ const searchableItems = [
 				display: flex;
 				flex-direction: column;
 				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 			}
 			.tool-card:hover {
 				transform: translateY(-6px);
-				border-color: rgba(99, 102, 241, 0.6);
-				box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.3);
+				border-color: var(--accent);
+				box-shadow: 0 12px 30px -5px var(--accent-glow);
 			}
 			.tool-icon { font-size: 2.2rem; margin-bottom: 1rem; }
-			.tool-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; }
+			.tool-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-main); }
 			.tool-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
-			.tool-tag { font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; }
+			.tool-tag { font-size: 0.75rem; color: var(--cyan); font-weight: 600; text-transform: uppercase; }
 		</style>
 	</head>
 	<body>
@@ -228,7 +216,7 @@ const searchableItems = [
 			</section>
 
 			<section>
-				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">精选微工具</h2>
+				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--text-main);">精选微工具</h2>
 				
 				<!-- 自动读取 toolsData 渲染微工具卡片 -->
 				<div class="tool-grid">
