@@ -1,9 +1,21 @@
 ---
-// 使用 src/ 路径别名，避免层级多深导致编译报错
 import BaseHead from 'src/components/BaseHead.astro';
 import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
+import { getCollection } from 'astro:content';
+import FormattedDate from 'src/components/FormattedDate.astro';
+
+// 获取中文博客列表
+const allPosts = await getCollection('blog');
+const posts = allPosts
+	.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const getPostPath = (post: any) => {
+	const cleanId = post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '');
+	return `/blog/${cleanId}/`;
+};
 ---
 
 <!doctype html>
@@ -12,144 +24,194 @@ import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 		<BaseHead title={`${SITE_TITLE} - 轻量级 AI 工具箱`} description={SITE_DESCRIPTION} />
 		<style>
 			:root {
-				--primary: #6366f1;
-				--primary-hover: #4f46e5;
-				--accent: #06b6d4;
-				--bg-dark: #0f172a;
-				--text-main: #f8fafc;
-				--text-muted: #94a3b8;
-				--card-bg: rgba(30, 41, 59, 0.7);
-				--card-border: rgba(255, 255, 255, 0.1);
-			}
-			body {
-				background-color: var(--bg-dark);
-				color: var(--text-main);
+				--accent: #6366f1;
+				--accent-dark: #4f46e5;
 			}
 			main {
-				width: 1000px;
+				width: 960px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 3em 1em 5em;
+				padding: 3em 1em;
 			}
 			.hero {
 				text-align: center;
-				padding: 3em 0 4em;
+				padding: 3em 0 2em;
+			}
+			.hero h1 {
+				font-size: 3rem;
+				font-weight: 800;
+				margin-bottom: 0.5em;
+				line-height: 1.2;
+				color: #0f172a;
+			}
+			.hero p {
+				font-size: 1.25rem;
+				color: #64748b;
+				max-width: 600px;
+				margin: 0 auto 2em;
 			}
 			.badge {
 				display: inline-block;
-				background: rgba(99, 102, 241, 0.15);
-				color: #a5b4fc;
-				border: 1px solid rgba(99, 102, 241, 0.3);
-				padding: 0.4em 1.2em;
+				background: rgba(99, 102, 241, 0.1);
+				color: var(--accent);
+				border: 1px solid rgba(99, 102, 241, 0.2);
+				padding: 0.3em 0.8em;
 				border-radius: 20px;
 				font-size: 0.85rem;
 				font-weight: 600;
-				margin-bottom: 1.5em;
-				box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+				margin-bottom: 1em;
 			}
-			/* 科技渐变大标题 */
-			.hero h1 {
-				font-size: 3.5rem;
-				font-weight: 800;
-				margin-bottom: 0.4em;
-				line-height: 1.2;
-				letter-spacing: -1px;
-				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
+			.section-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+				margin: 2em 0 1em;
+				border-bottom: 2px solid #f1f5f9;
+				padding-bottom: 0.5em;
+				color: #0f172a;
 			}
-			.hero p {
-				font-size: 1.2rem;
-				color: var(--text-muted);
-				max-width: 600px;
-				margin: 0 auto 2em;
-				line-height: 1.6;
-			}
+			/* 微工具网格排版 */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
-				margin-top: 2rem;
+				margin-bottom: 2rem;
 			}
-			/* 毛玻璃卡片风格 */
 			.tool-card {
-				background: var(--card-bg);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.8rem;
+				background: #ffffff;
+				border: 1px solid #e2e8f0;
+				border-radius: 12px;
+				padding: 1.5rem;
 				text-decoration: none;
-				color: var(--text-main);
+				color: #0f172a;
 				display: flex;
 				flex-direction: column;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+				transition: 0.2s ease;
 			}
 			.tool-card:hover {
-				transform: translateY(-6px);
-				border-color: rgba(99, 102, 241, 0.6);
-				box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.3);
+				border-color: var(--accent);
+				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+				transform: translateY(-2px);
 			}
 			.tool-icon {
-				font-size: 2.2rem;
-				margin-bottom: 1rem;
+				font-size: 1.8rem;
+				margin-bottom: 0.5rem;
 			}
 			.tool-card h3 {
-				font-size: 1.25rem;
+				margin: 0 0 0.4rem 0;
+				font-size: 1.15rem;
 				font-weight: 700;
-				margin-bottom: 0.6rem;
 			}
 			.tool-card p {
-				font-size: 0.92rem;
-				color: var(--text-muted);
+				font-size: 0.9rem;
+				color: #64748b;
+				margin: 0 0 1rem 0;
 				flex: 1;
-				margin-bottom: 1.2rem;
-				line-height: 1.6;
+				line-height: 1.5;
 			}
 			.tool-tag {
 				font-size: 0.75rem;
 				color: var(--accent);
 				font-weight: 600;
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
+			}
+			/* 博客列表结构 */
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+				width: 100%;
+				height: auto;
+			}
+			ul li a {
+				display: block;
+			}
+			.title {
+				margin: 0;
+				color: #0f172a;
+				line-height: 1.2;
+				font-size: 1.25rem;
+			}
+			.date {
+				margin: 0;
+				color: #64748b;
+				font-size: 0.9rem;
+			}
+			ul li a:hover .title {
+				color: var(--accent);
 			}
 			@media (max-width: 720px) {
-				.hero h1 { font-size: 2.4rem; }
+				ul li {
+					width: 100%;
+				}
+				.hero h1 {
+					font-size: 2.2rem;
+				}
 			}
 		</style>
 	</head>
 	<body>
-		<!-- 显式传入 lang="zh" 确保 Header 渲染中文菜单词汇 -->
 		<Header lang="zh" />
 		<main>
+			<!-- Hero 介绍区 -->
 			<section class="hero">
-				<div class="badge">🚀 高效微型 AI 工具箱</div>
+				<div class="badge">🚀 实用 AI 微型工具集</div>
 				<h1>HelpMini</h1>
 				<p>轻量、即时且强劲的 AI 工具，专为每周为你节省数小时而设计。</p>
 			</section>
 
+			<!-- 在线微工具区 -->
+			<h2 class="section-title">精选 AI 微工具</h2>
+			<div class="tool-grid">
+				<a href="/zh/tools/prompt-refiner" class="tool-card">
+					<div class="tool-icon">📝</div>
+					<h3>提示词结构化优化工具</h3>
+					<p>将粗糙的想法一键转化为结构清晰、高效的 ChatGPT 与 Claude 提示词。</p>
+					<span class="tool-tag">免费工具 • 即时生成</span>
+				</a>
+
+				<a href="#" class="tool-card">
+					<div class="tool-icon">📊</div>
+					<h3>Token & 上下文限制计算器</h3>
+					<p>精确计算大语言模型的 Token 数量，避免上下文超出截断问题。</p>
+					<span class="tool-tag">即将上线</span>
+				</a>
+			</div>
+
+			<!-- 博客内容区 -->
+			<h2 class="section-title">最新文章与指南</h2>
 			<section>
-				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">精选微工具</h2>
-				<div class="tool-grid">
-					
-					<a href="/zh/tools/prompt-refiner" class="tool-card">
-						<div class="tool-icon">📝</div>
-						<h3>提示词结构化优化工具</h3>
-						<p>将粗糙的想法一键转化为结构清晰、高效的 ChatGPT 与 Claude 提示词。</p>
-						<span class="tool-tag">免费工具 • 即时生成</span>
-					</a>
-
-					<a href="#" class="tool-card">
-						<div class="tool-icon">📊</div>
-						<h3>Token & 上下文限制计算器</h3>
-						<p>精确计算大语言模型的 Token 数量，避免上下文超出截断问题。</p>
-						<span class="tool-tag">即将上线</span>
-					</a>
-
-				</div>
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={getPostPath(post)}>
+									{post.data.heroImage && (
+										<img width={720} height={360} src={post.data.heroImage} alt="" />
+									)}
+									<h4 class="title">{post.data.title}</h4>
+									<p class="date">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
 			</section>
 		</main>
-		<!-- 显式传入 lang="zh" 确保 Footer 渲染中文版权 -->
 		<Footer lang="zh" />
 	</body>
 </html>
