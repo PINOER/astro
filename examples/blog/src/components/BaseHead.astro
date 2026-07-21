@@ -36,6 +36,25 @@ const siteUrl = Astro.site || Astro.url.origin;
 />
 <meta name="generator" content={Astro.generator} />
 
+<!-- ⚡ 暗黑/亮色主题防闪烁初始化脚本 -->
+<script is:inline>
+	const theme = (() => {
+		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+			return localStorage.getItem('theme');
+		}
+		if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+			return 'light';
+		}
+		return 'dark';
+	})();
+
+	if (theme === 'light') {
+		document.documentElement.setAttribute('data-theme', 'light');
+	} else {
+		document.documentElement.removeAttribute('data-theme');
+	}
+</script>
+
 <Font cssVariable="--font-atkinson" preload />
 
 <!-- Canonical URL -->
@@ -55,7 +74,7 @@ const siteUrl = Astro.site || Astro.url.origin;
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 
-<!-- hreflang 多语言 SEO 标签（新增） -->
+<!-- hreflang 多语言 SEO 标签 -->
 <link rel="alternate" hreflang="en" href={new URL(`/en${cleanPath}`, siteUrl)} />
 <link rel="alternate" hreflang="zh" href={new URL(`/zh${cleanPath}`, siteUrl)} />
 <link rel="alternate" hreflang="x-default" href={new URL(cleanPath || '/', siteUrl)} />
