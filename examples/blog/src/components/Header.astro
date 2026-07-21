@@ -1,6 +1,10 @@
 ---
 import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+
+// 获取当前页面的 URL 路径，用于判断当前是否处于中文页面
+const currentPath = Astro.url.pathname;
+const isChinese = currentPath.includes('/zh/') || currentPath.endsWith('/zh');
 ---
 
 <header>
@@ -10,7 +14,15 @@ import HeaderLink from './HeaderLink.astro';
 			<HeaderLink href="/">Home</HeaderLink>
 			<HeaderLink href="/blog">Blog</HeaderLink>
 			<HeaderLink href="/about">About</HeaderLink>
+			
+			<!-- 语言切换按钮组件 -->
+			<div class="lang-switch">
+				<a href="/blog" class={!isChinese ? 'active' : ''}>EN</a>
+				<span class="divider">/</span>
+				<a href="/blog/zh" class={isChinese ? 'active' : ''}>中文</a>
+			</div>
 		</div>
+
 		<div class="social-links">
 			<a href="https://m.webtoo.ls/@astro" target="_blank">
 				<span class="sr-only">Follow Astro on Mastodon</span>
@@ -63,6 +75,11 @@ import HeaderLink from './HeaderLink.astro';
 		align-items: center;
 		justify-content: space-between;
 	}
+	.internal-links {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 	nav a {
 		padding: 1em 0.5em;
 		color: var(--black);
@@ -73,6 +90,38 @@ import HeaderLink from './HeaderLink.astro';
 		text-decoration: none;
 		border-bottom-color: var(--accent);
 	}
+
+	/* 强化的语言切换样式 */
+	.lang-switch {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2rem;
+		margin-left: 0.8rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		background: rgba(0, 0, 0, 0.04);
+		padding: 0.2em 0.6em;
+		border-radius: 16px;
+	}
+	.lang-switch a {
+		padding: 0.2em 0.3em !important;
+		color: var(--gray, #666) !important;
+		border-bottom: none !important;
+		text-decoration: none !important;
+		line-height: 1;
+	}
+	.lang-switch a:hover {
+		color: var(--black, #000) !important;
+	}
+	.lang-switch a.active {
+		color: var(--accent, #0070f3) !important;
+		font-weight: 700 !important;
+	}
+	.lang-switch .divider {
+		color: #ccc;
+		font-size: 0.8rem;
+	}
+
 	.social-links,
 	.social-links a {
 		display: flex;
