@@ -1,15 +1,16 @@
 ---
-import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { SITE_TITLE } from '../../consts';
+// 1. 使用 src/ 路径别名，彻底修复 [UNRESOLVED_IMPORT] 找不到组件的构建报错
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
 
-const pageTitle = `Prompt Structurer & Refiner — ${SITE_TITLE}`;
-const pageDescription = "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.";
+const pageTitle = `提示词结构化优化工具 — ${SITE_TITLE}`;
+const pageDescription = "使用 CO-STAR 框架，将粗糙的一句话需求一键转化为适用于 ChatGPT、Claude 和 DeepSeek 的专业结构化提示词。";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
@@ -115,45 +116,49 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 				word-break: break-word;
 				color: #a5b4fc;
 				font-size: 0.9rem;
+				line-height: 1.6;
 			}
 		</style>
 	</head>
 	<body>
-		<Header />
+		<!-- 传入 lang="zh" 确保 Header 渲染中文导航 -->
+		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>📝 Prompt Structurer & Refiner</h1>
-				<p>Turn basic ideas into expert-level structured prompts for ChatGPT, Claude, and Gemini.</p>
+				<h1>📝 提示词结构化优化工具</h1>
+				<p>一键将简单想法转化为符合 CO-STAR 框架的高质量结构化 Prompt（适用于 ChatGPT / Claude / DeepSeek）</p>
 			</div>
 
 			<div class="tool-box">
 				<div class="form-group">
-					<label for="rawPrompt">Your Basic Idea / Task:</label>
-					<textarea id="rawPrompt" rows="4" placeholder="e.g., Write an SEO article about Shopify dropshipping tips for beginners."></textarea>
+					<label for="rawPrompt">输入你的原始想法 / 任务需求：</label>
+					<textarea id="rawPrompt" rows="4" placeholder="例如：写一篇适合初学者看的 Shopify 独立站 SEO 优化技巧指南文章。"></textarea>
 				</div>
 
 				<div class="form-group">
-					<label for="roleSelect">Target Persona / Role:</label>
+					<label for="roleSelect">选择 AI 扮演的角色设定：</label>
 					<select id="roleSelect">
-						<option value="Senior SEO Specialist & Content Strategist">Senior SEO Specialist & Content Strategist</option>
-						<option value="Expert Full-Stack Software Engineer">Expert Full-Stack Software Engineer</option>
-						<option value="Direct-Response Copywriter">Direct-Response Copywriter</option>
-						<option value="Product Manager">Product Manager</option>
+						<option value="资深 SEO 专家与内容策略师">资深 SEO 专家与内容策略师</option>
+						<option value="全栈软件开发专家">全栈软件开发专家</option>
+						<option value="爆款文案与直接响应文案师">爆款文案与直接响应文案师</option>
+						<option value="资深产品经理">资深产品经理</option>
+						<option value="资深电商运营专家">资深电商运营专家</option>
 					</select>
 				</div>
 
-				<button class="btn-generate" id="generateBtn">Refine & Structure Prompt ✨</button>
+				<button class="btn-generate" id="generateBtn">生成结构化提示词 ✨</button>
 
 				<div class="result-area" id="resultArea">
 					<div class="result-header">
-						<label>Optimized CO-STAR Prompt:</label>
-						<button class="btn-copy" id="copyBtn">📋 Copy Prompt</button>
+						<label>优化后的 CO-STAR 结构化 Prompt：</label>
+						<button class="btn-copy" id="copyBtn">📋 复制提示词</button>
 					</div>
 					<pre id="outputPrompt"></pre>
 				</div>
 			</div>
 		</main>
-		<Footer />
+		<!-- 传入 lang="zh" 确保 Footer 渲染中文版权 -->
+		<Footer lang="zh" />
 
 		<script>
 			const generateBtn = document.getElementById('generateBtn');
@@ -166,37 +171,37 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 			generateBtn?.addEventListener('click', () => {
 				const input = rawPrompt.value.trim();
 				if (!input) {
-					alert('Please enter a basic prompt idea first!');
+					alert('请先输入你的原始需求或想法！');
 					return;
 				}
 
 				const role = roleSelect.value;
 
-				// CO-STAR 模板拼接逻辑（纯前端运行，零 API 成本）
-				const structuredPrompt = `# ROLE
-Act as a ${role}. You have extensive experience and deep expertise in this domain.
+				// CO-STAR 中文结构化模板
+				const structuredPrompt = `# 角色 (ROLE)
+你是一位【${role}】，在该领域拥有丰富的实战经验和极高的专业造诣。
 
-# CONTEXT
-The user needs assistance with the following goal: "${input}". 
+# 背景 (CONTEXT)
+用户目前需要完成以下具体任务或目标："${input}"。
 
-# OBJECTIVE
-Provide a comprehensive, highly accurate, and actionable response that fully addresses the task while adhering to industry best practices.
+# 目标 (OBJECTIVE)
+请根据行业最佳实践，提供一份全面、精准、极具可操作性的回答，完美解决上述需求。
 
-# STYLE & TONE
-- Professional, clear, concise, and engaging.
-- Avoid generic filler text or unnecessary pleasantries.
-- Use bullet points, bold headers, or code blocks where appropriate to maximize readability.
+# 风格与语气 (STYLE & TONE)
+- 专业、条理清晰、简洁干练且富有吸引力。
+- 拒绝任何空话、废话或无意义的客套话。
+- 善用 Markdown 加粗重点、列表项或代码块，以极大化提升阅读体验。
 
-# AUDIENCE
-Designed for professionals or enthusiasts seeking immediate, practical value without ambiguity.
+# 目标受众 (AUDIENCE)
+面向寻求即时、实用且无模糊地带的高效专业人士或从业者。
 
-# RESPONSE FORMAT
-Structure your output logically with:
-1. Quick Executive Summary / Key Takeaways
-2. Step-by-Step Action Plan / Solution
-3. Important Pitfalls or Edge Cases to Avoid
+# 输出格式 (RESPONSE FORMAT)
+请按照以下逻辑结构进行回答：
+1. 核心总结 / 关键要点速览
+2. 详细的分步实施计划与解决方案
+3. 必须注意的避坑指南或潜在风险
 
-Please confirm you understand these instructions and proceed with the response.`;
+如果你已完全理解上述要求，请直接开始回答。`;
 
 				outputPrompt.textContent = structuredPrompt;
 				resultArea.style.display = 'block';
@@ -204,9 +209,9 @@ Please confirm you understand these instructions and proceed with the response.`
 
 			copyBtn?.addEventListener('click', () => {
 				navigator.clipboard.writeText(outputPrompt.textContent || '');
-				copyBtn.textContent = '✅ Copied!';
+				copyBtn.textContent = '✅ 已复制！';
 				setTimeout(() => {
-					copyBtn.textContent = '📋 Copy Prompt';
+					copyBtn.textContent = '📋 复制提示词';
 				}, 2000);
 			});
 		</script>
