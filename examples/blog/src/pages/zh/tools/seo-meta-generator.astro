@@ -1,0 +1,285 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+const pageTitle = `SEO Meta Title & Description Generator — ${SITE_TITLE}`;
+const pageDescription = "Generate CTR-optimized Google Meta Titles and Meta Descriptions instantly with real-time character limit checks.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			:root {
+				--primary: #6366f1;
+				--primary-hover: #4f46e5;
+				--accent: #06b6d4;
+				--bg-dark: #0f172a;
+				--text-main: #f8fafc;
+				--text-muted: #94a3b8;
+				--card-bg: rgba(30, 41, 59, 0.7);
+				--card-border: rgba(255, 255, 255, 0.1);
+			}
+			body {
+				background-color: var(--bg-dark);
+				color: var(--text-main);
+			}
+			main {
+				width: 850px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--card-bg);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+			}
+			.form-group {
+				margin-bottom: 1.2em;
+			}
+			label {
+				display: block;
+				font-weight: 600;
+				margin-bottom: 0.5em;
+				color: var(--text-main);
+			}
+			input[type="text"], textarea, select {
+				width: 100%;
+				padding: 0.8em 1em;
+				background: #0f172a;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: #fff;
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+			}
+			input[type="text"]:focus, textarea:focus, select:focus {
+				border-color: var(--primary);
+			}
+			.btn-generate {
+				width: 100%;
+				background: var(--primary);
+				color: #fff;
+				border: none;
+				padding: 0.9em;
+				font-size: 1rem;
+				font-weight: 700;
+				border-radius: 8px;
+				cursor: pointer;
+				transition: background 0.2s;
+				margin-top: 1em;
+			}
+			.btn-generate:hover {
+				background: var(--primary-hover);
+			}
+			.results-wrapper {
+				margin-top: 2em;
+				display: none;
+			}
+			.result-card {
+				background: rgba(15, 23, 42, 0.6);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2rem;
+				margin-bottom: 1.2rem;
+			}
+			.result-tag {
+				font-size: 0.75rem;
+				color: var(--accent);
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+				margin-bottom: 0.5rem;
+			}
+			/* Google SERP 模拟预览区 */
+			.serp-preview {
+				background: #ffffff;
+				padding: 1rem;
+				border-radius: 8px;
+				margin-top: 0.8rem;
+				font-family: arial, sans-serif;
+			}
+			.serp-title {
+				color: #1a0dab;
+				font-size: 18px;
+				line-height: 1.3;
+				cursor: pointer;
+				text-decoration: none;
+				display: block;
+				margin-bottom: 2px;
+			}
+			.serp-url {
+				color: #4d5156;
+				font-size: 12px;
+				line-height: 1.3;
+				margin-bottom: 4px;
+			}
+			.serp-desc {
+				color: #474747;
+				font-size: 14px;
+				line-height: 1.5;
+			}
+			.char-counter {
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				margin-top: 0.4rem;
+				display: flex;
+				justify-content: space-between;
+			}
+			.btn-copy-sm {
+				background: rgba(255, 255, 255, 0.1);
+				border: 1px solid var(--card-border);
+				color: #fff;
+				padding: 0.3em 0.6em;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 0.8rem;
+				float: right;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🔍 SEO Meta Title & Description Generator</h1>
+				<p>Craft Google-friendly, high-CTR meta tags with live Google SERP preview.</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="form-group">
+					<label for="topicInput">Page Topic / Focus Keyword:</label>
+					<input type="text" id="topicInput" placeholder="e.g., Best Shopify Apps for Increasing Sales in 2026" />
+				</div>
+
+				<div class="form-group">
+					<label for="brandInput">Brand Name / Website Name (Optional):</label>
+					<input type="text" id="brandInput" placeholder="e.g., HelpMini" />
+				</div>
+
+				<button class="btn-generate" id="generateBtn">Generate High-CTR Meta Tags ✨</button>
+
+				<div class="results-wrapper" id="resultsWrapper">
+					<h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1em;">Generated Meta Tag Options</h3>
+
+					<!-- Option 1: High CTR -->
+					<div class="result-card">
+						<div class="result-tag">🔥 High-CTR / Engagement Focus</div>
+						<button class="btn-copy-sm" data-target="opt1">Copy Tags</button>
+						<div class="serp-preview">
+							<a class="serp-title" id="title1">Title Output...</a>
+							<div class="serp-url">https://example.com/page</div>
+							<div class="serp-desc" id="desc1">Description Output...</div>
+						</div>
+						<div class="char-counter">
+							<span id="lenTitle1">Title: 0 / 60 chars</span>
+							<span id="lenDesc1">Desc: 0 / 155 chars</span>
+						</div>
+					</div>
+
+					<!-- Option 2: Authority & Professional -->
+					<div class="result-card">
+						<div class="result-tag">🎓 Professional & Authority Focus</div>
+						<button class="btn-copy-sm" data-target="opt2">Copy Tags</button>
+						<div class="serp-preview">
+							<a class="serp-title" id="title2">Title Output...</a>
+							<div class="serp-url">https://example.com/page</div>
+							<div class="serp-desc" id="desc2">Description Output...</div>
+						</div>
+						<div class="char-counter">
+							<span id="lenTitle2">Title: 0 / 60 chars</span>
+							<span id="lenDesc2">Desc: 0 / 155 chars</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			const generateBtn = document.getElementById('generateBtn');
+			const topicInput = document.getElementById('topicInput') as HTMLInputElement;
+			const brandInput = document.getElementById('brandInput') as HTMLInputElement;
+			const resultsWrapper = document.getElementById('resultsWrapper') as HTMLDivElement;
+
+			generateBtn?.addEventListener('click', () => {
+				const topic = topicInput.value.trim();
+				const brand = brandInput.value.trim();
+
+				if (!topic) {
+					alert('Please enter a page topic or primary keyword!');
+					return;
+				}
+
+				const brandSuffix = brand ? ` | ${brand}` : '';
+
+				// Option 1: High CTR / Guide
+				const t1 = `10+ Proven ${topic} (Step-by-Step Guide)${brandSuffix}`;
+				const d1 = `Looking for the best ${topic}? Discover actionable tips, expert strategies, and top recommendations to boost your results today!`;
+
+				// Option 2: Professional / Ultimate
+				const t2 = `The Ultimate Guide to ${topic} [2026 Updated]${brandSuffix}`;
+				const d2 = `Master ${topic} with our comprehensive 2026 framework. Learn proven techniques and avoid common pitfalls with expert insights.`;
+
+				// Update UI
+				updateOption('1', t1, d1);
+				updateOption('2', t2, d2);
+
+				resultsWrapper.style.display = 'block';
+			});
+
+			function updateOption(id: string, title: string, desc: string) {
+				const titleEl = document.getElementById(`title${id}`);
+				const descEl = document.getElementById(`desc${id}`);
+				const lenTitleEl = document.getElementById(`lenTitle${id}`);
+				const lenDescEl = document.getElementById(`lenDesc${id}`);
+
+				if (titleEl) titleEl.textContent = title;
+				if (descEl) descEl.textContent = desc;
+
+				if (lenTitleEl) lenTitleEl.textContent = `Title: ${title.length} / 60 chars ${title.length > 60 ? '⚠️ Too long' : '✅'}`;
+				if (lenDescEl) lenDescEl.textContent = `Desc: ${desc.length} / 155 chars ${desc.length > 155 ? '⚠️ Too long' : '✅'}`;
+			}
+
+			// Copy Buttons
+			document.querySelectorAll('.btn-copy-sm').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = (e.target as HTMLElement).getAttribute('data-target');
+					const id = target === 'opt1' ? '1' : '2';
+					const titleText = document.getElementById(`title${id}`)?.textContent || '';
+					const descText = document.getElementById(`desc${id}`)?.textContent || '';
+
+					const textToCopy = `Meta Title: ${titleText}\nMeta Description: ${descText}`;
+					navigator.clipboard.writeText(textToCopy);
+
+					btn.textContent = 'Copied!';
+					setTimeout(() => { btn.textContent = 'Copy Tags'; }, 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
