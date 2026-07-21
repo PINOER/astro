@@ -4,39 +4,22 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
+import { toolsData } from 'src/data/tools';
 
 // Fetch English blogs for search indexing
 const allPosts = await getCollection('blog');
 const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
 
-// Build static search index
+// Dynamic static search index (Tools + Blogs)
 const searchableItems = [
-	// 1. Tools Index
-	{
-		title: 'Prompt Structurer & Refiner',
-		desc: 'Transform rough ideas into structured, high-performing prompts for ChatGPT & Claude using CO-STAR.',
-		url: '/tools/prompt-refiner',
+	...toolsData.map((tool) => ({
+		title: tool.title.en,
+		desc: tool.desc.en,
+		url: tool.url.en,
 		type: 'tool',
-		icon: '📝',
-		keywords: 'prompt refiner structurer costar framework chatgpt claude deepseek generator'
-	},
-	{
-		title: 'LLM Token & Context Limit Calculator',
-		desc: 'Calculate exact token counts and estimate context window usage for GPT-4o, Claude 3.5, and Gemini.',
-		url: '/tools/token-calculator',
-		type: 'tool',
-		icon: '📊',
-		keywords: 'token calculator context limit count gpt4o claude deepseek gemini overflow'
-	},
-	{
-		title: 'SEO Meta Title & Description Generator',
-		desc: 'Generate Google-friendly, high-CTR meta titles and descriptions with real-time SERP preview.',
-		url: '/tools/seo-meta-generator',
-		type: 'tool',
-		icon: '🔍',
-		keywords: 'seo meta title description generator google serp preview ctr tags'
-	},
-	// 2. Blog Index
+		icon: tool.icon,
+		keywords: `${tool.title.en} ${tool.keywords.en}`
+	})),
 	...enPosts.map((post) => ({
 		title: post.data.title,
 		desc: post.data.description,
@@ -233,11 +216,11 @@ const searchableItems = [
 				<!-- 🔍 Central Search Engine Bar -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
-					<input 
-						type="text" 
-						id="searchInput" 
-						class="search-input-box" 
-						placeholder="Search micro-tools or guides... (e.g., SEO, Token, Prompt)" 
+					<input
+						type="text"
+						id="searchInput"
+						class="search-input-box"
+						placeholder="Search micro-tools or guides... (e.g., SEO, Token, Prompt)"
 						autocomplete="off"
 					/>
 					<div id="searchDropdown" class="search-results-dropdown"></div>
@@ -246,32 +229,22 @@ const searchableItems = [
 
 			<section>
 				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">Featured Micro Tools</h2>
+				
+				<!-- Automatically map toolsData into cards -->
 				<div class="tool-grid">
-					
-					<a href="/tools/prompt-refiner" class="tool-card">
-						<div class="tool-icon">📝</div>
-						<h3>Prompt Structurer & Refiner</h3>
-						<p>Transform rough ideas into structured, high-performing prompts for ChatGPT & Claude.</p>
-						<span class="tool-tag">Free Tool • Instant</span>
-					</a>
-
-					<a href="/tools/token-calculator" class="tool-card">
-						<div class="tool-icon">📊</div>
-						<h3>Token & Context Limit Checker</h3>
-						<p>Calculate precise token counts for LLMs and avoid context cutoff issues.</p>
-						<span class="tool-tag">Free Tool • Instant</span>
-					</a>
-
-					<a href="/tools/seo-meta-generator" class="tool-card">
-						<div class="tool-icon">🔍</div>
-						<h3>SEO Meta Title & Desc Generator</h3>
-						<p>Generate Google-friendly meta titles and descriptions optimized for higher CTR.</p>
-						<span class="tool-tag">Free Tool • Instant</span>
-					</a>
+					{toolsData.map((tool) => (
+						<a href={tool.url.en} class="tool-card">
+							<div class="tool-icon">{tool.icon}</div>
+							<h3>{tool.title.en}</h3>
+							<p>{tool.desc.en}</p>
+							<span class="tool-tag">{tool.tag.en}</span>
+						</a>
+					))}
 				</div>
 			</section>
+
 			<section class="hero">
-		    <p>Lightweight, instant productivity tools that save you hours.</p>
+				<p>Lightweight, instant productivity tools that save you hours.</p>
 			</section>
 		</main>
 		<Footer />
@@ -290,7 +263,7 @@ const searchableItems = [
 				}
 
 				// Match query against keywords, title, or description
-				const filtered = searchableItems.filter(item => 
+				const filtered = searchableItems.filter(item =>
 					item.title.toLowerCase().includes(query) ||
 					item.desc.toLowerCase().includes(query) ||
 					item.keywords.toLowerCase().includes(query)
