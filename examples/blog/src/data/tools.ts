@@ -104,5 +104,29 @@ export const toolsData: ToolItem[] = [
 			en: 'json formatter validator minify prettify developer tools',
 			zh: 'json 格式化 校验 美化 压缩 排错'
 		}
-	}
+	},
+	{
+    id: 'base64-url-converter',
+    title: {
+        en: 'Base64 & URL Encoder / Decoder',
+        zh: 'Base64 & URL 编码解码工具'
+    },
+    desc: {
+        en: 'Instantly encode or decode Base64 text and URL query strings with 100% client-side privacy.',
+        zh: '100% 本地计算，即时对文本进行 Base64 编解码与 URL 网址参数安全转义。'
+    },
+    url: {
+        en: '/tools/base64-url-converter',
+        zh: '/zh/tools/base64-url-converter'
+    },
+    icon: '🔤',
+    tag: {
+        en: 'Free Tool • Instant',
+        zh: '免费工具 • 即时生成'
+    },
+    keywords: {
+        en: 'base64 encoder decoder url encode decode query string converter',
+        zh: 'base64 编码 解码 url 转义 网址 解码器 转换器'
+    }
+}
 ];
