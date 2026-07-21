@@ -44,7 +44,7 @@ const getPathForLang = (lang: string) => {
 
 <header>
 	<nav>
-		<h2><a href={currentLang === 'en' ? '/' : `/${currentLang}/`}>HelpMini</a></h2>
+		<!-- <h2><a href={currentLang === 'en' ? '/' : `/${currentLang}/`}>HelpMini</a></h2>  -->
 		<div class="internal-links">
 			<!-- 动态渲染不同语言的菜单文案 -->
 			<HeaderLink href={currentLang === 'en' ? '/' : `/${currentLang}/`}>{t.home}</HeaderLink>
