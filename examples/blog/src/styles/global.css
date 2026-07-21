@@ -33,12 +33,12 @@
 	--accent: #4f46e5;
 	--accent-glow: rgba(79, 70, 229, 0.15);
 	
-	/* 加深文字对比度，解决字体看不清的问题 */
-	--text-main: #111827;
-	--text-muted: #4b5563;
-	--gray-dark: #1f2937;
-	--gray-light: #e5e7eb;
-	--code-bg: #f9fafb;
+	/* 全局文字调深，保证高对比度清晰度 */
+	--text-main: #0f172a;
+	--text-muted: #475569;
+	--gray-dark: #1e293b;
+	--gray-light: #f1f5f9;
+	--code-bg: #f8fafc;
 	--header-bg: rgba(244, 246, 248, 0.9);
 
 	/* 背景极光渐变 */
@@ -69,36 +69,20 @@ main {
 }
 
 /* 标题层次与字体优化 */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
 	margin: 0 0 0.6rem 0;
 	color: var(--text-main);
 	line-height: 1.25;
 	font-weight: 700;
 	letter-spacing: -0.02em;
 }
-h1 {
-	font-size: 2.1em;
-}
-h2 {
-	font-size: 1.65em;
-}
-h3 {
-	font-size: 1.35em;
-}
-h4 {
-	font-size: 1.15em;
-}
-h5 {
-	font-size: 1em;
-}
+h1 { font-size: 2.1em; }
+h2 { font-size: 1.65em; }
+h3 { font-size: 1.35em; }
+h4 { font-size: 1.15em; }
+h5 { font-size: 1em; }
 
-strong,
-b {
+strong, b {
 	font-weight: 700;
 	color: var(--text-main);
 }
@@ -128,9 +112,7 @@ textarea, input {
 	border-radius: 8px;
 	padding: 0.8em;
 }
-table {
-	width: 100%;
-}
+table { width: 100%; }
 img {
 	max-width: 100%;
 	height: auto;
@@ -171,21 +153,11 @@ hr {
 
 /* 移动端适配 */
 @media (max-width: 720px) {
-	body {
-		font-size: 16px;
-	}
-	main {
-		padding: 1.5em 1em;
-	}
-	h1 {
-		font-size: 1.7em;
-	}
-	h2 {
-		font-size: 1.4em;
-	}
-	h3 {
-		font-size: 1.2em;
-	}
+	body { font-size: 16px; }
+	main { padding: 1.5em 1em; }
+	h1 { font-size: 1.7em; }
+	h2 { font-size: 1.4em; }
+	h3 { font-size: 1.2em; }
 }
 
 .sr-only {
@@ -202,52 +174,48 @@ hr {
 }
 
 /* =========================================================
-   🎯 亮色模式全站硬编码颜色 & 组件底色强制修复
+   🎯 亮色主题平铺选择器修复（无嵌套，兼容所有构建工具）
    ========================================================= */
-[data-theme="light"] {
-	/* 1. 强制卡片、输入框、下拉框与自定义容器使用浅色背景与深黑文字 */
-	.card,
-	.content-card,
-	.tool-card,
-	.search-input,
-	.search-result-item,
-	.contact-box,
-	.hero-section,
-	.feature-item,
-	input,
-	textarea,
-	select {
-		background-color: var(--bg-card) !important;
-		color: var(--text-main) !important;
-		border-color: var(--border-color) !important;
-	}
 
-	/* 2. 覆盖曾经硬编码写死白色 (#fff / #ffffff / #f8fafc) 的标题与文本 */
-	h1, h2, h3, h4, h5, h6,
-	p, span, li, dt, dd, label,
-	.title, .desc, .text, .author {
-		color: var(--text-main) !important;
-	}
+[data-theme="light"] div,
+[data-theme="light"] section,
+[data-theme="light"] article,
+[data-theme="light"] main {
+	color: var(--text-main);
+}
 
-	/* 3. 次要辅助文字与标签 */
-	.text-muted, .sub-text, time, .date, .tag {
-		color: var(--text-muted) !important;
-	}
+/* 卡片、工具框、搜索框全局亮色适配 */
+[data-theme="light"] .card,
+[data-theme="light"] .tool-card,
+[data-theme="light"] .content-card,
+[data-theme="light"] .search-box,
+[data-theme="light"] .search-input,
+[data-theme="light"] .contact-box,
+[data-theme="light"] [class*="card"],
+[data-theme="light"] [class*="box"] {
+	background-color: var(--bg-card) !important;
+	color: var(--text-main) !important;
+	border-color: var(--border-color) !important;
+}
 
-	/* 4. 代码块与行内代码在亮色模式下的表现 */
-	code {
-		background-color: var(--gray-light) !important;
-		color: var(--accent) !important;
-	}
-	pre, pre code {
-		background-color: var(--code-bg) !important;
-		color: var(--text-main) !important;
-	}
+/* 强制文字在亮色模式下变黑 */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6,
+[data-theme="light"] p,
+[data-theme="light"] span,
+[data-theme="light"] li,
+[data-theme="light"] label {
+	color: var(--text-main) !important;
+}
 
-	/* 5. 搜索下拉框与浮层样式适配 */
-	.search-dropdown, .search-results-container {
-		background-color: var(--bg-card) !important;
-		border-color: var(--border-color) !important;
-		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
-	}
+/* 辅助说明文字变灰黑 */
+[data-theme="light"] .desc,
+[data-theme="light"] .text-muted,
+[data-theme="light"] [class*="desc"],
+[data-theme="light"] [class*="muted"] {
+	color: var(--text-muted) !important;
 }
