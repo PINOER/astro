@@ -2,7 +2,7 @@
 title: "告别 Unexpected Token 报错！JSON 格式化与语法校验全指南（附 100% 隐私安全免费工具）"
 description: "为什么 API 调用或配置文件总报错？深入解析 JSON 常见语法陷阱，教你如何快速排错、压缩美化 JSON，保障数据绝不泄漏。"
 pubDate: "2026-07-21"
-heroImage: "src/assets/token-calculator-hero.svg"
+heroImage: "src/assets/json-converter-hero.svg"
 lang: "zh"
 ---
 
