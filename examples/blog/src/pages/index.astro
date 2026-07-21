@@ -1,8 +1,51 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
+import { getCollection } from 'astro:content';
+
+// Fetch English blogs for search indexing
+const allPosts = await getCollection('blog');
+const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
+
+// Build static search index
+const searchableItems = [
+	// 1. Tools Index
+	{
+		title: 'Prompt Structurer & Refiner',
+		desc: 'Transform rough ideas into structured, high-performing prompts for ChatGPT & Claude using CO-STAR.',
+		url: '/tools/prompt-refiner',
+		type: 'tool',
+		icon: '📝',
+		keywords: 'prompt refiner structurer costar framework chatgpt claude deepseek generator'
+	},
+	{
+		title: 'LLM Token & Context Limit Calculator',
+		desc: 'Calculate exact token counts and estimate context window usage for GPT-4o, Claude 3.5, and Gemini.',
+		url: '/tools/token-calculator',
+		type: 'tool',
+		icon: '📊',
+		keywords: 'token calculator context limit count gpt4o claude deepseek gemini overflow'
+	},
+	{
+		title: 'SEO Meta Title & Description Generator',
+		desc: 'Generate Google-friendly, high-CTR meta titles and descriptions with real-time SERP preview.',
+		url: '/tools/seo-meta-generator',
+		type: 'tool',
+		icon: '🔍',
+		keywords: 'seo meta title description generator google serp preview ctr tags'
+	},
+	// 2. Blog Index
+	...enPosts.map((post) => ({
+		title: post.data.title,
+		desc: post.data.description,
+		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
+		type: 'blog',
+		icon: '📚',
+		keywords: `${post.data.title} ${post.data.description}`
+	}))
+];
 ---
 
 <!doctype html>
@@ -32,7 +75,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 			}
 			.hero {
 				text-align: center;
-				padding: 3em 0 4em;
+				padding: 2em 0 3em;
+				position: relative;
 			}
 			.badge {
 				display: inline-block;
@@ -46,7 +90,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				margin-bottom: 1.5em;
 				box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
 			}
-			/* 科技渐变大标题 */
 			.hero h1 {
 				font-size: 3.5rem;
 				font-weight: 800;
@@ -64,13 +107,99 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				margin: 0 auto 2em;
 				line-height: 1.6;
 			}
+
+			/* 🔍 Central Search Input Styling */
+			.search-wrapper {
+				max-width: 640px;
+				margin: 0 auto 3em;
+				position: relative;
+			}
+			.search-input-box {
+				width: 100%;
+				padding: 1.1em 1.5em 1.1em 3.2em;
+				background: rgba(15, 23, 42, 0.8);
+				backdrop-filter: blur(16px);
+				border: 1px solid rgba(99, 102, 241, 0.4);
+				border-radius: 16px;
+				color: #fff;
+				font-size: 1.05rem;
+				outline: none;
+				box-sizing: border-box;
+				box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
+				transition: all 0.3s ease;
+			}
+			.search-input-box:focus {
+				border-color: #06b6d4;
+				box-shadow: 0 0 35px rgba(6, 182, 212, 0.25);
+			}
+			.search-icon {
+				position: absolute;
+				left: 1.2em;
+				top: 50%;
+				transform: translateY(-50%);
+				font-size: 1.2rem;
+				opacity: 0.6;
+				pointer-events: none;
+			}
+
+			/* Search Results Dropdown */
+			.search-results-dropdown {
+				position: absolute;
+				top: 105%;
+				left: 0;
+				right: 0;
+				background: rgba(15, 23, 42, 0.95);
+				backdrop-filter: blur(20px);
+				border: 1px solid var(--card-border);
+				border-radius: 14px;
+				max-height: 380px;
+				overflow-y: auto;
+				z-index: 50;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+				display: none;
+				text-align: left;
+			}
+			.search-result-item {
+				display: flex;
+				align-items: center;
+				gap: 1em;
+				padding: 0.9em 1.2em;
+				text-decoration: none;
+				color: var(--text-main);
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				transition: background 0.2s;
+			}
+			.search-result-item:hover {
+				background: rgba(99, 102, 241, 0.2);
+			}
+			.result-item-title {
+				font-weight: 600;
+				font-size: 0.98rem;
+			}
+			.result-item-desc {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.result-type-badge {
+				margin-left: auto;
+				font-size: 0.7rem;
+				padding: 0.2em 0.6em;
+				border-radius: 6px;
+				font-weight: 600;
+				text-transform: uppercase;
+			}
+			.type-tool { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+			.type-blog { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
-				margin-top: 2rem;
+				margin-top: 1.5rem;
 			}
-			/* 毛玻璃卡片风格 */
 			.tool-card {
 				background: var(--card-bg);
 				backdrop-filter: blur(12px);
@@ -89,32 +218,10 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				border-color: rgba(99, 102, 241, 0.6);
 				box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.3);
 			}
-			.tool-icon {
-				font-size: 2.2rem;
-				margin-bottom: 1rem;
-			}
-			.tool-card h3 {
-				font-size: 1.25rem;
-				font-weight: 700;
-				margin-bottom: 0.6rem;
-			}
-			.tool-card p {
-				font-size: 0.92rem;
-				color: var(--text-muted);
-				flex: 1;
-				margin-bottom: 1.2rem;
-				line-height: 1.6;
-			}
-			.tool-tag {
-				font-size: 0.75rem;
-				color: var(--accent);
-				font-weight: 600;
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
-			}
-			@media (max-width: 720px) {
-				.hero h1 { font-size: 2.4rem; }
-			}
+			.tool-icon { font-size: 2.2rem; margin-bottom: 1rem; }
+			.tool-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; }
+			.tool-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
+			.tool-tag { font-size: 0.75rem; color: var(--accent); font-weight: 600; text-transform: uppercase; }
 		</style>
 	</head>
 	<body>
@@ -124,13 +231,25 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
 				<p>Lightweight, instant, and supercharged AI tools designed to save you hours every week.</p>
+
+				<!-- 🔍 Central Search Engine Bar -->
+				<div class="search-wrapper">
+					<span class="search-icon">🔍</span>
+					<input 
+						type="text" 
+						id="searchInput" 
+						class="search-input-box" 
+						placeholder="Search micro-tools or guides... (e.g., SEO, Token, Prompt)" 
+						autocomplete="off"
+					/>
+					<div id="searchDropdown" class="search-results-dropdown"></div>
+				</div>
 			</section>
 
 			<section>
 				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">Featured Micro Tools</h2>
 				<div class="tool-grid">
 					
-					<!-- 第一个微工具卡片 -->
 					<a href="/tools/prompt-refiner" class="tool-card">
 						<div class="tool-icon">📝</div>
 						<h3>Prompt Structurer & Refiner</h3>
@@ -138,7 +257,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 						<span class="tool-tag">Free Tool • Instant</span>
 					</a>
 
-					<!-- 占位卡片 2 -->
 					<a href="/tools/token-calculator" class="tool-card">
 						<div class="tool-icon">📊</div>
 						<h3>Token & Context Limit Checker</h3>
@@ -146,7 +264,6 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 						<span class="tool-tag">Free Tool • Instant</span>
 					</a>
 
-					<!-- 占位卡片 3 -->
 					<a href="/tools/seo-meta-generator" class="tool-card">
 						<div class="tool-icon">🔍</div>
 						<h3>SEO Meta Title & Desc Generator</h3>
@@ -158,5 +275,53 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 			</section>
 		</main>
 		<Footer />
+
+		<!-- Real-time Client-Side Search Engine Script -->
+		<script is:inline define:vars={{ searchableItems }}>
+			const searchInput = document.getElementById('searchInput');
+			const searchDropdown = document.getElementById('searchDropdown');
+
+			searchInput?.addEventListener('input', (e) => {
+				const query = e.target.value.toLowerCase().trim();
+
+				if (!query) {
+					searchDropdown.style.display = 'none';
+					return;
+				}
+
+				// Match query against keywords, title, or description
+				const filtered = searchableItems.filter(item => 
+					item.title.toLowerCase().includes(query) ||
+					item.desc.toLowerCase().includes(query) ||
+					item.keywords.toLowerCase().includes(query)
+				);
+
+				if (filtered.length === 0) {
+					searchDropdown.innerHTML = `<div style="padding: 1.2em; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No matching tools or articles found</div>`;
+				} else {
+					searchDropdown.innerHTML = filtered.map(item => `
+						<a href="${item.url}" class="search-result-item">
+							<span style="font-size: 1.4rem;">${item.icon}</span>
+							<div style="flex: 1; overflow: hidden;">
+								<div class="result-item-title">${item.title}</div>
+								<div class="result-item-desc">${item.desc}</div>
+							</div>
+							<span class="result-type-badge ${item.type === 'tool' ? 'type-tool' : 'type-blog'}">
+								${item.type === 'tool' ? 'Tool' : 'Blog'}
+							</span>
+						</a>
+					`).join('');
+				}
+
+				searchDropdown.style.display = 'block';
+			});
+
+			// Hide dropdown when clicking outside
+			document.addEventListener('click', (e) => {
+				if (!searchInput?.contains(e.target) && !searchDropdown?.contains(e.target)) {
+					searchDropdown.style.display = 'none';
+				}
+			});
+		</script>
 	</body>
 </html>
