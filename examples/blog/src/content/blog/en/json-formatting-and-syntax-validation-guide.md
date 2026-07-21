@@ -54,7 +54,7 @@ Unfortunately, many third-party formatting tools send your pasted data to server
 ⚙️ 100% Client-Side: HelpMini Private JSON Formatter
 To provide a lightning-fast, private, and secure debugging environment, we built a zero-server JSON utility:
 
-👉 Try the Free JSON Formatter & Validator
+👉 **[Try the Free JSON Formatter & Validator](/tools/json-converter)**
 
 Key Highlights:
 1.100% Client-Side Privacy: All parsing happens locally in your browser. Zero data is uploaded to any server, making it completely safe for sensitive API payloads.
@@ -64,4 +64,4 @@ Key Highlights:
 3.One-Click Prettify & Minify: Toggle between clean 2-space indented formatting and compact single-line JSON.
 
 Wrap Up
-Next time you hit a JSON syntax bug, paste your payload into the HelpMini JSON Formatter to clean up formatting and catch syntax bugs instantly without risking your API keys!
+Next time you hit a JSON syntax bug, paste your payload into the [HelpMini JSON Formatter](/tools/json-converter) to clean up formatting and catch syntax bugs instantly without risking your API keys!
