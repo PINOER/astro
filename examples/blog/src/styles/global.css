@@ -25,25 +25,25 @@
 	--aurora-2: rgba(6, 182, 212, 0.08);
 }
 
-/* ☀️ 亮色主题配置 (Light Theme) */
+/* ☀️ 优雅护眼的亮色主题配置 (Light Theme) - 优化对比度与柔和度 */
 [data-theme="light"] {
-	--bg-black: #f8fafc;
-	--bg-card: rgba(255, 255, 255, 0.85);
-	--border-color: rgba(0, 0, 0, 0.08);
+	--bg-black: #f4f6f8;        /* 柔和浅灰背景，告别刺眼纯白 */
+	--bg-card: #ffffff;         /* 纯白质感卡片，层次分明 */
+	--border-color: #d1d5db;    /* 更清晰的边框线条 */
 	--accent: #4f46e5;
 	--accent-glow: rgba(79, 70, 229, 0.15);
 	
-	/* 全局文字与基础组件色彩 */
-	--text-main: #0f172a;
-	--text-muted: #64748b;
-	--gray-dark: #334155;
-	--gray-light: #f1f5f9;
-	--code-bg: #f8fafc;
-	--header-bg: rgba(255, 255, 255, 0.85);
+	/* 加深文字对比度，解决字体看不清的问题 */
+	--text-main: #111827;       /* 深邃的主标题与正文色（接近纯黑，清晰锐利） */
+	--text-muted: #4b5563;      /* 清晰的次要文字色 */
+	--gray-dark: #1f2937;
+	--gray-light: #e5e7eb;      /* 输入框、代码背景等所用的浅灰 */
+	--code-bg: #f9fafb;
+	--header-bg: rgba(244, 246, 248, 0.9);
 
-	/* 背景极光渐变 */
-	--aurora-1: rgba(99, 102, 241, 0.08);
-	--aurora-2: rgba(6, 182, 212, 0.05);
+	/* 背景极光渐变（微弱自然） */
+	--aurora-1: rgba(99, 102, 241, 0.06);
+	--aurora-2: rgba(6, 182, 212, 0.04);
 }
 
 /* 全局背景与极光效果 */
@@ -53,7 +53,6 @@ html, body {
 	margin: 0;
 	padding: 0;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-	/* 顶部的 Vercel 极客光晕，随主题变化 */
 	background-image: 
 		radial-gradient(circle at 50% -10%, var(--aurora-1), transparent 60%),
 		radial-gradient(circle at 85% 20%, var(--aurora-2), transparent 40%) !important;
@@ -83,7 +82,7 @@ h6 {
 	letter-spacing: -0.02em;
 }
 h1 {
-	font-size: 2.1em; /* 优雅的大标题排版 */
+	font-size: 2.1em;
 }
 h2 {
 	font-size: 1.65em;
@@ -121,9 +120,11 @@ p {
 }
 textarea, input {
 	font-size: 16px;
-	background-color: var(--gray-light);
+	background-color: var(--bg-card);
 	color: var(--text-main);
 	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 0.8em;
 }
 table {
 	width: 100%;
