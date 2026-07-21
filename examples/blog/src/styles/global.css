@@ -200,3 +200,54 @@ hr {
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+
+/* =========================================================
+   🎯 亮色模式全站硬编码颜色 & 组件底色强制修复
+   ========================================================= */
+[data-theme="light"] {
+	/* 1. 强制卡片、输入框、下拉框与自定义容器使用浅色背景与深黑文字 */
+	.card,
+	.content-card,
+	.tool-card,
+	.search-input,
+	.search-result-item,
+	.contact-box,
+	.hero-section,
+	.feature-item,
+	input,
+	textarea,
+	select {
+		background-color: var(--bg-card) !important;
+		color: var(--text-main) !important;
+		border-color: var(--border-color) !important;
+	}
+
+	/* 2. 覆盖曾经硬编码写死白色 (#fff / #ffffff / #f8fafc) 的标题与文本 */
+	h1, h2, h3, h4, h5, h6,
+	p, span, li, dt, dd, label,
+	.title, .desc, .text, .author {
+		color: var(--text-main) !important;
+	}
+
+	/* 3. 次要辅助文字与标签 */
+	.text-muted, .sub-text, time, .date, .tag {
+		color: var(--text-muted) !important;
+	}
+
+	/* 4. 代码块与行内代码在亮色模式下的表现 */
+	code {
+		background-color: var(--gray-light) !important;
+		color: var(--accent) !important;
+	}
+	pre, pre code {
+		background-color: var(--code-bg) !important;
+		color: var(--text-main) !important;
+	}
+
+	/* 5. 搜索下拉框与浮层样式适配 */
+	.search-dropdown, .search-results-container {
+		background-color: var(--bg-card) !important;
+		border-color: var(--border-color) !important;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08) !important;
+	}
+}
