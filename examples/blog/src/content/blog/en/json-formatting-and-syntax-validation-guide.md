@@ -2,7 +2,7 @@
 title: "Fix Unexpected Token Errors: Complete JSON Formatting & Validation Guide (Free Private Tool)"
 description: "Why is your API call or config file throwing JSON errors? Learn common JSON syntax traps, how to format and minify JSON, and keep your data 100% private."
 pubDate: "2026-07-21"
-heroImage: "src/assets/token-calculator-hero.svg"
+heroImage: "src/assets/json-converter-hero.svg"
 lang: "en"
 ---
 
