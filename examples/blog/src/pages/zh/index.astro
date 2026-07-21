@@ -4,39 +4,22 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
+import { toolsData } from 'src/data/tools';
 
 // 获取博客列表供搜索使用
 const allPosts = await getCollection('blog');
 const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
 
-// 构建供前端搜索的静态 JSON 索引
+// 动态构建供前端搜索的静态 JSON 索引（工具 + 博客）
 const searchableItems = [
-	// 1. 微工具索引
-	{
-		title: '提示词结构化优化工具',
-		desc: '将粗糙的想法一键转化为结构清晰、高效的 ChatGPT 与 Claude 提示词。',
-		url: '/zh/tools/prompt-refiner',
+	...toolsData.map((tool) => ({
+		title: tool.title.zh,
+		desc: tool.desc.zh,
+		url: tool.url.zh,
 		type: 'tool',
-		icon: '📝',
-		keywords: 'prompt 提示词 costar costar框架 优化 催化剂 chatgpt claude'
-	},
-	{
-		title: 'Token & 上下文限制计算器',
-		desc: '精确计算大语言模型的 Token 数量，避免上下文超出截断问题。',
-		url: '/zh/tools/token-calculator',
-		type: 'tool',
-		icon: '📊',
-		keywords: 'token 计算器 上下文 限制 扣费 gpt4o claude deepseek gemini'
-	},
-	{
-		title: 'SEO Meta 标题与描述生成器',
-		desc: '生成符合 Google 规范且高点击率的 SEO Meta 标题与元描述。',
-		url: '/zh/tools/seo-meta-generator',
-		type: 'tool',
-		icon: '🔍',
-		keywords: 'seo meta 标题 元描述 描述生成器 google serp 点击率 ctr'
-	},
-	// 2. 博客文章索引
+		icon: tool.icon,
+		keywords: `${tool.title.zh} ${tool.keywords.zh}`
+	})),
 	...zhPosts.map((post) => ({
 		title: post.data.title,
 		desc: post.data.description,
@@ -233,11 +216,11 @@ const searchableItems = [
 				<!-- 🔍 搜索引擎式中央搜索框 -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
-					<input 
-						type="text" 
-						id="searchInput" 
-						class="search-input-box" 
-						placeholder="搜索您想要的工具或文档(教程)..." 
+					<input
+						type="text"
+						id="searchInput"
+						class="search-input-box"
+						placeholder="搜索您想要的工具或文档(教程)..."
 						autocomplete="off"
 					/>
 					<div id="searchDropdown" class="search-results-dropdown"></div>
@@ -246,32 +229,21 @@ const searchableItems = [
 
 			<section>
 				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px;">精选微工具</h2>
+				
+				<!-- 自动读取 toolsData 渲染微工具卡片 -->
 				<div class="tool-grid">
-					
-					<a href="/zh/tools/prompt-refiner" class="tool-card">
-						<div class="tool-icon">📝</div>
-						<h3>提示词结构化优化工具</h3>
-						<p>将粗糙的想法一键转化为结构清晰、高效的 ChatGPT 与 Claude 提示词。</p>
-						<span class="tool-tag">免费工具 • 即时生成</span>
-					</a>
-
-					<a href="/zh/tools/token-calculator" class="tool-card">
-						<div class="tool-icon">📊</div>
-						<h3>Token & 上下文限制计算器</h3>
-						<p>精确计算大语言模型的 Token 数量，避免上下文超出截断问题。</p>
-						<span class="tool-tag">免费工具 • 即时生成</span>
-					</a>
-
-					<a href="/zh/tools/seo-meta-generator" class="tool-card">
-						<div class="tool-icon">🔍</div>
-						<h3>SEO Meta 标题与描述生成器</h3>
-						<p>生成符合 Google 规范且高点击率的 SEO Meta 标题与元描述。</p>
-						<span class="tool-tag">免费工具 • 即时生成</span>
-					</a>
-
+					{toolsData.map((tool) => (
+						<a href={tool.url.zh} class="tool-card">
+							<div class="tool-icon">{tool.icon}</div>
+							<h3>{tool.title.zh}</h3>
+							<p>{tool.desc.zh}</p>
+							<span class="tool-tag">{tool.tag.zh}</span>
+						</a>
+					))}
 				</div>
 			</section>
-			<section  class="hero">
+
+			<section class="hero">
 				<p>轻量、即时且强劲的 AI 辅助工具，为你的生产力效率提升数倍。</p>
 			</section>
 		</main>
@@ -291,7 +263,7 @@ const searchableItems = [
 				}
 
 				// 模糊匹配关键词/标题/描述
-				const filtered = searchableItems.filter(item => 
+				const filtered = searchableItems.filter(item =>
 					item.title.toLowerCase().includes(query) ||
 					item.desc.toLowerCase().includes(query) ||
 					item.keywords.toLowerCase().includes(query)
