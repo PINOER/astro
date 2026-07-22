@@ -1,0 +1,356 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_DESCRIPTION } from 'src/consts';
+
+const title = 'Markdown 文本清理与格式化工具 - HelpMini';
+const description = '100% 本地计算，一键清理 AI 输出文本中的杂乱 HTML 标签、多余空行、特殊字符与标点排版。';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 选项控制面板 */
+			.options-panel {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 14px;
+				padding: 1rem 1.2rem;
+				margin-bottom: 1.5rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1rem 1.5rem;
+				align-items: center;
+			}
+			.option-label {
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				font-size: 0.88rem;
+				color: var(--text-main);
+				cursor: pointer;
+				user-select: none;
+			}
+			.option-label input[type="checkbox"] {
+				accent-color: var(--accent);
+				width: 16px;
+				height: 16px;
+				cursor: pointer;
+			}
+
+			/* 双栏文本编辑器区 */
+			.editor-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1.2rem;
+				margin-bottom: 1.5rem;
+			}
+			@media (max-width: 768px) {
+				.editor-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+			}
+			.editor-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.editor-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.editor-stats {
+				font-size: 0.78rem;
+				color: var(--text-muted);
+			}
+
+			textarea {
+				width: 100%;
+				height: 380px;
+				padding: 1rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.88rem;
+				line-height: 1.6;
+				resize: vertical;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s ease;
+			}
+			textarea:focus {
+				border-color: var(--accent);
+			}
+
+			/* 操作按钮区 */
+			.action-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+			}
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🧹 Markdown 文本清理排版器</h1>
+				<p>清理 AI 生成文本中的无用 HTML 标记、格式化段落与规范标点，100% 浏览器本地处理。</p>
+			</div>
+
+			<!-- 清理规则开关面板 -->
+			<div class="options-panel">
+				<label class="option-label">
+					<input type="checkbox" id="optStripHtml" checked />
+					去除内联 HTML 标签 (`&lt;span&gt;`, `&lt;div&gt;` 等)
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optMergeLines" checked />
+					压缩多余空行 (保留最多1个连续空行)
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optTrimSpaces" checked />
+					清除每行行首 & 行尾空格
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optFixCjkSpace" checked />
+					规范中英文与数字间空格
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optStripCodeFences" />
+					移除最外层 ```markdown 代码块包裹
+				</label>
+			</div>
+
+			<!-- 编辑器 -->
+			<div class="editor-grid">
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">原始文本 / AI 输出</span>
+						<span id="inputStats" class="editor-stats">0 字符 | 0 行</span>
+					</div>
+					<textarea id="inputText" placeholder="请在这里粘贴需要清理的文本或 AI 提示词输出..."></textarea>
+				</div>
+
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">清理后结果</span>
+						<span id="outputStats" class="editor-stats">0 字符 | 0 行</span>
+					</div>
+					<textarea id="outputText" placeholder="清理后的内容将在此处实时显示..." readonly></textarea>
+				</div>
+			</div>
+
+			<!-- 底部操作按钮 -->
+			<div class="action-bar">
+				<div class="btn-group">
+					<button id="btnSample" class="btn btn-secondary">加载测试示例</button>
+					<button id="btnClear" class="btn btn-secondary">清空输入</button>
+				</div>
+				<button id="btnCopy" class="btn btn-primary">📋 一键复制结果</button>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">已复制到剪贴板！</div>
+
+		<Footer lang="zh"/>
+
+		<script is:inline>
+			const inputText = document.getElementById('inputText');
+			const outputText = document.getElementById('outputText');
+			const inputStats = document.getElementById('inputStats');
+			const outputStats = document.getElementById('outputStats');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnClear = document.getElementById('btnClear');
+			const btnSample = document.getElementById('btnSample');
+			const toast = document.getElementById('toast');
+
+			// 选项 Checkbox
+			const optStripHtml = document.getElementById('optStripHtml');
+			const optMergeLines = document.getElementById('optMergeLines');
+			const optTrimSpaces = document.getElementById('optTrimSpaces');
+			const optFixCjkSpace = document.getElementById('optFixCjkSpace');
+			const optStripCodeFences = document.getElementById('optStripCodeFences');
+
+			// 核心文本清理函数
+			function cleanText(text) {
+				if (!text) return '';
+
+				let result = text;
+
+				// 1. 去除最外层的 ```markdown 和 ``` 代码块修饰
+				if (optStripCodeFences?.checked) {
+					result = result.replace(/^```[a-zA-Z]*\n/gm, '').replace(/\n```$/gm, '');
+				}
+
+				// 2. 剥离内联 HTML 标签，但保留换行符与基础语义
+				if (optStripHtml?.checked) {
+					result = result.replace(/<br\s*\/?>/gi, '\n');
+					result = result.replace(/<\/p>/gi, '\n\n');
+					result = result.replace(/<[^>]+>/g, '');
+				}
+
+				// 3. 行尾 & 行首多余空格清理
+				if (optTrimSpaces?.checked) {
+					result = result.split('\n').map(line => line.trim()).join('\n');
+				}
+
+				// 4. 优化中文与英文/数字之间的加空逻辑 (盘古格式化逻辑)
+				if (optFixCjkSpace?.checked) {
+					result = result
+						.replace(/([\u4e00-\u9fa5])([a-zA-Z0-9])/g, '$1 $2')
+						.replace(/([a-zA-Z0-9])([\u4e00-\u9fa5])/g, '$1 $2');
+				}
+
+				// 5. 压缩多余连续空行（最多保留一个空行）
+				if (optMergeLines?.checked) {
+					result = result.replace(/\n{3,}/g, '\n\n');
+				}
+
+				return result.trim();
+			}
+
+			// 更新统计与计算结果
+			function process() {
+				const raw = inputText.value;
+				const cleaned = cleanText(raw);
+
+				outputText.value = cleaned;
+
+				// 统计信息
+				const inLines = raw ? raw.split('\n').length : 0;
+				const outLines = cleaned ? cleaned.split('\n').length : 0;
+
+				inputStats.textContent = `${raw.length} 字符 | ${inLines} 行`;
+				outputStats.textContent = `${cleaned.length} 字符 | ${outLines} 行`;
+			}
+
+			// 监听事件
+			inputText?.addEventListener('input', process);
+			[optStripHtml, optMergeLines, optTrimSpaces, optFixCjkSpace, optStripCodeFences].forEach(opt => {
+				opt?.addEventListener('change', process);
+			});
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!outputText.value) return;
+				navigator.clipboard.writeText(outputText.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+
+			// 清空
+			btnClear?.addEventListener('click', () => {
+				inputText.value = '';
+				process();
+			});
+
+			// 测试示例
+			btnSample?.addEventListener('click', () => {
+				inputText.value = `\`\`\`markdown
+<span>Here is an AI response:</span>
+
+###  1. Introduction  
+
+This is an<b>example text</b> with<br>unnecessary HTML tags.   
+
+
+中文与English之间没有空格,但是数字 2026 和中文在一起。
+
+
+\`\`\``;
+				process();
+			});
+		</script>
+	</body>
+</html>
