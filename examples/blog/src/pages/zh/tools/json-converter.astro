@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
+export const frontmatter = {
+    title: "JSON 格式化与语法校验工具",
+    description: "纯前端本地计算、零数据上传的 JSON 格式化、压缩与语法校验工具。",
+    icon: "⚙️",
+    tag: "效率工具",
+    keywords: "json 格式化 校验 压缩 美化 语法错误排查",
+    pinned: false,
+    priority: 87
+};
+
 const pageTitle = `JSON 格式化与语法校验工具 — ${SITE_TITLE}`;
 const pageDescription = "纯前端本地计算、零数据上传的 JSON 格式化、压缩与语法校验工具。";
 ---
