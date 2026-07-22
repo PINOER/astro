@@ -1,0 +1,334 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "专业级 AI 视频提示词生成器",
+    description: "涵盖运镜轨迹、镜头速度、主体动态动作与环境物理交互，一键生成适用于 Sora、可灵 (Kling)、Runway Gen-3 与 MiniMax 的视频 Prompt。",
+    icon: "🎥",
+    tag: "AI 视频",
+    keywords: "AI 视频提示词 运镜生成器 sora 可灵 kling runway gen-3 minimax",
+    pinned: true,
+    priority: 99
+};
+
+const pageTitle = `专业级 AI 视频提示词生成器 — ${SITE_TITLE}`;
+const pageDescription = "涵盖运镜轨迹、镜头速度、主体动态动作与环境物理交互，一键生成适用于 Sora、可灵 (Kling)、Runway Gen-3 与 MiniMax 的视频 Prompt。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🎥 专业级 AI 视频提示词生成器</h1>
+				<p>组合专业运镜、动作细节与物理环境变化，生成适用于 Sora、可灵 Kling、Runway Gen-3 的视频 Prompt。</p>
+			</div>
+
+			<div class="form-grid">
+				<!-- 主体与场景 -->
+				<div class="form-group full-width">
+					<label for="subjectInput">
+						主体与场景描述 (Subject & Scene)
+						<span class="sub-tag">用中文或英文描述角色与环境</span>
+					</label>
+					<input type="text" id="subjectInput" placeholder="例如：一位穿着雨衣的赛博朋克侦探在夜晚的霓虹街道上行走..." />
+				</div>
+
+				<!-- 主体动作轨迹 -->
+				<div class="form-group full-width">
+					<label for="actionInput">
+						主体动态动作 (Subject Action / Dynamics)
+						<span class="sub-tag">描述主体的具体动作（视频的核心）</span>
+					</label>
+					<input type="text" id="actionInput" placeholder="例如：慢慢转头看向镜头，雨水顺着脸颊滑落，轻轻吐出一口白气..." />
+				</div>
+
+				<!-- 摄像机运镜方式 (Camera Movement) -->
+				<div class="form-group">
+					<label for="cameraMoveSelect">摄像机运镜方式 (Camera Movement)</label>
+					<select id="cameraMoveSelect">
+						<option value="slow push-in shot">缓慢推镜头 (Slow Push-In / Zoom-In)</option>
+						<option value="dolly pull-out shot">后拉镜头 (Dolly Pull-Out)</option>
+						<option value="smooth tracking shot following the subject">跟随平移镜头 (Tracking / Follow Shot)</option>
+						<option value="360-degree orbit shot around the subject">360度环绕镜头 (Orbit Shot)</option>
+						<option value="pan right camera movement">水平摇镜头 (Pan Movement)</option>
+						<option value="fpv drone fly-through shot">FPV 穿梭无人机航拍 (Drone Fly-Through)</option>
+						<option value="cinematic handheld camera shake">手持纪实微晃动 (Cinematic Handheld)</option>
+						<option value="static camera shot">固定机位 (Static Camera)</option>
+					</select>
+				</div>
+
+				<!-- 变焦与焦点切换 (Focus Control) -->
+				<div class="form-group">
+					<label for="focusSelect">焦点与变焦控制 (Focus & Zoom)</label>
+					<select id="focusSelect">
+						<option value="">不指定</option>
+						<option value="rack focus from foreground to background">前景到背景的变焦切换 (Rack Focus)</option>
+						<option value="shallow depth of field with sharp focus on subject">超浅景深，精准聚焦主体</option>
+						<option value="macro close-up focus on eyes">微距聚焦细节 (Macro Focus)</option>
+					</select>
+				</div>
+
+				<!-- 视频节奏与速度 (Pacing / Speed) -->
+				<div class="form-group">
+					<label for="speedSelect">视频节奏与速度 (Motion Speed)</label>
+					<select id="speedSelect">
+						<option value="real-time motion">常速自然流动 (Real-Time)</option>
+						<option value="slow-motion 60fps, smooth motion">60fps 优雅慢动作 (Slow Motion)</option>
+						<option value="hyperlapse time-lapse style, fast moving environment">延时摄影 / 环境快速流转 (Time-Lapse)</option>
+					</select>
+				</div>
+
+				<!-- 环境物理动态 (Environment Physics) -->
+				<div class="form-group">
+					<label for="envSelect">环境动态与物理交互 (Environment Physics)</label>
+					<select id="envSelect">
+						<option value="rain splashing on ground, neon lights reflection">雨水溅起，光影闪烁</option>
+						<option value="wind blowing through hair and clothes">强风吹拂头发与衣服</option>
+						<option value="floating dust particles in volumetric light rays">空气中飘浮的光斑与尘埃</option>
+						<option value="smoke and fog drifting slowly">烟雾与浓雾缓慢弥漫</option>
+						<option value="">无特殊环境动态</option>
+					</select>
+				</div>
+
+				<!-- 光线设计 -->
+				<div class="form-group">
+					<label for="lightingSelect">光线风格 (Lighting)</label>
+					<select id="lightingSelect">
+						<option value="cinematic volumetric lighting">电影级漫射光 (Volumetric Lighting)</option>
+						<option value="golden hour sunset lighting">黄金小时夕阳漫射</option>
+						<option value="cyberpunk neon lighting, flickering glow">赛博朋克霓虹闪烁</option>
+						<option value="dramatic rim lighting">戏剧性高光轮廓光</option>
+					</select>
+				</div>
+
+				<!-- 渲染风格与模型优化 -->
+				<div class="form-group">
+					<label for="qualitySelect">画质与胶片质感 (Video Quality)</label>
+					<select id="qualitySelect">
+						<option value="photorealistic 8k video, photorealistic details, 35mm film grain">8K 真实电影质感、35mm 胶片颗粒 (推荐)</option>
+						<option value="commercial 4k video, smooth movement, clean colors">商业级 4K 高清、流畅动态</option>
+						<option value="vintage 90s camcorder vhs style">90年代 VHS 复古录像带风格</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- 实时生成预览 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ 生成的英文视频 Prompt (适用于 Sora / 可灵 / Runway)</span>
+					<button class="btn-copy" id="btnCopy">📋 一键复制视频 Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">视频提示词已成功复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const subjectInput = document.getElementById('subjectInput');
+			const actionInput = document.getElementById('actionInput');
+			const cameraMoveSelect = document.getElementById('cameraMoveSelect');
+			const focusSelect = document.getElementById('focusSelect');
+			const speedSelect = document.getElementById('speedSelect');
+			const envSelect = document.getElementById('envSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const qualitySelect = document.getElementById('qualitySelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const subject = subjectInput.value.trim() || 'A cyberpunk detective in neon city';
+				const action = actionInput.value.trim() || 'walking down the rain-soaked street, turning head slowly to look at the camera';
+
+				const components = [
+					cameraMoveSelect.value,
+					`of ${subject}`,
+					action,
+					envSelect.value,
+					focusSelect.value,
+					speedSelect.value,
+					lightingSelect.value,
+					qualitySelect.value
+				].filter(Boolean);
+
+				promptOutput.value = components.join(', ');
+			}
+
+			[
+				subjectInput, actionInput, cameraMoveSelect, focusSelect,
+				speedSelect, envSelect, lightingSelect, qualitySelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
