@@ -19,7 +19,7 @@ const rawItems = [
 	...enTools.map((tool) => ({
 		title: tool.data.pageTitle,
 		desc: tool.data.pageDescription,
-		url: tool.data.url,
+		url: `/tools/${tool.id.replace(/\.(md|mdx)$/, '').replace(/^(en|zh)\//, '').replace(/\/index$/, '')}/`,
 		type: 'tool',
 		icon: tool.data.icon || '⚡',
 		tag: tool.data.tag || 'Tool',
