@@ -1,0 +1,313 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "Pro E-Commerce AI Product Scene Prompt Generator",
+    description: "Transform casual product photos into professional commercial studio renders with custom backgrounds, surfaces, lighting, and props for Midjourney and Flux.",
+    icon: "🛍️",
+    tag: "AI Tools",
+    keywords: "ai product scene prompt generator e-commerce photography helper midjourney product placement flux product render controlnet",
+    pinned: true,
+    priority: 96
+};
+
+const pageTitle = `Pro E-Commerce AI Product Scene Prompt Generator — ${SITE_TITLE}`;
+const pageDescription = "Transform casual product photos into professional commercial studio renders with custom backgrounds, surfaces, lighting, and props for Midjourney and Flux.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🛍️ Pro E-Commerce AI Product Scene Prompt Generator</h1>
+				<p>Combine podium surfaces, ambient lighting, and realistic props to generate commercial scene renders for Midjourney, Flux, and SDXL.</p>
+			</div>
+
+			<div class="form-grid">
+				<!-- Product Description -->
+				<div class="form-group full-width">
+					<label for="productInput">
+						Product Subject Description
+						<span class="sub-tag">Specify your product type and features</span>
+					</label>
+					<input type="text" id="productInput" placeholder="e.g., A sleek minimalist white stainless steel thermos bottle..." />
+				</div>
+
+				<!-- Surface Material -->
+				<div class="form-group">
+					<label for="surfaceSelect">Surface Material / Podium</label>
+					<select id="surfaceSelect">
+						<option value="placed on a luxury white marble countertop">Luxury White Marble Countertop</option>
+						<option value="placed on a sunlit rustic wooden tabletop">Sunlit Rustic Wooden Tabletop</option>
+						<option value="placed on a smooth wet stone surface with subtle reflections">Smooth Wet Stone Surface with Reflections</option>
+						<option value="placed on a minimalist pastel-colored cylindrical podium">Minimalist Pastel Cylindrical Podium</option>
+						<option value="placed on a textured beige linen fabric table">Textured Beige Linen Fabric</option>
+						<option value="placed on a clean reflective mirror glass surface">Reflective Mirror Glass Surface</option>
+					</select>
+				</div>
+
+				<!-- Environment Scene -->
+				<div class="form-group">
+					<label for="sceneSelect">Environmental Scene & Background</label>
+					<select id="sceneSelect">
+						<option value="in a cozy Scandinavian minimalist living room background">Scandinavian Minimalist Living Room</option>
+						<option value="in a sunlit modern kitchen counter environment">Sunlit Modern Kitchen</option>
+						<option value="in a luxury spa bathroom vanity setting">Luxury Spa Bathroom Vanity</option>
+						<option value="in a lush green tropical forest with soft morning mist">Tropical Forest with Morning Mist</option>
+						<option value="in a professional clean commercial photo studio background">Clean Commercial Photo Studio</option>
+						<option value="in a vibrant outdoor camping scene under golden sunlight">Outdoor Camping & Nature Scene</option>
+					</select>
+				</div>
+
+				<!-- Props & Elements -->
+				<div class="form-group">
+					<label for="propSelect">Props & Surrounding Accents</label>
+					<select id="propSelect">
+						<option value="surrounded by fresh monstera leaves and subtle water splashes">Monstera Leaves & Fresh Water Splashes</option>
+						<option value="surrounded by scattered coffee beans and cinnamon sticks">Scattered Coffee Beans & Cinnamon</option>
+						<option value="with fresh lemon slices and mint leaves in blurry background">Fresh Lemon Slices & Mint Leaves</option>
+						<option value="accented with soft natural cotton flowers and dried wheat">Soft Cotton Flowers & Dried Wheat</option>
+						<option value="with elegant cosmetics brushes and silk ribbons nearby">Elegance Cosmetics Brushes & Silk Ribbons</option>
+						<option value="">None (Minimalist Clean Scene)</option>
+					</select>
+				</div>
+
+				<!-- Lighting Setup -->
+				<div class="form-group">
+					<label for="lightingSelect">Lighting Setup & Shadows</label>
+					<select id="lightingSelect">
+						<option value="morning sunlight filtering through window blinds creating dynamic dappled shadow cast">Window Blinds Sunlight with Dappled Shadow</option>
+						<option value="soft diffuse studio softbox light with realistic contact shadow">Studio Softbox Light & Contact Shadow</option>
+						<option value="golden hour warm sunset backlighting with subtle lens flare">Golden Hour Backlighting & Gentle Flare</option>
+						<option value="dramatic side lighting with strong contrast shadow">Dramatic Hard Contrast Side Light</option>
+					</select>
+				</div>
+
+				<!-- Aspect Ratio -->
+				<div class="form-group">
+					<label for="arSelect">Aspect Ratio (--ar)</label>
+					<select id="arSelect">
+						<option value="--ar 4:5">--ar 4:5 (E-Commerce Hero / Instagram Portrait)</option>
+						<option value="--ar 1:1">--ar 1:1 (Square Product Card)</option>
+						<option value="--ar 3:4">--ar 3:4 (Standard Shopify Product Page)</option>
+						<option value="--ar 16:9">--ar 16:9 (Landscape Web Banner)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- Realtime Output -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ Generated Commercial Render Prompt (Midjourney / Flux / SD)</span>
+					<button class="btn-copy" id="btnCopy">📋 Copy Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Prompt copied to clipboard!</div>
+
+		<Footer />
+
+		<script is:inline>
+			const productInput = document.getElementById('productInput');
+			const surfaceSelect = document.getElementById('surfaceSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const propSelect = document.getElementById('propSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const product = productInput.value.trim() || 'A sleek minimalist product';
+
+				const components = [
+					`Commercial product photography shot of ${product}`,
+					surfaceSelect.value,
+					sceneSelect.value,
+					propSelect.value,
+					lightingSelect.value,
+					'realistic ground shadow, shallow depth of field, sharp focus on product, ultra-detailed, 8k resolution, raw photo',
+					arSelect.value
+				].filter(Boolean);
+
+				promptOutput.value = components.join(', ');
+			}
+
+			[
+				productInput, surfaceSelect, sceneSelect, propSelect,
+				lightingSelect, arSelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
