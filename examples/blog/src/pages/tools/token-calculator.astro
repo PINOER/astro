@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
+export const frontmatter = {
+    title: "LLM Token & Context Limit Calculator",
+    description: "Calculate exact token counts and estimate API costs across GPT-4o, Claude 3.5, DeepSeek, and Gemini 1.5.",
+    icon: "📊",
+    tag: "AI Tools",
+    keywords: "llm token calculator context limit gpt-4o claude deepseek gemini developer tools",
+    pinned: false,
+    priority: 89
+};
+
 const pageTitle = `LLM Token & Context Limit Calculator — ${SITE_TITLE}`;
 const pageDescription = "Calculate exact token counts and estimate API costs across GPT-4o, Claude 3.5, DeepSeek, and Gemini 1.5.";
 ---
