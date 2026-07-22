@@ -1,0 +1,330 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "JSON to TypeScript Interface Converter",
+    description: "Fast, 100% private online tool to convert complex JSON data into structured TypeScript interfaces instantly.",
+    icon: "💻",
+    tag: "Developer",
+    keywords: "json to typescript interface converter type definition developer tools",
+    pinned: false,
+    priority: 93
+};
+
+const pageTitle = `JSON to TypeScript Interface Converter — ${SITE_TITLE}`;
+const pageDescription = "Fast, 100% private online tool to convert complex JSON data into structured TypeScript interfaces instantly.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.status-bar {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem 1.2rem;
+				margin-bottom: 1.2rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.88rem;
+			}
+			.status-success { color: #10b981; font-weight: 600; }
+			.status-error { color: #ef4444; font-weight: 600; }
+
+			.editor-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1.2rem;
+				margin-bottom: 1.5rem;
+			}
+			@media (max-width: 768px) {
+				.editor-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+			}
+			.editor-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.editor-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-text {
+				background: none;
+				border: none;
+				color: var(--accent);
+				font-size: 0.82rem;
+				cursor: pointer;
+				font-weight: 600;
+			}
+			.btn-text:hover {
+				text-decoration: underline;
+			}
+
+			textarea {
+				width: 100%;
+				height: 400px;
+				padding: 1rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.88rem;
+				line-height: 1.6;
+				resize: vertical;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s ease;
+			}
+			textarea:focus {
+				border-color: var(--accent);
+			}
+
+			.action-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+			}
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>💻 JSON to TypeScript Interface Converter</h1>
+				<p>100% client-side tool to convert any JSON data into structured TypeScript interfaces instantly.</p>
+			</div>
+
+			<div class="status-bar">
+				<span id="statusText" class="status-success">✓ Ready (Type or paste JSON to generate)</span>
+				<span style="color: var(--text-muted); font-size: 0.82rem;">Mode: JSON ➔ TypeScript Interface</span>
+			</div>
+
+			<div class="editor-grid">
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">JSON Input</span>
+						<button id="btnClear" class="btn-text">Clear</button>
+					</div>
+					<textarea id="jsonInput" placeholder='Paste your raw JSON here... e.g. {"id": 1, "name": "HelpMini", "active": true}'></textarea>
+				</div>
+
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">TypeScript Output</span>
+						<button id="btnCopy" class="btn-text">📋 Copy Result</button>
+					</div>
+					<textarea id="tsOutput" placeholder="Converted TypeScript interfaces will appear here automatically..." readonly></textarea>
+				</div>
+			</div>
+
+			<div class="action-bar">
+				<div class="btn-group">
+					<button id="btnSample" class="btn btn-secondary">Load Sample</button>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Code copied to clipboard!</div>
+
+		<Footer />
+
+		<script is:inline>
+			const jsonInput = document.getElementById('jsonInput');
+			const tsOutput = document.getElementById('tsOutput');
+			const statusText = document.getElementById('statusText');
+			const btnClear = document.getElementById('btnClear');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnSample = document.getElementById('btnSample');
+			const toast = document.getElementById('toast');
+
+			function capitalize(str) {
+				return str.charAt(0).toUpperCase() + str.slice(1);
+			}
+
+			function inferType(val, keyName = 'Item', interfaces = []) {
+				if (val === null) return 'null';
+				const type = typeof val;
+
+				if (type === 'string') return 'string';
+				if (type === 'number') return 'number';
+				if (type === 'boolean') return 'boolean';
+
+				if (Array.isArray(val)) {
+					if (val.length === 0) return 'any[]';
+					const subType = inferType(val[0], keyName, interfaces);
+					return `${subType}[]`;
+				}
+
+				if (type === 'object') {
+					const interfaceName = capitalize(keyName) + 'Interface';
+					const fields = [];
+					for (const k of Object.keys(val)) {
+						const subTypeName = inferType(val[k], k, interfaces);
+						fields.push(`  ${k}: ${subTypeName};`);
+					}
+					interfaces.push(`interface ${interfaceName} {\n${fields.join('\n')}\n}`);
+					return interfaceName;
+				}
+
+				return 'any';
+			}
+
+			function convertJSONToTS() {
+				const val = jsonInput.value.trim();
+				if (!val) {
+					tsOutput.value = '';
+					statusText.className = 'status-success';
+					statusText.textContent = '✓ Ready';
+					return;
+				}
+
+				try {
+					const jsonObj = JSON.parse(val);
+					const interfaces = [];
+					const rootType = inferType(jsonObj, 'RootObject', interfaces);
+
+					const uniqueInterfaces = [...new Set(interfaces)].reverse();
+					
+					let finalResult = uniqueInterfaces.join('\n\n');
+					if (finalResult) {
+						finalResult += '\n\n';
+					}
+					finalResult += `type RootObject = ${rootType};`;
+
+					tsOutput.value = finalResult;
+					statusText.className = 'status-success';
+					statusText.textContent = '✓ JSON parsed and TypeScript interface generated successfully';
+				} catch (err) {
+					tsOutput.value = '';
+					statusText.className = 'status-error';
+					statusText.textContent = `❌ Syntax Error: ${err.message}`;
+				}
+			}
+
+			jsonInput?.addEventListener('input', convertJSONToTS);
+
+			btnClear?.addEventListener('click', () => {
+				jsonInput.value = '';
+				convertJSONToTS();
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!tsOutput.value) return;
+				navigator.clipboard.writeText(tsOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+
+			btnSample?.addEventListener('click', () => {
+				jsonInput.value = JSON.stringify({
+					id: 101,
+					title: "HelpMini Developer Hub",
+					published: true,
+					tags: ["AI", "Astro", "TypeScript"],
+					author: {
+						name: "Alex",
+						role: "Founder"
+					},
+					metrics: [
+						{ views: 1200, clicks: 350 }
+					]
+				}, null, 2);
+				convertJSONToTS();
+			});
+		</script>
+	</body>
+</html>
