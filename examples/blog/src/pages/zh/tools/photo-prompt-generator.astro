@@ -1,0 +1,369 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "专业级 AI 摄影提示词生成器",
+    description: "涵盖相机、镜头、光线、构图、胶片质感与摄影手法，一键生成 Midjourney / Flux / SD 专业级摄影 Prompt。",
+    icon: "📸",
+    tag: "AI 摄影",
+    keywords: "AI 摄影提示词 提示词生成器 midjourney flux 镜头 相机 光线 构图",
+    pinned: true,
+    priority: 98
+};
+
+const pageTitle = `专业级 AI 摄影提示词生成器 — ${SITE_TITLE}`;
+const pageDescription = "涵盖相机、镜头、光线、构图、胶片质感与摄影手法，一键生成 Midjourney / Flux / SD 专业级摄影 Prompt。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 控制表单网格 */
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			/* 结果预览区 */
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>📸 专业级 AI 摄影提示词生成器</h1>
+				<p>组合顶级相机、镜头、光线与构图语法，生成适用于 Midjourney v6、Flux.1 与 SDXL 的高手 Prompt。</p>
+			</div>
+
+			<!-- 参数设置区 -->
+			<div class="form-grid">
+				<!-- 主体与场景 -->
+				<div class="form-group full-width">
+					<label for="subjectInput">
+						核心主体与场景描述 (Subject & Scene)
+						<span class="sub-tag">用中文或英文描述画面主体</span>
+					</label>
+					<input type="text" id="subjectInput" placeholder="例如：霓虹雨夜中的赛博朋克女性、赛车在赛道上极速漂移、深山雪地里孤立的木屋..." />
+				</div>
+
+				<!-- 相机机身与画幅 -->
+				<div class="form-group">
+					<label for="cameraSelect">相机机身/画幅 (Camera Body)</label>
+					<select id="cameraSelect">
+						<option value="">不指定 (默认高级摄影)</option>
+						<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (中画幅超高清)</option>
+						<option value="shot on Leica M11">徕卡 Leica M11 (经典人文人文质感)</option>
+						<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐全画幅)</option>
+						<option value="shot on Phase One XF IQ4">飞思 Phase One IQ4 (顶级商业大片)</option>
+						<option value="shot on 35mm film camera">35mm 胶片相机 (复古复古颗粒)</option>
+						<option value="shot on IMAX 70mm camera">IMAX 70mm 电影摄影机 (史诗电影感)</option>
+					</select>
+				</div>
+
+				<!-- 镜头与焦段 -->
+				<div class="form-group">
+					<label for="lensSelect">镜头与焦段 (Lens & Focal Length)</label>
+					<select id="lensSelect">
+						<option value="">不指定</option>
+						<option value="85mm f/1.2 lens, creamy bokeh depth of field">85mm f/1.2 (经典人像大光圈虚化)</option>
+						<option value="50mm f/1.4 prime lens">50mm f/1.4 (标准人眼视角定焦)</option>
+						<option value="24mm ultra-wide lens, dynamic perspective">24mm 超广角 (张力空间与环境)</option>
+						<option value="100mm f/2.8 macro lens, extreme fine detail">100mm f/2.8 微距 (极致细节微观)</option>
+						<option value="35mm anamorphic lens, oval bokeh, lens flare">35mm 变形宽银幕镜头 (椭圆光斑与眩光)</option>
+						<option value="70-200mm telephoto lens, compressed background">70-200mm 长焦 (空间压缩感)</option>
+					</select>
+				</div>
+
+				<!-- 光线设计 -->
+				<div class="form-group">
+					<label for="lightingSelect">光线设计 (Lighting Design)</label>
+					<select id="lightingSelect">
+						<option value="cinematic lighting">不指定 (默认电影光)</option>
+						<option value="Rembrandt lighting, moody dark shadows">伦勃朗光 / 戏剧阴影人像</option>
+						<option value="golden hour, warm sunset glow, volumetric god rays">黄金小时 / 暖阳逆光与漫射光束</option>
+						<option value="soft studio softbox lighting, clean commercial feel">柔光箱摄影棚光 / 干净商业无瑕</option>
+						<option value="cyberpunk dual-tone neon lighting, cyan and magenta glow">双色双向霓虹光 / 赛博朋克氛</option>
+						<option value="dramatic rim light, strong edge highlight">戏剧性轮廓光 / 边缘高光剪影</option>
+						<option value="overcast soft window light, natural atmosphere">阴天漫射窗外光 / 柔和清冷自然光</option>
+					</select>
+				</div>
+
+				<!-- 拍摄角度 -->
+				<div class="form-group">
+					<label for="angleSelect">拍摄角度 (Camera Angle)</label>
+					<select id="angleSelect">
+						<option value="">不指定</option>
+						<option value="eye-level shot">平视视角 (Eye-level Shot)</option>
+						<option value="low-angle hero shot, worm's-eye view">低角度仰拍 (Low-angle Hero Shot)</option>
+						<option value="high-angle shot, bird's-eye view">高角度俯拍 (High-angle View)</option>
+						<option value="drone aerial photograph, top-down perspective">无人机航拍俯瞰 (Drone Aerial)</option>
+						<option value="extreme close-up macro shot">超近距离特写 (Extreme Close-up)</option>
+						<option value="over-the-shoulder shot">过肩视角 (Over-the-shoulder)</option>
+					</select>
+				</div>
+
+				<!-- 构图与景别 -->
+				<div class="form-group">
+					<label for="compositionSelect">构图与景别 (Composition)</label>
+					<select id="compositionSelect">
+						<option value="">不指定</option>
+						<option value="rule of thirds, balanced composition">三分法构图 (Rule of Thirds)</option>
+						<option value="symmetrical composition, minimalist focus">对称构图 (Symmetry & Balance)</option>
+						<option value="leading lines framing the subject">引导线构图 (Leading Lines)</option>
+						<option value="cinematic wide shot, environmental negative space">电影级宽景 / 大面积留白</option>
+						<option value="tight portrait framing">紧凑人像构图 (Tight Framing)</option>
+					</select>
+				</div>
+
+				<!-- 胶片与色彩风格 -->
+				<div class="form-group">
+					<label for="filmSelect">胶片与色彩风格 (Film & Color)</label>
+					<select id="filmSelect">
+						<option value="">不指定</option>
+						<option value="Kodak Portra 400 film look, warm skin tones, fine grain">柯达 Kodak Portra 400 (暖调复古人像)</option>
+						<option value="Fujifilm Pro 400H look, cool green tones">富士 Fujifilm Pro 400H (清透冷青日系)</option>
+						<option value="monochrome black and white, high contrast photography">黑白高对比度经典人文 (Monochrome B&W)</option>
+						<option value="vintage Kodak Tri-X 400, grainy film aesthetic">柯达 Tri-X 400 粗颗粒黑白 (Tri-X Grain)</option>
+						<option value="clean modern digital photography, sharp vibrant colors">现代数字高清色彩 (Clean Digital)</option>
+					</select>
+				</div>
+
+				<!-- 图像画幅比例 (--ar) -->
+				<div class="form-group">
+					<label for="arSelect">画面宽高比 (Aspect Ratio --ar)</label>
+					<select id="arSelect">
+						<option value="--ar 16:9">16:9 (横屏电影/壁纸)</option>
+						<option value="--ar 3:2">3:2 (标准全画幅单反比例)</option>
+						<option value="--ar 4:5">4:5 (社交媒体/Instagram竖屏)</option>
+						<option value="--ar 9:16">9:16 (手机全屏/短视频海报)</option>
+						<option value="--ar 1:1">1:1 (正方形方图)</option>
+						<option value="--ar 21:9">21:9 (宽银幕电影)</option>
+					</select>
+				</div>
+
+				<!-- 模型生成质量权重 -->
+				<div class="form-group">
+					<label for="styleSelect">渲染质感修饰 (Quality Boosters)</label>
+					<select id="styleSelect">
+						<option value="raw photo, award-winning photography, highly detailed, 8k">真实 RAW 摄影、获奖大片、极致细节 (推荐)</option>
+						<option value="raw photo, candid portrait photography, authentic, unfiltered">真实纪实抓拍、未滤镜纯真质感</option>
+						<option value="commercial studio fashion photography, magazine cover style">商业时尚大片、杂志封面质感</option>
+						<option value="editorial documentary photo, National Geographic style">国家地理杂志纪实风</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- 实时生成预览 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ 生成的英文专业 Prompt (适用于 Midjourney / Flux)</span>
+					<button class="btn-copy" id="btnCopy">📋 一键复制提示词</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">提示词已成功复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const subjectInput = document.getElementById('subjectInput');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const angleSelect = document.getElementById('angleSelect');
+			const compositionSelect = document.getElementById('compositionSelect');
+			const filmSelect = document.getElementById('filmSelect');
+			const arSelect = document.getElementById('arSelect');
+			const styleSelect = document.getElementById('styleSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const subject = subjectInput.value.trim() || 'A majestic tiger in snow forest';
+				
+				const components = [
+					subject,
+					angleSelect.value,
+					compositionSelect.value,
+					cameraSelect.value,
+					lensSelect.value,
+					lightingSelect.value,
+					filmSelect.value,
+					styleSelect.value,
+					arSelect.value
+				].filter(Boolean);
+
+				promptOutput.value = components.join(', ');
+			}
+
+			// 监听所有输入与下拉框变化
+			[
+				subjectInput, cameraSelect, lensSelect, lightingSelect, 
+				angleSelect, compositionSelect, filmSelect, arSelect, styleSelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			// 初始化构建
+			buildPrompt();
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
