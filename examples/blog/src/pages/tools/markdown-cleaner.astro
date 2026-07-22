@@ -2,7 +2,17 @@
 import BaseHead from 'src/components/BaseHead.astro';
 import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
-import { SITE_DESCRIPTION } from 'src/consts';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "Markdown & Text Cleaner",
+    description: "Fast, 100% private, client-side tool to strip HTML tags, normalize line breaks, and clean AI-generated Markdown text.",
+    icon: "🧹",
+    tag: "Productivity",
+    keywords: "markdown cleaner text formatter ai text cleanup html strip",
+    pinned: false,
+    priority: 90
+};
 
 const title = 'Markdown & Text Cleaner - HelpMini';
 const description = 'Fast, 100% private, client-side tool to strip HTML tags, normalize line breaks, and clean AI-generated Markdown text.';
@@ -310,9 +320,9 @@ const description = 'Fast, 100% private, client-side tool to strip HTML tags, no
 				inputText.value = `\`\`\`markdown
 <span>Here is an AI response:</span>
 
-###  1. Introduction  
+###   1. Introduction  
 
-This is an<b>example text</b> with<br>unnecessary HTML tags.   
+This is an<b>example text</b> with<br>unnecessary HTML tags.    
 
 
 Excessive blank lines below...
