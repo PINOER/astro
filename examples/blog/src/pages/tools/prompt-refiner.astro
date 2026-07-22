@@ -13,14 +13,6 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
-			:root {
-				--primary: #6366f1;
-				--primary-hover: #4f46e5;
-				--bg-card: #1e293b;
-				--border-color: #334155;
-				--text-main: #f8fafc;
-				--text-muted: #94a3b8;
-			}
 			main {
 				width: 800px;
 				max-width: calc(100% - 2em);
@@ -35,6 +27,9 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 				font-size: 2.2rem;
 				font-weight: 800;
 				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
 			}
 			.tool-header p {
 				color: var(--text-muted);
@@ -42,9 +37,11 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 			}
 			.tool-box {
 				background: var(--bg-card);
-				border: 1px solid var(--border-color);
-				border-radius: 12px;
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
 				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 			}
 			.form-group {
 				margin-bottom: 1.5em;
@@ -58,21 +55,23 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 			textarea, select {
 				width: 100%;
 				padding: 0.8em 1em;
-				background: #0f172a;
-				border: 1px solid var(--border-color);
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
 				border-radius: 8px;
-				color: #fff;
+				color: var(--text-main);
 				font-size: 0.95rem;
 				box-sizing: border-box;
 				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
 			}
 			textarea:focus, select:focus {
-				border-color: var(--primary);
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
 			}
 			.btn-generate {
 				width: 100%;
-				background: var(--primary);
-				color: #fff;
+				background: var(--accent);
+				color: #ffffff;
 				border: none;
 				padding: 0.9em;
 				font-size: 1rem;
@@ -82,7 +81,7 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 				transition: background 0.2s;
 			}
 			.btn-generate:hover {
-				background: var(--primary-hover);
+				background: var(--accent-hover);
 			}
 			.result-area {
 				margin-top: 2em;
@@ -92,29 +91,36 @@ const pageDescription = "Transform rough, one-line ideas into structured, high-c
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 0.5em;
+				margin-bottom: 0.8em;
+			}
+			.result-header label {
+				margin-bottom: 0;
 			}
 			.btn-copy {
-				background: rgba(255, 255, 255, 0.1);
-				border: 1px solid var(--border-color);
-				color: #fff;
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
 				padding: 0.4em 0.8em;
 				border-radius: 6px;
 				cursor: pointer;
 				font-size: 0.85rem;
+				font-weight: 600;
+				transition: all 0.2s ease;
 			}
 			.btn-copy:hover {
-				background: rgba(255, 255, 255, 0.2);
+				border-color: var(--accent);
+				color: var(--accent);
 			}
 			pre {
-				background: #0f172a;
+				background: var(--code-bg) !important;
 				padding: 1.2em;
-				border-radius: 8px;
-				border: 1px solid var(--border-color);
+				border-radius: 10px;
+				border: 1px solid var(--card-border);
 				white-space: pre-wrap;
 				word-break: break-word;
-				color: #a5b4fc;
+				color: var(--text-main);
 				font-size: 0.9rem;
+				line-height: 1.6;
 			}
 		</style>
 	</head>
