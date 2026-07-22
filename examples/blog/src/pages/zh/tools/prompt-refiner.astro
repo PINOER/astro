@@ -5,6 +5,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
+export const frontmatter = {
+    title: "提示词结构化优化工具",
+    description: "使用 CO-STAR 框架，将粗糙的一句话需求一键转化为适用于 ChatGPT、Claude 和 DeepSeek 的专业结构化提示词。",
+    icon: "📝",
+    tag: "效率工具",
+    keywords: "提示词 结构化 co-star 框架 chatgpt claude deepseek",
+    pinned: false,
+    priority: 91
+};
+
 const pageTitle = `提示词结构化优化工具 — ${SITE_TITLE}`;
 const pageDescription = "使用 CO-STAR 框架，将粗糙的一句话需求一键转化为适用于 ChatGPT、Claude 和 DeepSeek 的专业结构化提示词。";
 ---
