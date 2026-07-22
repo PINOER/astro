@@ -11,6 +11,7 @@
 	--card-border: rgba(255, 255, 255, 0.08);
 	--accent: #6366f1;
 	--accent-hover: #4f46e5;
+	--accent-glow: rgba(99, 102, 241, 0.25); /* ⚡ 卡片/焦点悬浮发光阴影 */
 	--cyan: #06b6d4;
 	
 	/* 文字与基础颜色 */
@@ -44,6 +45,7 @@
 	--card-border: #e2e8f0;    /* 清晰柔和边框 */
 	--accent: #4f46e5;
 	--accent-hover: #4338ca;
+	--accent-glow: rgba(79, 70, 229, 0.15);  /* ⚡ 浅色优雅光晕 */
 	--cyan: #0284c7;
 
 	/* 全局文字调深，清晰锐利 */
