@@ -6,14 +6,14 @@ import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
 import { toolsData } from 'src/data/tools';
 
-// 1. Fetch English Posts
+// 1. Fetch English blogs
 const allPosts = await getCollection('blog');
 const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
 
-// 2. Sponsor config
+// 2. Sponsor / Ad Items Configuration
 const sponsorItems = [];
 
-// 3. Search Index
+// 3. Searchable Dataset (Tools + Blogs + Sponsors)
 const allSearchableItems = [
 	...toolsData.map((tool) => ({
 		title: tool.title.en,
@@ -88,6 +88,7 @@ const allSearchableItems = [
 				line-height: 1.6;
 			}
 
+			/* 🔍 Central Search Engine Bar */
 			.search-wrapper {
 				max-width: 640px;
 				margin: 0 auto 2.5em;
@@ -121,6 +122,7 @@ const allSearchableItems = [
 				pointer-events: none;
 			}
 
+			/* 📦 Header Row */
 			.section-title-wrapper {
 				display: flex;
 				align-items: center;
@@ -144,12 +146,14 @@ const allSearchableItems = [
 				border: 1px solid var(--card-border);
 			}
 
+			/* ⚡ Dual-Column Streamlined Grid */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
 				gap: 0.9rem;
 			}
 
+			/* 🎯 Perfect Item Card Style based on search-result-item */
 			.item-card {
 				display: flex;
 				align-items: center;
@@ -223,6 +227,7 @@ const allSearchableItems = [
 				font-weight: 700;
 				white-space: nowrap;
 				flex-shrink: 0;
+				text-transform: uppercase;
 			}
 
 			.type-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.25); }
@@ -255,18 +260,20 @@ const allSearchableItems = [
 				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
 
+				<!-- 🔍 Search Bar -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
 					<input
 						type="text"
 						id="searchInput"
 						class="search-input-box"
-						placeholder="Search tools, guides, or keywords... (e.g., SEO, Token, Prompt)"
+						placeholder="Search micro-tools, guides, or keywords... (e.g., SEO, Token, Prompt)"
 						autocomplete="off"
 					/>
 				</div>
 			</section>
 
+			<!-- 📦 Streamlined Content Section -->
 			<section>
 				<div class="section-title-wrapper">
 					<h2 id="sectionTitle" class="section-title">Featured Micro Tools</h2>
@@ -282,12 +289,14 @@ const allSearchableItems = [
 		</main>
 		<Footer />
 
+		<!-- Client-Side Search Engine Script -->
 		<script is:inline define:vars={{ allSearchableItems }}>
 			const searchInput = document.getElementById('searchInput');
 			const sectionTitle = document.getElementById('sectionTitle');
 			const resultCount = document.getElementById('resultCount');
 			const contentGrid = document.getElementById('contentGrid');
 
+			// Pin & Priority Sorting
 			function sortItems(items) {
 				return [...items].sort((a, b) => {
 					if (a.pinned && !b.pinned) return -1;
@@ -296,6 +305,7 @@ const allSearchableItems = [
 				});
 			}
 
+			// Render Items in Single-Row Streamlined Style
 			function renderItems(items) {
 				if (!contentGrid) return;
 
@@ -330,7 +340,7 @@ const allSearchableItems = [
 
 			function initDefaultView() {
 				const sorted = sortItems(allSearchableItems);
-				const default20 = sorted.slice(0, 20);
+				const default20 = sorted.slice(0, 20); // Top 20 items by default
 				
 				if (sectionTitle) sectionTitle.textContent = 'Featured Micro Tools';
 				if (resultCount) resultCount.textContent = `${default20.length} items`;
@@ -338,6 +348,7 @@ const allSearchableItems = [
 				renderItems(default20);
 			}
 
+			// Real-time Search Filter
 			searchInput?.addEventListener('input', (e) => {
 				const query = e.target.value.toLowerCase().trim();
 
