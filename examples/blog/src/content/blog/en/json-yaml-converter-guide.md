@@ -1,8 +1,7 @@
 ---
 title: "JSON vs. YAML: How to Convert Between Them Instantly and Securely"
 description: "Working with Kubernetes, Docker Compose, or GitHub Actions? Learn how to seamlessly convert between JSON and YAML configurations with 100% client-side privacy."
-pubDate: "2026-07-22"
-heroImage: "src/assets/json-yaml-cover.png"
+pubDate: "2026-07-22
 lang: "en"
 tag: "Developer Tools"
 pinned: false
