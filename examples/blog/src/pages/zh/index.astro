@@ -19,7 +19,8 @@ const rawItems = [
 	...zhTools.map((tool) => ({
 		title: tool.data.title,
 		desc: tool.data.description,
-		url: tool.url.zh,
+		// 👈 核心修复：自动通过 tool.id 生成正确的中文工具路径
+		url: `/zh/tools/${tool.id.replace(/\.(md|mdx)$/, '').replace(/^(en|zh)\//, '').replace(/\/index$/, '')}/`,
 		type: 'tool',
 		icon: tool.data.icon || '⚡',
 		tag: tool.data.tag || '工具',
