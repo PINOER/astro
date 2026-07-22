@@ -2,6 +2,7 @@
 title: "Messy ChatGPT Output? How to Clean Markdown & Remove Unwanted HTML Instantly"
 description: "Tired of copying AI responses cluttered with raw HTML tags, excessive blank lines, and outer code fences? Learn how to format and clean AI-generated Markdown with 100% client-side privacy."
 pubDate: "2026-07-22"
+heroImage: "src/assets/CleanerIllustration.svg"
 lang: "en"
 tag: "Productivity"
 pinned: false
