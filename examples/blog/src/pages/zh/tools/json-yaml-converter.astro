@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_DESCRIPTION } from 'src/consts';
 
+export const frontmatter = {
+    title: "JSON 与 YAML 互转工具",
+    description: "100% 本地浏览器处理，支持 JSON 格式与 YAML 配置文件的双向实时互转与格式校验。",
+    icon: "🔄",
+    tag: "效率工具",
+    keywords: "json yaml 互转 转换器 配置文件 格式校验",
+    pinned: false,
+    priority: 86
+};
+
 const title = 'JSON 与 YAML 互转工具 - HelpMini';
 const description = '100% 本地浏览器处理，支持 JSON 格式与 YAML 配置文件的双向实时互转与格式校验。';
 ---
