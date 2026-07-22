@@ -4,6 +4,7 @@ description: "Working with Kubernetes, Docker Compose, or GitHub Actions? Learn 
 pubDate: "2026-07-22"
 lang: "en"
 tag: "Developer Tools"
+heroImage: "src/assets/CleanerIllustration.svg"
 pinned: false
 priority: 10
 ---
