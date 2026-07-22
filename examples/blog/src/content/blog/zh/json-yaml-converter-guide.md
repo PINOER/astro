@@ -4,6 +4,7 @@ description: "在开发、配置 CI/CD 管道或编写 Kubernetes / GitHub Actio
 pubDate: "2026-07-22"
 lang: "zh"
 tag: "开发者工具"
+heroImage: "src/assets/CleanerIllustration.svg"
 pinned: false
 priority: 10
 ---
