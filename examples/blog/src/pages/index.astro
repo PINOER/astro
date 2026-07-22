@@ -137,7 +137,7 @@ const allSearchableItems = [
 				pointer-events: none;
 			}
 
-			/* 动态网格区域 */
+			/* 📦 统一内容与搜索结果展示区 */
 			.section-title-wrapper {
 				display: flex;
 				align-items: center;
@@ -145,90 +145,153 @@ const allSearchableItems = [
 				margin-bottom: 1.5rem;
 			}
 			.section-title {
-				font-size: 1.5rem;
+				font-size: 1.35rem;
 				font-weight: 700;
 				letter-spacing: -0.5px;
 				color: var(--text-main);
 				margin: 0;
 			}
 			.result-count-badge {
-				font-size: 0.85rem;
+				font-size: 0.82rem;
 				color: var(--text-muted);
 				font-weight: 600;
+				background: var(--gray-light);
+				padding: 0.25em 0.7em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
 			}
 
+			/* ⚡ 响应式极客网格：长方形布局 */
 			.tool-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-				gap: 1.5rem;
+				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+				gap: 1.2rem;
 			}
 
-			/* 卡片基本通用样式 */
+			/* 💎 扁平长方形科技感卡片 */
 			.item-card {
 				background: var(--bg-card);
-				backdrop-filter: blur(12px);
+				backdrop-filter: blur(16px);
+				-webkit-backdrop-filter: blur(16px);
 				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.8rem;
+				border-radius: 14px;
+				padding: 1.1rem 1.3rem;
 				text-decoration: none;
 				color: var(--text-main);
 				display: flex;
-				flex-direction: column;
-				position: relative;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
-			.item-card:hover {
-				transform: translateY(-6px);
-				border-color: var(--accent);
-				box-shadow: 0 12px 30px -5px var(--accent-glow);
-			}
-			.item-card-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: flex-start;
-				margin-bottom: 1rem;
-			}
-			.item-icon { font-size: 2.2rem; }
-			.item-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-main); }
-			.item-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
-			
-			/* 标签与 Badge 样式适配 */
-			.item-footer {
-				display: flex;
-				justify-content: space-between;
 				align-items: center;
+				gap: 1.1rem;
+				position: relative;
+				overflow: hidden;
+				transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 			}
-			.item-tag { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-			
-			/* 不同类型卡片的专属风格 */
-			.tag-tool { color: var(--cyan); }
-			.tag-blog { color: var(--accent); }
-			.tag-sponsor { color: #f59e0b; } /* 赞助商琥珀金 */
 
+			/* 顶部高光微边框与极光悬浮 Glow 效果 */
+			.item-card::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				height: 1px;
+				background: linear-gradient(90deg, transparent, var(--accent), transparent);
+				opacity: 0;
+				transition: opacity 0.3s ease;
+			}
+
+			.item-card:hover {
+				transform: translateY(-3px) scale(1.01);
+				border-color: var(--accent);
+				box-shadow: 0 8px 25px -5px var(--accent-glow);
+			}
+
+			.item-card:hover::before {
+				opacity: 1;
+			}
+
+			/* 左侧 Icon 科技晶体微框 */
+			.item-icon-box {
+				width: 48px;
+				height: 48px;
+				min-width: 48px;
+				border-radius: 12px;
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.6rem;
+				transition: transform 0.3s ease, border-color 0.3s ease;
+			}
+
+			.item-card:hover .item-icon-box {
+				transform: scale(1.08) rotate(-3deg);
+				border-color: var(--accent);
+			}
+
+			/* 右侧长方形主体布局 */
+			.item-body {
+				flex: 1;
+				min-width: 0; /* 防止文本溢出破框 */
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+			}
+
+			.item-header-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.5rem;
+				margin-bottom: 0.3rem;
+			}
+
+			.item-card h3 {
+				font-size: 1.05rem;
+				font-weight: 700;
+				margin: 0;
+				color: var(--text-main);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.item-card p {
+				font-size: 0.83rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.45;
+				display: -webkit-box;
+				-webkit-line-clamp: 2; /* 限制最多2行 */
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+
+			/* 科技微型 Badge 标签 */
 			.type-badge {
-				font-size: 0.7rem;
-				padding: 0.2em 0.6em;
+				font-size: 0.68rem;
+				padding: 0.15em 0.5em;
 				border-radius: 6px;
 				font-weight: 700;
 				text-transform: uppercase;
+				letter-spacing: 0.3px;
+				white-space: nowrap;
+				flex-shrink: 0;
 			}
-			.badge-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
-			.badge-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
-			.badge-sponsor { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+			.badge-tool { background: rgba(6, 182, 212, 0.12); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.25); }
+			.badge-blog { background: rgba(99, 102, 241, 0.12); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.25); }
+			.badge-sponsor { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-			/* 置顶标志 (Pinned) */
-			.pinned-icon {
-				position: absolute;
-				top: 1rem;
-				right: 1rem;
-				font-size: 0.9rem;
-				opacity: 0.8;
+			/* 置顶 Pin 标志 */
+			.pinned-tag {
+				font-size: 0.7rem;
+				margin-right: 0.3rem;
 			}
 
 			.no-results {
 				text-align: center;
-				padding: 4em 1em;
+				padding: 3em 1em;
 				color: var(--text-muted);
 				grid-column: 1 / -1;
 			}
@@ -287,16 +350,16 @@ const allSearchableItems = [
 				});
 			}
 
-			// 2. 渲染卡片 HTML
+			// 2. 渲染长方形科技卡片
 			function renderItems(items) {
 				if (!contentGrid) return;
 
 				if (items.length === 0) {
 					contentGrid.innerHTML = `
 						<div class="no-results">
-							<div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
-							<p style="font-size: 1.1rem; font-weight: 600;">No matching tools or guides found</p>
-							<p style="font-size: 0.88rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
+							<div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+							<p style="font-size: 1rem; font-weight: 600;">No matching tools or guides found</p>
+							<p style="font-size: 0.85rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
 						</div>
 					`;
 					return;
@@ -305,20 +368,17 @@ const allSearchableItems = [
 				contentGrid.innerHTML = items.map(item => {
 					const isExternal = item.url.startsWith('http');
 					const typeBadgeClass = item.type === 'sponsor' ? 'badge-sponsor' : (item.type === 'blog' ? 'badge-blog' : 'badge-tool');
-					const tagClass = item.type === 'sponsor' ? 'tag-sponsor' : (item.type === 'blog' ? 'tag-blog' : 'tag-tool');
-					const typeLabel = item.type === 'sponsor' ? 'Ad / Sponsor' : (item.type === 'blog' ? 'Blog' : 'Tool');
+					const typeLabel = item.type === 'sponsor' ? 'Ad' : (item.type === 'blog' ? 'Blog' : 'Tool');
 
 					return `
 						<a href="${item.url}" class="item-card" ${isExternal ? 'target="_blank" rel="noopener"' : ''}>
-							${item.pinned ? '<span class="pinned-icon" title="Pinned">📌</span>' : ''}
-							<div class="item-card-header">
-								<div class="item-icon">${item.icon}</div>
-								<span class="type-badge ${typeBadgeClass}">${typeLabel}</span>
-							</div>
-							<h3>${item.title}</h3>
-							<p>${item.desc}</p>
-							<div class="item-footer">
-								<span class="item-tag ${tagClass}">${item.tag || 'Tool'}</span>
+							<div class="item-icon-box">${item.icon}</div>
+							<div class="item-body">
+								<div class="item-header-row">
+									<h3>${item.pinned ? '<span class="pinned-tag">📌</span>' : ''}${item.title}</h3>
+									<span class="type-badge ${typeBadgeClass}">${typeLabel}</span>
+								</div>
+								<p>${item.desc}</p>
 							</div>
 						</a>
 					`;
