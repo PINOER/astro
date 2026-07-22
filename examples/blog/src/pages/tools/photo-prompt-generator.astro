@@ -1,0 +1,369 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "Pro AI Photography Prompt Generator",
+    description: "Craft professional Midjourney, Flux, and SDXL prompts with camera gear, lenses, lighting, angles, and film simulation.",
+    icon: "📸",
+    tag: "AI Tools",
+    keywords: "ai photography prompt generator midjourney prompt helper flux prompt builder camera lens lighting composition",
+    pinned: true,
+    priority: 98
+};
+
+const pageTitle = `Pro AI Photography Prompt Generator — ${SITE_TITLE}`;
+const pageDescription = "Craft professional Midjourney, Flux, and SDXL prompts with camera gear, lenses, lighting, angles, and film simulation.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* Control Grid */
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			/* Output Area */
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>📸 Pro AI Photography Prompt Generator</h1>
+				<p>Combine professional camera bodies, prime lenses, cinematic lighting, and composition rules for Midjourney v6 & Flux.1.</p>
+			</div>
+
+			<!-- Controls -->
+			<div class="form-grid">
+				<!-- Subject & Scene -->
+				<div class="form-group full-width">
+					<label for="subjectInput">
+						Subject & Scene Description
+						<span class="sub-tag">Describe the main subject or scene</span>
+					</label>
+					<input type="text" id="subjectInput" placeholder="e.g., A cyberpunk female warrior standing in neon rain, a vintage Leica camera on a dark oak table..." />
+				</div>
+
+				<!-- Camera Body & Format -->
+				<div class="form-group">
+					<label for="cameraSelect">Camera Body & Format</label>
+					<select id="cameraSelect">
+						<option value="">Default (Unspecified Pro)</option>
+						<option value="shot on Hasselblad H6D-100c">Hasselblad H6D-100c (Medium Format Ultra-Detail)</option>
+						<option value="shot on Leica M11">Leica M11 (Street & Documentary Aesthetic)</option>
+						<option value="shot on Sony Alpha A7R V">Sony Alpha A7R V (Modern Sharp Full-Frame)</option>
+						<option value="shot on Phase One XF IQ4">Phase One XF IQ4 (Commercial Studio Grade)</option>
+						<option value="shot on 35mm film camera">35mm Vintage Film Camera (Organic Grain)</option>
+						<option value="shot on IMAX 70mm camera">IMAX 70mm Film Camera (Epic Cinematic Scale)</option>
+					</select>
+				</div>
+
+				<!-- Lens & Focal Length -->
+				<div class="form-group">
+					<label for="lensSelect">Lens & Focal Length</label>
+					<select id="lensSelect">
+						<option value="">Unspecified</option>
+						<option value="85mm f/1.2 lens, creamy bokeh depth of field">85mm f/1.2 (Portrait Bokeh & Isolation)</option>
+						<option value="50mm f/1.4 prime lens">50mm f/1.4 (Natural Perspective Prime)</option>
+						<option value="24mm ultra-wide lens, dynamic perspective">24mm Ultra-Wide (Environmental Dynamic)</option>
+						<option value="100mm f/2.8 macro lens, extreme fine detail">100mm Macro f/2.8 (Microscopic Detail)</option>
+						<option value="35mm anamorphic lens, oval bokeh, subtle lens flare">35mm Anamorphic (Cinematic Oval Bokeh & Flare)</option>
+						<option value="70-200mm telephoto lens, compressed background">70-200mm Telephoto (Background Compression)</option>
+					</select>
+				</div>
+
+				<!-- Lighting Design -->
+				<div class="form-group">
+					<label for="lightingSelect">Lighting Setup</label>
+					<select id="lightingSelect">
+						<option value="cinematic lighting">Cinematic Lighting (Default)</option>
+						<option value="Rembrandt lighting, moody dark shadows">Rembrandt Lighting (Dramatic Chiaroscuro)</option>
+						<option value="golden hour, warm sunset glow, volumetric god rays">Golden Hour & Volumetric Sunlight Rays</option>
+						<option value="soft studio softbox lighting, clean commercial feel">Studio Softbox (Clean Commercial Studio)</option>
+						<option value="cyberpunk dual-tone neon lighting, cyan and magenta glow">Dual-Tone Neon (Cyberpunk Cyan & Magenta)</option>
+						<option value="dramatic rim light, strong edge highlight">Rim Lighting (Dramatic Edge Highlights)</option>
+						<option value="overcast soft window light, natural atmosphere">Overcast Window Light (Soft Mood & Natural)</option>
+					</select>
+				</div>
+
+				<!-- Camera Angle -->
+				<div class="form-group">
+					<label for="angleSelect">Camera Angle & Perspective</label>
+					<select id="angleSelect">
+						<option value="">Unspecified</option>
+						<option value="eye-level shot">Eye-Level Shot</option>
+						<option value="low-angle hero shot, worm's-eye view">Low-Angle Hero Shot (Powerful & Dominant)</option>
+						<option value="high-angle shot, bird's-eye view">High-Angle Shot (Overhead View)</option>
+						<option value="drone aerial photograph, top-down perspective">Drone Aerial Photograph (Top-Down)</option>
+						<option value="extreme close-up macro shot">Extreme Close-Up Detail Shot</option>
+						<option value="over-the-shoulder shot">Over-The-Shoulder Perspective</option>
+					</select>
+				</div>
+
+				<!-- Framing & Composition -->
+				<div class="form-group">
+					<label for="compositionSelect">Framing & Composition</label>
+					<select id="compositionSelect">
+						<option value="">Unspecified</option>
+						<option value="rule of thirds, balanced composition">Rule of Thirds</option>
+						<option value="symmetrical composition, minimalist focus">Symmetrical Composition & Geometry</option>
+						<option value="leading lines framing the subject">Leading Lines Composition</option>
+						<option value="cinematic wide shot, environmental negative space">Cinematic Wide Shot with Negative Space</option>
+						<option value="tight portrait framing">Tight Portrait Framing</option>
+					</select>
+				</div>
+
+				<!-- Film & Color Grading -->
+				<div class="form-group">
+					<label for="filmSelect">Film Stock & Color Grading</label>
+					<select id="filmSelect">
+						<option value="">Unspecified</option>
+						<option value="Kodak Portra 400 film look, warm skin tones, fine grain">Kodak Portra 400 (Warm Skin Tones & Fine Grain)</option>
+						<option value="Fujifilm Pro 400H look, cool green tones">Fujifilm Pro 400H (Cool Airy Tones)</option>
+						<option value="monochrome black and white, high contrast photography">Monochrome Black & White (Classic Contrast)</option>
+						<option value="vintage Kodak Tri-X 400, grainy film aesthetic">Kodak Tri-X 400 (Gritty Grain B&W)</option>
+						<option value="clean modern digital photography, sharp vibrant colors">Clean Modern Digital (Vibrant & Ultra Sharp)</option>
+					</select>
+				</div>
+
+				<!-- Aspect Ratio (--ar) -->
+				<div class="form-group">
+					<label for="arSelect">Aspect Ratio (--ar)</label>
+					<select id="arSelect">
+						<option value="--ar 16:9">--ar 16:9 (Landscape / Cinematic Wallpaper)</option>
+						<option value="--ar 3:2">--ar 3:2 (Standard Full-Frame DSLR Ratio)</option>
+						<option value="--ar 4:5">--ar 4:5 (Social Media / Instagram Portrait)</option>
+						<option value="--ar 9:16">--ar 9:16 (Vertical Full Screen / Mobile Poster)</option>
+						<option value="--ar 1:1">--ar 1:1 (Square)</option>
+						<option value="--ar 21:9">--ar 21:9 (Ultrawide Cinema Scope)</option>
+					</select>
+				</div>
+
+				<!-- Quality Modifiers -->
+				<div class="form-group">
+					<label for="styleSelect">Quality Boosters</label>
+					<select id="styleSelect">
+						<option value="raw photo, award-winning photography, highly detailed, 8k">Raw Photo, Award-Winning, 8k Detail (Recommended)</option>
+						<option value="raw photo, candid portrait photography, authentic, unfiltered">Candid Portrait, Authentic & Unfiltered</option>
+						<option value="commercial studio fashion photography, magazine cover style">Commercial Studio Fashion & Cover Style</option>
+						<option value="editorial documentary photo, National Geographic style">National Geographic Editorial Documentary</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- Realtime Output -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ Generated Prompt (Ready for Midjourney / Flux)</span>
+					<button class="btn-copy" id="btnCopy">📋 Copy Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Prompt copied to clipboard!</div>
+
+		<Footer />
+
+		<script is:inline>
+			const subjectInput = document.getElementById('subjectInput');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const angleSelect = document.getElementById('angleSelect');
+			const compositionSelect = document.getElementById('compositionSelect');
+			const filmSelect = document.getElementById('filmSelect');
+			const arSelect = document.getElementById('arSelect');
+			const styleSelect = document.getElementById('styleSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const subject = subjectInput.value.trim() || 'A majestic tiger in a snowy alpine forest';
+				
+				const components = [
+					subject,
+					angleSelect.value,
+					compositionSelect.value,
+					cameraSelect.value,
+					lensSelect.value,
+					lightingSelect.value,
+					filmSelect.value,
+					styleSelect.value,
+					arSelect.value
+				].filter(Boolean);
+
+				promptOutput.value = components.join(', ');
+			}
+
+			// Event listeners for inputs and selectors
+			[
+				subjectInput, cameraSelect, lensSelect, lightingSelect, 
+				angleSelect, compositionSelect, filmSelect, arSelect, styleSelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			// Initial build
+			buildPrompt();
+
+			// Copy to Clipboard
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
