@@ -1,0 +1,329 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_DESCRIPTION } from 'src/consts';
+
+const title = 'Markdown & Text Cleaner - HelpMini';
+const description = 'Fast, 100% private, client-side tool to strip HTML tags, normalize line breaks, and clean AI-generated Markdown text.';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.options-panel {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 14px;
+				padding: 1rem 1.2rem;
+				margin-bottom: 1.5rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1rem 1.5rem;
+				align-items: center;
+			}
+			.option-label {
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				font-size: 0.88rem;
+				color: var(--text-main);
+				cursor: pointer;
+				user-select: none;
+			}
+			.option-label input[type="checkbox"] {
+				accent-color: var(--accent);
+				width: 16px;
+				height: 16px;
+				cursor: pointer;
+			}
+
+			.editor-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1.2rem;
+				margin-bottom: 1.5rem;
+			}
+			@media (max-width: 768px) {
+				.editor-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+			}
+			.editor-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.editor-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.editor-stats {
+				font-size: 0.78rem;
+				color: var(--text-muted);
+			}
+
+			textarea {
+				width: 100%;
+				height: 380px;
+				padding: 1rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.88rem;
+				line-height: 1.6;
+				resize: vertical;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s ease;
+			}
+			textarea:focus {
+				border-color: var(--accent);
+			}
+
+			.action-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+			}
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🧹 Markdown & Text Cleaner</h1>
+				<p>Strip inline HTML, fix line breaks, and normalize AI-generated text formatting with 100% client-side privacy.</p>
+			</div>
+
+			<div class="options-panel">
+				<label class="option-label">
+					<input type="checkbox" id="optStripHtml" checked />
+					Strip HTML Tags (`&lt;span&gt;`, `&lt;div&gt;`, etc.)
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optMergeLines" checked />
+					Compress Multiple Blank Lines
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optTrimSpaces" checked />
+					Trim Leading & Trailing Spaces
+				</label>
+				<label class="option-label">
+					<input type="checkbox" id="optStripCodeFences" />
+					Remove Surrounding ```markdown Fences
+				</label>
+			</div>
+
+			<div class="editor-grid">
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">Raw Text / AI Output</span>
+						<span id="inputStats" class="editor-stats">0 chars | 0 lines</span>
+					</div>
+					<textarea id="inputText" placeholder="Paste your raw text or AI Markdown output here..."></textarea>
+				</div>
+
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title">Cleaned Output</span>
+						<span id="outputStats" class="editor-stats">0 chars | 0 lines</span>
+					</div>
+					<textarea id="outputText" placeholder="Cleaned text will appear here automatically..." readonly></textarea>
+				</div>
+			</div>
+
+			<div class="action-bar">
+				<div class="btn-group">
+					<button id="btnSample" class="btn btn-secondary">Load Sample</button>
+					<button id="btnClear" class="btn btn-secondary">Clear</button>
+				</div>
+				<button id="btnCopy" class="btn btn-primary">📋 Copy Cleaned Text</button>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Copied to clipboard!</div>
+
+		<Footer/>
+
+		<script is:inline>
+			const inputText = document.getElementById('inputText');
+			const outputText = document.getElementById('outputText');
+			const inputStats = document.getElementById('inputStats');
+			const outputStats = document.getElementById('outputStats');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnClear = document.getElementById('btnClear');
+			const btnSample = document.getElementById('btnSample');
+			const toast = document.getElementById('toast');
+
+			const optStripHtml = document.getElementById('optStripHtml');
+			const optMergeLines = document.getElementById('optMergeLines');
+			const optTrimSpaces = document.getElementById('optTrimSpaces');
+			const optStripCodeFences = document.getElementById('optStripCodeFences');
+
+			function cleanText(text) {
+				if (!text) return '';
+
+				let result = text;
+
+				if (optStripCodeFences?.checked) {
+					result = result.replace(/^```[a-zA-Z]*\n/gm, '').replace(/\n```$/gm, '');
+				}
+
+				if (optStripHtml?.checked) {
+					result = result.replace(/<br\s*\/?>/gi, '\n');
+					result = result.replace(/<\/p>/gi, '\n\n');
+					result = result.replace(/<[^>]+>/g, '');
+				}
+
+				if (optTrimSpaces?.checked) {
+					result = result.split('\n').map(line => line.trim()).join('\n');
+				}
+
+				if (optMergeLines?.checked) {
+					result = result.replace(/\n{3,}/g, '\n\n');
+				}
+
+				return result.trim();
+			}
+
+			function process() {
+				const raw = inputText.value;
+				const cleaned = cleanText(raw);
+
+				outputText.value = cleaned;
+
+				const inLines = raw ? raw.split('\n').length : 0;
+				const outLines = cleaned ? cleaned.split('\n').length : 0;
+
+				inputStats.textContent = `${raw.length} chars | ${inLines} lines`;
+				outputStats.textContent = `${cleaned.length} chars | ${outLines} lines`;
+			}
+
+			inputText?.addEventListener('input', process);
+			[optStripHtml, optMergeLines, optTrimSpaces, optStripCodeFences].forEach(opt => {
+				opt?.addEventListener('change', process);
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!outputText.value) return;
+				navigator.clipboard.writeText(outputText.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+
+			btnClear?.addEventListener('click', () => {
+				inputText.value = '';
+				process();
+			});
+
+			btnSample?.addEventListener('click', () => {
+				inputText.value = `\`\`\`markdown
+<span>Here is an AI response:</span>
+
+###  1. Introduction  
+
+This is an<b>example text</b> with<br>unnecessary HTML tags.   
+
+
+Excessive blank lines below...
+
+
+
+
+Done!
+\`\`\``;
+				process();
+			});
+		</script>
+	</body>
+</html>
