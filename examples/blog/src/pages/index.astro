@@ -6,19 +6,40 @@ import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
 import { toolsData } from 'src/data/tools';
 
-// Fetch English blogs for search indexing
+// 1. 获取英文博客
 const allPosts = await getCollection('blog');
 const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
 
-// Dynamic static search index (Tools + Blogs)
-const searchableItems = [
+// 2. 赞助商/广告卡片配置（可随时增减或从配置文件读取）
+const sponsorItems = [
+	// 示例赞助商卡片（取消注释即可开启）
+	/*
+	{
+		title: 'Vercel Pro Cloud',
+		desc: 'Deploy your frontend applications with instant global CDN and zero configuration.',
+		url: 'https://vercel.com',
+		type: 'sponsor',
+		icon: '⚡',
+		tag: 'Sponsor',
+		keywords: 'cloud hosting deployment vercel CDN',
+		pinned: true,      // 是否置顶
+		priority: 100      // 排序优先级 (越高越靠前)
+	}
+	*/
+];
+
+// 3. 组装统一的数据集 (Tools + Blogs + Sponsors)
+const allSearchableItems = [
 	...toolsData.map((tool) => ({
 		title: tool.title.en,
 		desc: tool.desc.en,
 		url: tool.url.en,
 		type: 'tool',
 		icon: tool.icon,
-		keywords: `${tool.title.en} ${tool.keywords.en}`
+		tag: tool.tag.en,
+		keywords: `${tool.title.en} ${tool.keywords.en}`,
+		pinned: (tool as any).pinned || false,
+		priority: (tool as any).priority || 0
 	})),
 	...enPosts.map((post) => ({
 		title: post.data.title,
@@ -26,8 +47,12 @@ const searchableItems = [
 		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
 		type: 'blog',
 		icon: '📚',
-		keywords: `${post.data.title} ${post.data.description}`
-	}))
+		tag: 'Guide',
+		keywords: `${post.data.title} ${post.data.description}`,
+		pinned: false,
+		priority: 0
+	})),
+	...sponsorItems
 ];
 ---
 
@@ -78,7 +103,7 @@ const searchableItems = [
 				line-height: 1.6;
 			}
 
-			/* 🔍 Central Search Input Styling */
+			/* 🔍 中央搜索框设计 */
 			.search-wrapper {
 				max-width: 640px;
 				margin: 0 auto 3em;
@@ -112,66 +137,34 @@ const searchableItems = [
 				pointer-events: none;
 			}
 
-			/* Search Results Dropdown */
-			.search-results-dropdown {
-				position: absolute;
-				top: 105%;
-				left: 0;
-				right: 0;
-				background: var(--dropdown-bg);
-				backdrop-filter: blur(20px);
-				border: 1px solid var(--card-border);
-				border-radius: 14px;
-				max-height: 380px;
-				overflow-y: auto;
-				z-index: 50;
-				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-				display: none;
-				text-align: left;
-			}
-			.search-result-item {
+			/* 动态网格区域 */
+			.section-title-wrapper {
 				display: flex;
 				align-items: center;
-				gap: 1em;
-				padding: 0.9em 1.2em;
-				text-decoration: none;
+				justify-content: space-between;
+				margin-bottom: 1.5rem;
+			}
+			.section-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+				letter-spacing: -0.5px;
 				color: var(--text-main);
-				border-bottom: 1px solid var(--card-border);
-				transition: background 0.2s;
+				margin: 0;
 			}
-			.search-result-item:hover {
-				background: var(--dropdown-hover);
-			}
-			.result-item-title {
-				font-weight: 600;
-				font-size: 0.98rem;
-				color: var(--text-main);
-			}
-			.result-item-desc {
-				font-size: 0.82rem;
+			.result-count-badge {
+				font-size: 0.85rem;
 				color: var(--text-muted);
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-			.result-type-badge {
-				margin-left: auto;
-				font-size: 0.7rem;
-				padding: 0.2em 0.6em;
-				border-radius: 6px;
 				font-weight: 600;
-				text-transform: uppercase;
 			}
-			.type-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
-			.type-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
-				margin-top: 1.5rem;
 			}
-			.tool-card {
+
+			/* 卡片基本通用样式 */
+			.item-card {
 				background: var(--bg-card);
 				backdrop-filter: blur(12px);
 				border: 1px solid var(--card-border);
@@ -181,18 +174,64 @@ const searchableItems = [
 				color: var(--text-main);
 				display: flex;
 				flex-direction: column;
+				position: relative;
 				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 			}
-			.tool-card:hover {
+			.item-card:hover {
 				transform: translateY(-6px);
 				border-color: var(--accent);
 				box-shadow: 0 12px 30px -5px var(--accent-glow);
 			}
-			.tool-icon { font-size: 2.2rem; margin-bottom: 1rem; }
-			.tool-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-main); }
-			.tool-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
-			.tool-tag { font-size: 0.75rem; color: var(--cyan); font-weight: 600; text-transform: uppercase; }
+			.item-card-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: 1rem;
+			}
+			.item-icon { font-size: 2.2rem; }
+			.item-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-main); }
+			.item-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
+			
+			/* 标签与 Badge 样式适配 */
+			.item-footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.item-tag { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+			
+			/* 不同类型卡片的专属风格 */
+			.tag-tool { color: var(--cyan); }
+			.tag-blog { color: var(--accent); }
+			.tag-sponsor { color: #f59e0b; } /* 赞助商琥珀金 */
+
+			.type-badge {
+				font-size: 0.7rem;
+				padding: 0.2em 0.6em;
+				border-radius: 6px;
+				font-weight: 700;
+				text-transform: uppercase;
+			}
+			.badge-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+			.badge-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+			.badge-sponsor { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+			/* 置顶标志 (Pinned) */
+			.pinned-icon {
+				position: absolute;
+				top: 1rem;
+				right: 1rem;
+				font-size: 0.9rem;
+				opacity: 0.8;
+			}
+
+			.no-results {
+				text-align: center;
+				padding: 4em 1em;
+				color: var(--text-muted);
+				grid-column: 1 / -1;
+			}
 		</style>
 	</head>
 	<body>
@@ -201,88 +240,128 @@ const searchableItems = [
 			<section class="hero">
 				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
-				<!-- 🔍 Central Search Engine Bar -->
+				
+				<!-- 🔍 中央搜索框 -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
 					<input
 						type="text"
 						id="searchInput"
 						class="search-input-box"
-						placeholder="Search micro-tools or guides... (e.g., SEO, Token, Prompt)"
+						placeholder="Search tools, guides, or keywords... (e.g., SEO, Token, Prompt)"
 						autocomplete="off"
 					/>
-					<div id="searchDropdown" class="search-results-dropdown"></div>
 				</div>
 			</section>
 
+			<!-- 📦 统一内容与搜索结果展示区 -->
 			<section>
-				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--text-main);">Featured Micro Tools</h2>
-				
-				<!-- Automatically map toolsData into cards -->
-				<div class="tool-grid">
-					{toolsData.map((tool) => (
-						<a href={tool.url.en} class="tool-card">
-							<div class="tool-icon">{tool.icon}</div>
-							<h3>{tool.title.en}</h3>
-							<p>{tool.desc.en}</p>
-							<span class="tool-tag">{tool.tag.en}</span>
-						</a>
-					))}
+				<div class="section-title-wrapper">
+					<h2 id="sectionTitle" class="section-title">Featured Micro Tools</h2>
+					<span id="resultCount" class="result-count-badge"></span>
 				</div>
+				
+				<!-- 动态网格展示容器 -->
+				<div id="contentGrid" class="tool-grid"></div>
 			</section>
 
-			<section class="hero">
+			<section class="hero" style="padding-top: 4em;">
 				<p>Lightweight, instant productivity tools that save you hours.</p>
 			</section>
 		</main>
 		<Footer />
 
-		<!-- Real-time Client-Side Search Engine Script -->
-		<script is:inline define:vars={{ searchableItems }}>
+		<!-- 客户端实时驱动脚本 -->
+		<script is:inline define:vars={{ allSearchableItems }}>
 			const searchInput = document.getElementById('searchInput');
-			const searchDropdown = document.getElementById('searchDropdown');
+			const sectionTitle = document.getElementById('sectionTitle');
+			const resultCount = document.getElementById('resultCount');
+			const contentGrid = document.getElementById('contentGrid');
 
+			// 1. 核心排序函数（置顶优先 -> 优先级最高 -> 默认顺序）
+			function sortItems(items) {
+				return [...items].sort((a, b) => {
+					if (a.pinned && !b.pinned) return -1;
+					if (!a.pinned && b.pinned) return 1;
+					return (b.priority || 0) - (a.priority || 0);
+				});
+			}
+
+			// 2. 渲染卡片 HTML
+			function renderItems(items) {
+				if (!contentGrid) return;
+
+				if (items.length === 0) {
+					contentGrid.innerHTML = `
+						<div class="no-results">
+							<div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+							<p style="font-size: 1.1rem; font-weight: 600;">No matching tools or guides found</p>
+							<p style="font-size: 0.88rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
+						</div>
+					`;
+					return;
+				}
+
+				contentGrid.innerHTML = items.map(item => {
+					const isExternal = item.url.startsWith('http');
+					const typeBadgeClass = item.type === 'sponsor' ? 'badge-sponsor' : (item.type === 'blog' ? 'badge-blog' : 'badge-tool');
+					const tagClass = item.type === 'sponsor' ? 'tag-sponsor' : (item.type === 'blog' ? 'tag-blog' : 'tag-tool');
+					const typeLabel = item.type === 'sponsor' ? 'Ad / Sponsor' : (item.type === 'blog' ? 'Blog' : 'Tool');
+
+					return `
+						<a href="${item.url}" class="item-card" ${isExternal ? 'target="_blank" rel="noopener"' : ''}>
+							${item.pinned ? '<span class="pinned-icon" title="Pinned">📌</span>' : ''}
+							<div class="item-card-header">
+								<div class="item-icon">${item.icon}</div>
+								<span class="type-badge ${typeBadgeClass}">${typeLabel}</span>
+							</div>
+							<h3>${item.title}</h3>
+							<p>${item.desc}</p>
+							<div class="item-footer">
+								<span class="item-tag ${tagClass}">${item.tag || 'Tool'}</span>
+							</div>
+						</a>
+					`;
+				}).join('');
+			}
+
+			// 3. 初始渲染逻辑 (未搜索时，最多前 20 项)
+			function initDefaultView() {
+				const sorted = sortItems(allSearchableItems);
+				const default20 = sorted.slice(0, 20); // 最多显示前 20 项
+				
+				if (sectionTitle) sectionTitle.textContent = 'Featured Micro Tools';
+				if (resultCount) resultCount.textContent = `${default20.length} items`;
+				
+				renderItems(default20);
+			}
+
+			// 4. 监听搜索事件
 			searchInput?.addEventListener('input', (e) => {
 				const query = e.target.value.toLowerCase().trim();
 
 				if (!query) {
-					searchDropdown.style.display = 'none';
+					initDefaultView();
 					return;
 				}
 
-				// Match query against keywords, title, or description
-				const filtered = searchableItems.filter(item =>
+				// 搜寻匹配
+				const filtered = allSearchableItems.filter(item =>
 					item.title.toLowerCase().includes(query) ||
 					item.desc.toLowerCase().includes(query) ||
 					item.keywords.toLowerCase().includes(query)
 				);
 
-				if (filtered.length === 0) {
-					searchDropdown.innerHTML = `<div style="padding: 1.2em; text-align: center; color: var(--text-muted); font-size: 0.9rem;">No matching tools or articles found</div>`;
-				} else {
-					searchDropdown.innerHTML = filtered.map(item => `
-						<a href="${item.url}" class="search-result-item">
-							<span style="font-size: 1.4rem;">${item.icon}</span>
-							<div style="flex: 1; overflow: hidden;">
-								<div class="result-item-title">${item.title}</div>
-								<div class="result-item-desc">${item.desc}</div>
-							</div>
-							<span class="result-type-badge ${item.type === 'tool' ? 'type-tool' : 'type-blog'}">
-								${item.type === 'tool' ? 'Tool' : 'Blog'}
-							</span>
-						</a>
-					`).join('');
-				}
+				const sortedResults = sortItems(filtered);
 
-				searchDropdown.style.display = 'block';
+				if (sectionTitle) sectionTitle.textContent = 'Search Results';
+				if (resultCount) resultCount.textContent = `${sortedResults.length} found`;
+
+				renderItems(sortedResults);
 			});
 
-			// Hide dropdown when clicking outside
-			document.addEventListener('click', (e) => {
-				if (!searchInput?.contains(e.target) && !searchDropdown?.contains(e.target)) {
-					searchDropdown.style.display = 'none';
-				}
-			});
+			// 初始化执行
+			initDefaultView();
 		</script>
 	</body>
 </html>
