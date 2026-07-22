@@ -2,6 +2,7 @@
 title: "ChatGPT 输出格式太乱？如何一键清理 Markdown 文本与多余 HTML 标签"
 description: "每次复制 ChatGPT 或 Claude 生成的文章总带有一堆 HTML 标签、多余空行和代码块？本文教你如何用免费工具一键清理 AI 文本排版，提升效率 10 倍。"
 pubDate: "2026-07-22"
+heroImage: "src/assets/CleanerIllustration.svg"
 lang: "zh"
 tag: "效率工具"
 pinned: false
