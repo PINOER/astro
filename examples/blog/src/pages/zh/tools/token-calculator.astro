@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
+export const frontmatter = {
+    title: "Token 与上下文限制计算器",
+    description: "精准估算中英文 Token 消耗，实时对比 ChatGPT、Claude 3.5、DeepSeek 与 Gemini 1.5 的上下文窗口比例。",
+    icon: "📊",
+    tag: "效率工具",
+    keywords: "token 计算器 上下文窗口 gpt-4o claude deepseek gemini",
+    pinned: false,
+    priority: 89
+};
+
 const pageTitle = `Token 与上下文限制计算器 — ${SITE_TITLE}`;
 const pageDescription = "精准估算中英文 Token 消耗，实时对比 ChatGPT、Claude 3.5、DeepSeek 与 Gemini 1.5 的上下文窗口比例。";
 ---
