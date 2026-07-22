@@ -17,8 +17,8 @@ const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.st
 // 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序
 const rawItems = [
 	...enTools.map((tool) => ({
-		title: tool.data.title,
-		desc: tool.data.description,
+		title: tool.data.pageTitle,
+		desc: tool.data.pageDescription,
 		url: tool.data.url,
 		type: 'tool',
 		icon: tool.data.icon || '⚡',
