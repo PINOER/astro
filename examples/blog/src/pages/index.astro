@@ -34,8 +34,8 @@ const rawItems = [
 		icon: '📚',
 		tag: 'Guide',
 		keywords: `${post.data.title} ${post.data.description}`,
-		pinned: false,
-		priority: 0
+		pinned: (post.data as any).pinned || false,       // 👈 继承文章 Head Matter 中的 pinned
+		priority: (post.data as any).priority || 0         // 👈 继承文章 Head Matter 中的 priority
 	})),
 	...sponsorItems
 ];
@@ -281,7 +281,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 					<span id="resultCount" class="result-count-badge"></span>
 				</div>
 				
-				<!-- 采用 Astro 原生 SSX 模板构建真正的 DOM 节点（不再通过 JS 动态组装字符串，100% 保持原生样式） -->
 				<div id="contentGrid" class="tool-grid">
 					{allSearchableItems.map((item, index) => (
 						<a 
