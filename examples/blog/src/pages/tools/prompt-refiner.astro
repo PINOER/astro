@@ -4,6 +4,16 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { SITE_TITLE } from '../../consts';
 
+export const frontmatter = {
+    title: "Prompt Structurer & Refiner",
+    description: "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.",
+    icon: "📝",
+    tag: "AI Tools",
+    keywords: "prompt structurer refiner co-star framework chatgpt claude developer tools",
+    pinned: false,
+    priority: 91
+};
+
 const pageTitle = `Prompt Structurer & Refiner — ${SITE_TITLE}`;
 const pageDescription = "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.";
 ---
