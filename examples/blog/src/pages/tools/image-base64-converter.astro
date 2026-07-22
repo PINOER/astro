@@ -1,0 +1,413 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_DESCRIPTION } from 'src/consts';
+
+const title = 'Image to Base64 & DataURI Converter - HelpMini';
+const description = 'Fast, 100% private client-side converter. Turn PNG, JPG, WEBP, and SVG images into DataURI, CSS, or HTML Base64 strings.';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={title} description={description} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.drop-zone {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 2px dashed var(--card-border);
+				border-radius: 16px;
+				padding: 2.5em 1.5em;
+				text-align: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				margin-bottom: 1.5rem;
+				position: relative;
+			}
+			.drop-zone:hover, .drop-zone.dragover {
+				border-color: var(--accent);
+				background: var(--dropdown-hover);
+				box-shadow: 0 0 20px var(--accent-glow);
+			}
+			.drop-zone input[type="file"] {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				opacity: 0;
+				cursor: pointer;
+			}
+			.drop-icon {
+				font-size: 2.8rem;
+				margin-bottom: 0.5rem;
+			}
+			.drop-title {
+				font-size: 1.1rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+			}
+			.drop-hint {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+			}
+
+			.result-wrapper {
+				display: none;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+
+			.preview-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 14px;
+				padding: 1.2rem;
+				display: flex;
+				align-items: center;
+				gap: 1.2rem;
+			}
+			.preview-img-box {
+				width: 72px;
+				height: 72px;
+				min-width: 72px;
+				border-radius: 10px;
+				border: 1px solid var(--card-border);
+				background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+			}
+			.preview-img-box img {
+				max-width: 100%;
+				max-height: 100%;
+				object-fit: contain;
+			}
+			.preview-info {
+				flex: 1;
+				overflow: hidden;
+			}
+			.preview-name {
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.preview-meta {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				display: flex;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+
+			.format-tabs {
+				display: flex;
+				gap: 0.5rem;
+				border-bottom: 1px solid var(--card-border);
+				padding-bottom: 0.5rem;
+			}
+			.tab-btn {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				font-size: 0.88rem;
+				font-weight: 600;
+				padding: 0.5em 0.9em;
+				border-radius: 8px;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.tab-btn:hover {
+				color: var(--text-main);
+				background: var(--gray-light);
+			}
+			.tab-btn.active {
+				color: var(--accent);
+				background: rgba(99, 102, 241, 0.12);
+			}
+
+			textarea {
+				width: 100%;
+				height: 220px;
+				padding: 1rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.85rem;
+				line-height: 1.5;
+				resize: vertical;
+				outline: none;
+				box-sizing: border-box;
+				word-break: break-all;
+			}
+			textarea:focus {
+				border-color: var(--accent);
+			}
+
+			.action-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🖼️ Image to Base64 & DataURI Converter</h1>
+				<p>100% client-side tool to convert image files into DataURI strings, CSS backgrounds, or HTML img tags.</p>
+			</div>
+
+			<div class="drop-zone" id="dropZone">
+				<input type="file" id="fileInput" accept="image/*" />
+				<div class="drop-icon">📁</div>
+				<div class="drop-title">Click to choose an image or drag & drop here</div>
+				<div class="drop-hint">Supports PNG, JPG, WEBP, SVG, GIF (100% private & client-side)</div>
+			</div>
+
+			<div class="result-wrapper" id="resultWrapper">
+				<div class="preview-card">
+					<div class="preview-img-box">
+						<img id="previewImg" src="" alt="Preview" />
+					</div>
+					<div class="preview-info">
+						<div id="previewName" class="preview-name">-</div>
+						<div class="preview-meta">
+							<span id="metaDim">Dimensions: -</span>
+							<span id="metaSize">Original Size: -</span>
+							<span id="metaBase64Size">Base64 Size: -</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="format-tabs">
+					<button class="tab-btn active" data-format="datauri">Data URI (Default)</button>
+					<button class="tab-btn" data-format="raw">Raw Base64 Only</button>
+					<button class="tab-btn" data-format="html">HTML &lt;img&gt; Tag</button>
+					<button class="tab-btn" data-format="css">CSS background-image</button>
+				</div>
+
+				<textarea id="outputCode" readonly placeholder="Base64 code will appear here..."></textarea>
+
+				<div class="action-bar">
+					<button id="btnClear" class="btn btn-secondary">Clear & Upload Another</button>
+					<button id="btnCopy" class="btn btn-primary">📋 Copy Code</button>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Code copied to clipboard!</div>
+
+		<Footer />
+
+		<script is:inline>
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput');
+			const resultWrapper = document.getElementById('resultWrapper');
+			const previewImg = document.getElementById('previewImg');
+			const previewName = document.getElementById('previewName');
+			const metaDim = document.getElementById('metaDim');
+			const metaSize = document.getElementById('metaSize');
+			const metaBase64Size = document.getElementById('metaBase64Size');
+			const outputCode = document.getElementById('outputCode');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnClear = document.getElementById('btnClear');
+			const toast = document.getElementById('toast');
+			const tabBtns = document.querySelectorAll('.tab-btn');
+
+			let rawDataURI = '';
+			let currentFormat = 'datauri';
+			let currentFileName = '';
+
+			function formatBytes(bytes) {
+				if (bytes === 0) return '0 B';
+				const k = 1024;
+				const sizes = ['B', 'KB', 'MB'];
+				const i = Math.floor(Math.log(bytes) / Math.log(k));
+				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+			}
+
+			function updateOutputFormat() {
+				if (!rawDataURI) return;
+
+				let result = '';
+				const rawBase64 = rawDataURI.split(',')[1] || '';
+
+				switch (currentFormat) {
+					case 'raw':
+						result = rawBase64;
+						break;
+					case 'html':
+						result = `<img src="${rawDataURI}" alt="${currentFileName}" />`;
+						break;
+					case 'css':
+						result = `background-image: url("${rawDataURI}");`;
+						break;
+					case 'datauri':
+					default:
+						result = rawDataURI;
+						break;
+				}
+
+				outputCode.value = result;
+			}
+
+			function processFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+
+				currentFileName = file.name;
+				previewName.textContent = file.name;
+				metaSize.textContent = `Original Size: ${formatBytes(file.size)}`;
+
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					rawDataURI = e.target.result;
+
+					const img = new Image();
+					img.onload = () => {
+						metaDim.textContent = `Dimensions: ${img.width} × ${img.height} px`;
+					};
+					img.src = rawDataURI;
+
+					previewImg.src = rawDataURI;
+					metaBase64Size.textContent = `Base64 Size: ${formatBytes(rawDataURI.length)}`;
+
+					updateOutputFormat();
+					resultWrapper.style.display = 'flex';
+				};
+				reader.readAsDataURL(file);
+			}
+
+			fileInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) {
+					processFile(e.target.files[0]);
+				}
+			});
+
+			['dragenter', 'dragover'].forEach(eventName => {
+				dropZone?.addEventListener(eventName, (e) => {
+					e.preventDefault();
+					dropZone.classList.add('dragover');
+				});
+			});
+
+			['dragleave', 'drop'].forEach(eventName => {
+				dropZone?.addEventListener(eventName, (e) => {
+					e.preventDefault();
+					dropZone.classList.remove('dragover');
+				});
+			});
+
+			dropZone?.addEventListener('drop', (e) => {
+				const dt = e.dataTransfer;
+				if (dt && dt.files && dt.files[0]) {
+					processFile(dt.files[0]);
+				}
+			});
+
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentFormat = btn.getAttribute('data-format') || 'datauri';
+					updateOutputFormat();
+				});
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!outputCode.value) return;
+				navigator.clipboard.writeText(outputCode.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+
+			btnClear?.addEventListener('click', () => {
+				fileInput.value = '';
+				rawDataURI = '';
+				outputCode.value = '';
+				resultWrapper.style.display = 'none';
+			});
+		</script>
+	</body>
+</html>
