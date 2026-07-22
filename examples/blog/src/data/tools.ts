@@ -20,8 +20,8 @@ export const sponsorItems: Record<string, SponsorItem[]> = {
       icon: "💎",
       tag: "赞助推广",
       keywords: "shopify 独立站 开发 优化 赞助",
-      pinned: true,
-      priority: 100
+      pinned: false,
+      priority: 0
     }
   ],
   en: [
@@ -33,8 +33,8 @@ export const sponsorItems: Record<string, SponsorItem[]> = {
       icon: "💎",
       tag: "Sponsored",
       keywords: "shopify development store optimization sponsor",
-      pinned: true,
-      priority: 100
+      pinned: false,
+      priority: 0
     }
   ]
 };
