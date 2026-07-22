@@ -2,6 +2,7 @@
 title: "Boost Web Performance: What is Image Base64 Encoding and When Should You Use It?"
 description: "Learn how converting small images, icons, or logos into Base64 / DataURI strings can eliminate HTTP requests and speed up initial page load times."
 pubDate: "2026-07-22"
+heroImage: "src/assets/image-base64-cover.svg"
 lang: "en"
 tag: "Web Dev"
 pinned: false
