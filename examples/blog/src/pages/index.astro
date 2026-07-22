@@ -17,15 +17,15 @@ const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.st
 // 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序
 const rawItems = [
 	...enTools.map((tool) => ({
-		title: tool.data.pageTitle,
-		desc: tool.data.pageDescription,
+		title: tool.data.title,
+		desc: tool.data.description,
 		url: `/tools/${tool.id.replace(/\.(md|mdx)$/, '').replace(/^(en|zh)\//, '').replace(/\/index$/, '')}/`,
 		type: 'tool',
 		icon: tool.data.icon || '⚡',
 		tag: tool.data.tag || 'Tool',
 		keywords: `${tool.data.title} ${tool.data.keywords || ''}`,
 		pinned: tool.data.pinned || false,
-		priority: tool.data.priority || 0
+		priority: tool.data.priority || 1
 	})),
 	...enPosts.map((post) => ({
 		title: post.data.title,
