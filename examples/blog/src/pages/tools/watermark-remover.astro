@@ -1,0 +1,448 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "AI Watermark Remover & Object Eraser",
+    description: "Fast, 100% private client-side tool. Brush over unwanted watermarks, logos, or text to erase them instantly.",
+    icon: "🎨",
+    tag: "Productivity",
+    keywords: "watermark remover object eraser photo inpainting photo cleanup developer tools",
+    pinned: false,
+    priority: 95
+};
+
+const pageTitle = `AI Watermark Remover & Object Eraser — ${SITE_TITLE}`;
+const pageDescription = "Fast, 100% private client-side tool. Brush over unwanted watermarks, logos, or text to erase them instantly.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* Upload Zone */
+			.drop-zone {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 2px dashed var(--card-border);
+				border-radius: 16px;
+				padding: 2.5em 1.5em;
+				text-align: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				margin-bottom: 1.5rem;
+				position: relative;
+			}
+			.drop-zone:hover, .drop-zone.dragover {
+				border-color: var(--accent);
+				background: var(--dropdown-hover);
+				box-shadow: 0 0 20px var(--accent-glow);
+			}
+			.drop-zone input[type="file"] {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				opacity: 0;
+				cursor: pointer;
+			}
+
+			/* Workspace */
+			.workspace {
+				display: none;
+				flex-direction: column;
+				align-items: center;
+				gap: 1.2rem;
+			}
+			.canvas-container {
+				position: relative;
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				overflow: hidden;
+				background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+				max-width: 100%;
+			}
+			canvas {
+				display: block;
+				max-width: 100%;
+				height: auto;
+				cursor: crosshair;
+			}
+			#maskCanvas {
+				position: absolute;
+				top: 0;
+				left: 0;
+				opacity: 0.6;
+			}
+
+			/* Toolbar */
+			.toolbar {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem 1.2rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1rem 1.5rem;
+				align-items: center;
+				justify-content: space-between;
+				width: 100%;
+				box-sizing: border-box;
+			}
+			.tool-group {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+			}
+			.tool-label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="range"] {
+				accent-color: var(--accent);
+				cursor: pointer;
+			}
+
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+			.btn-success {
+				background: #10b981;
+				color: #ffffff;
+				border-color: #10b981;
+			}
+			.btn-success:hover {
+				opacity: 0.9;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🎨 AI Watermark Remover & Object Eraser</h1>
+				<p>100% private & client-side. Brush over watermarks or text to remove them instantly.</p>
+			</div>
+
+			<!-- Drop Zone -->
+			<div class="drop-zone" id="dropZone">
+				<input type="file" id="fileInput" accept="image/*" />
+				<div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🖼️</div>
+				<div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem;">
+					Click to select an image, or drag & drop here
+				</div>
+				<div style="font-size: 0.85rem; color: var(--text-muted);">
+					Supports PNG, JPG, WEBP (100% private & client-side processing)
+				</div>
+			</div>
+
+			<!-- Workspace -->
+			<div class="workspace" id="workspace">
+				<!-- Toolbar -->
+				<div class="toolbar">
+					<div class="tool-group">
+						<span class="tool-label">Brush Size:</span>
+						<input type="range" id="brushSize" min="5" max="100" value="25" />
+						<span id="brushSizeVal" style="font-size: 0.85rem; color: var(--text-muted); min-width: 30px;">25px</span>
+					</div>
+
+					<div class="tool-group">
+						<button id="btnClearMask" class="btn btn-secondary">Clear Mask</button>
+						<button id="btnProcess" class="btn btn-primary">✨ Erase Watermark</button>
+						<button id="btnDownload" class="btn btn-success">💾 Download Image</button>
+						<button id="btnReset" class="btn btn-secondary">Upload Another</button>
+					</div>
+				</div>
+
+				<!-- Canvas Container -->
+				<div class="canvas-container" id="canvasContainer">
+					<canvas id="imageCanvas"></canvas>
+					<canvas id="maskCanvas"></canvas>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Watermark erased successfully!</div>
+
+		<Footer />
+
+		<script is:inline>
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput');
+			const workspace = document.getElementById('workspace');
+			const imageCanvas = document.getElementById('imageCanvas');
+			const maskCanvas = document.getElementById('maskCanvas');
+			const imgCtx = imageCanvas.getContext('2d');
+			const maskCtx = maskCanvas.getContext('2d');
+
+			const brushSize = document.getElementById('brushSize');
+			const brushSizeVal = document.getElementById('brushSizeVal');
+			const btnClearMask = document.getElementById('btnClearMask');
+			const btnProcess = document.getElementById('btnProcess');
+			const btnDownload = document.getElementById('btnDownload');
+			const btnReset = document.getElementById('btnReset');
+			const toast = document.getElementById('toast');
+
+			let isDrawing = false;
+			let originalImage = null;
+
+			brushSize?.addEventListener('input', (e) => {
+				brushSizeVal.textContent = `${e.target.value}px`;
+			});
+
+			function showToast(msg) {
+				toast.textContent = msg;
+				toast.classList.add('show');
+				setTimeout(() => toast.classList.remove('show'), 2000);
+			}
+
+			function initCanvas(img) {
+				originalImage = img;
+				const width = img.width;
+				const height = img.height;
+
+				imageCanvas.width = width;
+				imageCanvas.height = height;
+				maskCanvas.width = width;
+				maskCanvas.height = height;
+
+				imgCtx.drawImage(img, 0, 0);
+				maskCtx.clearRect(0, 0, width, height);
+
+				dropZone.style.display = 'none';
+				workspace.style.display = 'flex';
+			}
+
+			function processFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					const img = new Image();
+					img.onload = () => initCanvas(img);
+					img.src = e.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+
+			fileInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) processFile(e.target.files[0]);
+			});
+
+			['dragenter', 'dragover'].forEach(name => {
+				dropZone?.addEventListener(name, (e) => {
+					e.preventDefault();
+					dropZone.classList.add('dragover');
+				});
+			});
+
+			['dragleave', 'drop'].forEach(name => {
+				dropZone?.addEventListener(name, (e) => {
+					e.preventDefault();
+					dropZone.classList.remove('dragover');
+				});
+			});
+
+			dropZone?.addEventListener('drop', (e) => {
+				const files = e.dataTransfer.files;
+				if (files && files[0]) processFile(files[0]);
+			});
+
+			function getCanvasCoords(e) {
+				const rect = maskCanvas.getBoundingClientRect();
+				const scaleX = maskCanvas.width / rect.width;
+				const scaleY = maskCanvas.height / rect.height;
+				return {
+					x: (e.clientX - rect.left) * scaleX,
+					y: (e.clientY - rect.top) * scaleY
+				};
+			}
+
+			function startDrawing(e) {
+				isDrawing = true;
+				draw(e);
+			}
+
+			function stopDrawing() {
+				isDrawing = false;
+				maskCtx.beginPath();
+			}
+
+			function draw(e) {
+				if (!isDrawing) return;
+				const { x, y } = getCanvasCoords(e);
+
+				maskCtx.lineWidth = parseInt(brushSize.value);
+				maskCtx.lineCap = 'round';
+				maskCtx.lineJoin = 'round';
+				maskCtx.strokeStyle = 'red';
+
+				maskCtx.lineTo(x, y);
+				maskCtx.stroke();
+				maskCtx.beginPath();
+				maskCtx.moveTo(x, y);
+			}
+
+			maskCanvas.addEventListener('mousedown', startDrawing);
+			maskCanvas.addEventListener('mouseup', stopDrawing);
+			maskCanvas.addEventListener('mousemove', draw);
+			maskCanvas.addEventListener('mouseleave', stopDrawing);
+
+			btnClearMask?.addEventListener('click', () => {
+				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+			});
+
+			btnProcess?.addEventListener('click', () => {
+				const w = imageCanvas.width;
+				const h = imageCanvas.height;
+
+				const imgData = imgCtx.getImageData(0, 0, w, h);
+				const maskData = maskCtx.getImageData(0, 0, w, h);
+
+				let hasMask = false;
+				for (let i = 0; i < maskData.data.length; i += 4) {
+					if (maskData.data[i + 3] > 0) {
+						hasMask = true;
+						break;
+					}
+				}
+
+				if (!hasMask) {
+					alert('Please brush over the watermark area first!');
+					return;
+				}
+
+				const data = imgData.data;
+				const mask = maskData.data;
+
+				for (let pass = 0; pass < 8; pass++) {
+					for (let y = 1; y < h - 1; y++) {
+						for (let x = 1; x < w - 1; x++) {
+							const idx = (y * w + x) * 4;
+
+							if (mask[idx + 3] > 0) {
+								let r = 0, g = 0, b = 0, count = 0;
+
+								const neighbors = [
+									((y - 1) * w + x) * 4,
+									((y + 1) * w + x) * 4,
+									(y * w + (x - 1)) * 4,
+									(y * w + (x + 1)) * 4,
+									((y - 1) * w + (x - 1)) * 4,
+									((y - 1) * w + (x + 1)) * 4,
+									((y + 1) * w + (x - 1)) * 4,
+									((y + 1) * w + (x + 1)) * 4
+								];
+
+								for (let nIdx of neighbors) {
+									if (mask[nIdx + 3] === 0) {
+										r += data[nIdx];
+										g += data[nIdx + 1];
+										b += data[nIdx + 2];
+										count++;
+									}
+								}
+
+								if (count > 0) {
+									data[idx] = Math.round(r / count);
+									data[idx + 1] = Math.round(g / count);
+									data[idx + 2] = Math.round(b / count);
+									mask[idx + 3] = 0;
+								}
+							}
+						}
+					}
+				}
+
+				imgCtx.putImageData(imgData, 0, 0);
+				maskCtx.clearRect(0, 0, w, h);
+				showToast('Watermark erased successfully!');
+			});
+
+			btnDownload?.addEventListener('click', () => {
+				const link = document.createElement('a');
+				link.download = 'watermark-removed.png';
+				link.href = imageCanvas.toDataURL('image/png');
+				link.click();
+			});
+
+			btnReset?.addEventListener('click', () => {
+				fileInput.value = '';
+				workspace.style.display = 'none';
+				dropZone.style.display = 'block';
+			});
+		</script>
+	</body>
+</html>
