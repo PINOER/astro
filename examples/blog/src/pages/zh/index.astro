@@ -6,49 +6,52 @@ import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
 import { toolsData } from 'src/data/tools';
 
-// 1. 获取英文博客
+// 1. 获取中文博客列表
 const allPosts = await getCollection('blog');
-const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
+const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
 
-// 2. 赞助商/广告卡片配置
+// 2. 赞助商/广告卡片配置（可选）
 const sponsorItems = [];
 
-// 3. 组装统一数据集 (Tools + Blogs + Sponsors)
-const allSearchableItems = [
+// 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序 (置顶优先 -> 权重优先)
+const rawItems = [
 	...toolsData.map((tool) => ({
-		title: tool.title.en,
-		desc: tool.desc.en,
-		url: tool.url.en,
+		title: tool.title.zh,
+		desc: tool.desc.zh,
+		url: tool.url.zh,
 		type: 'tool',
 		icon: tool.icon,
-		tag: tool.tag.en,
-		keywords: `${tool.title.en} ${tool.keywords.en}`,
+		tag: tool.tag.zh,
+		keywords: `${tool.title.zh} ${tool.keywords.zh}`,
 		pinned: (tool as any).pinned || false,
 		priority: (tool as any).priority || 0
 	})),
-	...enPosts.map((post) => ({
+	...zhPosts.map((post) => ({
 		title: post.data.title,
 		desc: post.data.description,
 		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
 		type: 'blog',
 		icon: '📚',
-		tag: 'Guide',
+		tag: '教程指南',
 		keywords: `${post.data.title} ${post.data.description}`,
 		pinned: false,
 		priority: 0
 	})),
 	...sponsorItems
 ];
+
+// 统一排序：置顶优先 -> 权重高的靠前
+const allSearchableItems = rawItems.sort((a, b) => {
+	if (a.pinned && !b.pinned) return -1;
+	if (!a.pinned && b.pinned) return 1;
+	return (b.priority || 0) - (a.priority || 0);
+});
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style style="is:global">
-			/* 彻底清除原生链接丑陋的蓝色下划线 */
-			a { text-decoration: none !important; }
-		</style>
+		<BaseHead title={`帮你AI工具箱,轻量级 AI 辅助工具 - HelpMini`} description={SITE_DESCRIPTION} />
 		<style>
 			main {
 				width: 1000px;
@@ -126,7 +129,7 @@ const allSearchableItems = [
 				pointer-events: none;
 			}
 
-			/* 📦 标题栏 */
+			/* 📦 标头区 */
 			.section-title-wrapper {
 				display: flex;
 				align-items: center;
@@ -150,110 +153,112 @@ const allSearchableItems = [
 				border: 1px solid var(--card-border);
 			}
 
-			/* ⚡ 网格布局：恢复改版前标准的 3 列高颜值科技网格 */
+			/* ⚡ 还原原生 3 列极客标准网格 */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
 			}
 
-			/* 💎 还原改版前的标准科技感大卡片 (.tool-card) */
+			/* 💎 Astro 原生渲染的纯正卡片 (.tool-card) */
 			.tool-card {
-				background: var(--bg-card) !important;
-				backdrop-filter: blur(12px) !important;
-				-webkit-backdrop-filter: blur(12px) !important;
-				border: 1px solid var(--card-border) !important;
-				border-radius: 16px !important;
-				padding: 1.8rem !important;
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				-webkit-backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
 				text-decoration: none !important;
-				color: var(--text-main) !important;
-				display: flex !important;
-				flex-direction: column !important;
-				position: relative !important;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-				box-sizing: border-box !important;
+				color: var(--text-main);
+				display: flex;
+				flex-direction: column;
+				position: relative;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+				box-sizing: border-box;
 			}
 
 			.tool-card:hover {
-				transform: translateY(-6px) !important;
-				border-color: var(--accent) !important;
-				box-shadow: 0 12px 30px -5px var(--accent-glow) !important;
+				transform: translateY(-6px);
+				border-color: var(--accent);
+				box-shadow: 0 12px 30px -5px var(--accent-glow);
 			}
 
 			.tool-icon {
-				font-size: 2.2rem !important;
-				margin-bottom: 1rem !important;
-				line-height: 1 !important;
+				font-size: 2.2rem;
+				margin-bottom: 1rem;
+				line-height: 1;
 			}
 
 			.tool-card h3 {
-				font-size: 1.25rem !important;
-				font-weight: 700 !important;
-				margin-bottom: 0.6rem !important;
-				color: var(--text-main) !important;
-				line-height: 1.3 !important;
+				font-size: 1.25rem;
+				font-weight: 700;
+				margin-bottom: 0.6rem;
+				color: var(--text-main);
+				line-height: 1.3;
 			}
 
 			.tool-card p {
-				font-size: 0.92rem !important;
-				color: var(--text-muted) !important;
-				flex: 1 !important;
-				margin-bottom: 1.2rem !important;
-				line-height: 1.6 !important;
+				font-size: 0.92rem;
+				color: var(--text-muted);
+				flex: 1;
+				margin-bottom: 1.2rem;
+				line-height: 1.6;
 			}
 
-			/* 底部 Tag & Badge 恢复 */
+			/* Footer 布局与标签 */
 			.tool-card-footer {
-				display: flex !important;
-				justify-content: space-between !important;
-				align-items: center !important;
-				margin-top: auto !important;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: auto;
 			}
 
 			.tool-tag {
-				font-size: 0.75rem !important;
-				font-weight: 700 !important;
-				text-transform: uppercase !important;
-				letter-spacing: 0.5px !important;
+				font-size: 0.75rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
 			}
 
-			.tag-tool { color: var(--cyan) !important; }
-			.tag-blog { color: var(--accent) !important; }
-			.tag-sponsor { color: #f59e0b !important; }
+			.tag-tool { color: var(--cyan); }
+			.tag-blog { color: var(--accent); }
+			.tag-sponsor { color: #f59e0b; }
 
 			.type-badge {
-				font-size: 0.7rem !important;
-				padding: 0.2em 0.6em !important;
-				border-radius: 6px !important;
-				font-weight: 700 !important;
-				text-transform: uppercase !important;
+				font-size: 0.7rem;
+				padding: 0.2em 0.6em;
+				border-radius: 6px;
+				font-weight: 700;
+				text-transform: uppercase;
 			}
-			.badge-tool { background: rgba(6, 182, 212, 0.15) !important; color: var(--cyan) !important; border: 1px solid rgba(6, 182, 212, 0.25) !important; }
-			.badge-blog { background: rgba(99, 102, 241, 0.15) !important; color: var(--accent) !important; border: 1px solid rgba(99, 102, 241, 0.25) !important; }
-			.badge-sponsor { background: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3) !important; }
+			.badge-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.25); }
+			.badge-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.25); }
+			.badge-sponsor { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
 			.pinned-icon {
-				position: absolute !important;
-				top: 1rem !important;
-				right: 1rem !important;
-				font-size: 0.9rem !important;
-				opacity: 0.8 !important;
+				position: absolute;
+				top: 1rem;
+				right: 1rem;
+				font-size: 0.9rem;
+				opacity: 0.8;
 			}
 
+			/* 搜索无匹配提示 */
 			.no-results {
 				text-align: center;
 				padding: 4em 1em;
 				color: var(--text-muted);
 				grid-column: 1 / -1;
+				display: none;
 			}
 		</style>
 	</head>
 	<body>
-		<Header />
+		<Header lang="zh" />
 		<main>
 			<section class="hero">
-				<div class="badge">🚀 Micro AI Tools for Big Help</div>
+				<div class="badge">🚀 帮你 AI 工具箱，为生产力提速</div>
 				<h1>HelpMini</h1>
 				
 				<!-- 🔍 中央搜索框 -->
@@ -263,92 +268,84 @@ const allSearchableItems = [
 						type="text"
 						id="searchInput"
 						class="search-input-box"
-						placeholder="Search tools, guides, or keywords... (e.g., SEO, Token, Prompt)"
+						placeholder="搜索工具、教程文档或关键词... (例如 SEO、Token、JSON)"
 						autocomplete="off"
 					/>
 				</div>
 			</section>
 
-			<!-- 📦 统一内容展示区 -->
+			<!-- 📦 统一内容与搜索结果展示区 -->
 			<section>
 				<div class="section-title-wrapper">
-					<h2 id="sectionTitle" class="section-title">Featured Micro Tools</h2>
+					<h2 id="sectionTitle" class="section-title">精选微工具</h2>
 					<span id="resultCount" class="result-count-badge"></span>
 				</div>
 				
-				<div id="contentGrid" class="tool-grid"></div>
+				<!-- 采用 Astro 原生 SSX 模板构建真正的 DOM 节点 -->
+				<div id="contentGrid" class="tool-grid">
+					{allSearchableItems.map((item, index) => (
+						<a 
+							href={item.url} 
+							class="tool-card searchable-item"
+							data-title={item.title.toLowerCase()}
+							data-desc={item.desc.toLowerCase()}
+							data-keywords={item.keywords.toLowerCase()}
+							data-default-show={index < 20 ? "true" : "false"}
+							style={index >= 20 ? "display: none;" : "display: flex;"}
+							target={item.url.startsWith('http') ? '_blank' : '_self'}
+							rel={item.url.startsWith('http') ? 'noopener' : ''}
+						>
+							{item.pinned && <span class="pinned-icon" title="已置顶">📌</span>}
+							<div class="tool-icon">{item.icon}</div>
+							<h3>{item.title}</h3>
+							<p>{item.desc}</p>
+							<div class="tool-card-footer">
+								<span class={`tool-tag tag-${item.type}`}>{item.tag || '工具'}</span>
+								<span class={`type-badge badge-${item.type}`}>{item.type === 'sponsor' ? '赞助' : (item.type === 'blog' ? '博客' : '工具')}</span>
+							</div>
+						</a>
+					))}
+
+					<div id="noResults" class="no-results">
+						<div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+						<p style="font-size: 1.1rem; font-weight: 600;">未找到匹配的工具或文档</p>
+						<p style="font-size: 0.85rem; opacity: 0.8;">尝试搜索其他关键词，例如 "SEO"、"JSON" 或 "Token"</p>
+					</div>
+				</div>
 			</section>
 
 			<section class="hero" style="padding-top: 4em;">
-				<p>Lightweight, instant productivity tools that save you hours.</p>
+				<p>轻量、即时且强劲的 AI 辅助工具，为你的生产力效率提升数倍。</p>
 			</section>
 		</main>
-		<Footer />
+		<Footer lang="zh" />
 
-		<!-- 客户端 JavaScript 逻辑 -->
-		<script is:inline define:vars={{ allSearchableItems }}>
+		<!-- 极简客户端 JS：仅负责控制原生 DOM 的显隐 (Display) -->
+		<script is:inline>
 			const searchInput = document.getElementById('searchInput');
 			const sectionTitle = document.getElementById('sectionTitle');
 			const resultCount = document.getElementById('resultCount');
-			const contentGrid = document.getElementById('contentGrid');
+			const items = document.querySelectorAll('.searchable-item');
+			const noResults = document.getElementById('noResults');
 
-			// 置顶与权重排序逻辑
-			function sortItems(items) {
-				return [...items].sort((a, b) => {
-					if (a.pinned && !b.pinned) return -1;
-					if (!a.pinned && b.pinned) return 1;
-					return (b.priority || 0) - (a.priority || 0);
-				});
-			}
-
-			// 渲染改版前的精美大卡片
-			function renderItems(items) {
-				if (!contentGrid) return;
-
-				if (items.length === 0) {
-					contentGrid.innerHTML = `
-						<div class="no-results">
-							<div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
-							<p style="font-size: 1.1rem; font-weight: 600;">No matching tools or guides found</p>
-							<p style="font-size: 0.88rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
-						</div>
-					`;
-					return;
-				}
-
-				contentGrid.innerHTML = items.map(item => {
-					const isExternal = item.url.startsWith('http');
-					const tagClass = item.type === 'sponsor' ? 'tag-sponsor' : (item.type === 'blog' ? 'tag-blog' : 'tag-tool');
-					const typeBadgeClass = item.type === 'sponsor' ? 'badge-sponsor' : (item.type === 'blog' ? 'badge-blog' : 'badge-tool');
-					const typeLabel = item.type === 'sponsor' ? 'Ad' : (item.type === 'blog' ? 'Blog' : 'Tool');
-
-					return `
-						<a href="${item.url}" class="tool-card" ${isExternal ? 'target="_blank" rel="noopener"' : ''}>
-							${item.pinned ? '<span class="pinned-icon" title="Pinned">📌</span>' : ''}
-							<div class="tool-icon">${item.icon}</div>
-							<h3>${item.title}</h3>
-							<p>${item.desc}</p>
-							<div class="tool-card-footer">
-								<span class="tool-tag ${tagClass}">${item.tag || 'Tool'}</span>
-								<span class="type-badge ${typeBadgeClass}">${typeLabel}</span>
-							</div>
-						</a>
-					`;
-				}).join('');
-			}
-
-			// 初始化默认视图（未搜索时最多显示前 20 个）
+			// 初始化状态 (未输入搜索词时，仅显示前 20 项)
 			function initDefaultView() {
-				const sorted = sortItems(allSearchableItems);
-				const default20 = sorted.slice(0, 20);
-				
-				if (sectionTitle) sectionTitle.textContent = 'Featured Micro Tools';
-				if (resultCount) resultCount.textContent = `${default20.length} items`;
-				
-				renderItems(default20);
+				let shownCount = 0;
+				items.forEach(item => {
+					if (item.getAttribute('data-default-show') === 'true') {
+						item.style.display = 'flex';
+						shownCount++;
+					} else {
+						item.style.display = 'none';
+					}
+				});
+
+				if (sectionTitle) sectionTitle.textContent = '精选微工具';
+				if (resultCount) resultCount.textContent = `共 ${shownCount} 个推荐`;
+				if (noResults) noResults.style.display = 'none';
 			}
 
-			// 搜索过滤与原位切换
+			// 搜索实时过滤逻辑
 			searchInput?.addEventListener('input', (e) => {
 				const query = e.target.value.toLowerCase().trim();
 
@@ -357,20 +354,29 @@ const allSearchableItems = [
 					return;
 				}
 
-				const filtered = allSearchableItems.filter(item =>
-					item.title.toLowerCase().includes(query) ||
-					item.desc.toLowerCase().includes(query) ||
-					item.keywords.toLowerCase().includes(query)
-				);
+				let matchCount = 0;
+				items.forEach(item => {
+					const title = item.getAttribute('data-title') || '';
+					const desc = item.getAttribute('data-desc') || '';
+					const keywords = item.getAttribute('data-keywords') || '';
 
-				const sortedResults = sortItems(filtered);
+					if (title.includes(query) || desc.includes(query) || keywords.includes(query)) {
+						item.style.display = 'flex';
+						matchCount++;
+					} else {
+						item.style.display = 'none';
+					}
+				});
 
-				if (sectionTitle) sectionTitle.textContent = 'Search Results';
-				if (resultCount) resultCount.textContent = `${sortedResults.length} found`;
+				if (sectionTitle) sectionTitle.textContent = 'Search results (搜索结果)';
+				if (resultCount) resultCount.textContent = `找到 ${matchCount} 条相关结果`;
 
-				renderItems(sortedResults);
+				if (noResults) {
+					noResults.style.display = matchCount === 0 ? 'block' : 'none';
+				}
 			});
 
+			// 页面加载即刻初始化
 			initDefaultView();
 		</script>
 	</body>
