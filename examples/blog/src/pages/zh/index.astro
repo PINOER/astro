@@ -2,29 +2,30 @@
 import BaseHead from 'src/components/BaseHead.astro';
 import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
+import { SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
-import { toolsData } from 'src/data/tools';
+import { sponsorItems } from 'src/data/tools'; // 👈 专门用于投放广告/赞助商卡片
 
-// 1. 获取中文博客列表
+// 1. 自动从 Content Collection 获取所有中文工具
+const allTools = await getCollection('tools');
+const zhTools = allTools.filter((item) => item.data?.lang === 'zh' || item.id.startsWith('zh/'));
+
+// 2. 自动从 Content Collection 获取所有中文博客
 const allPosts = await getCollection('blog');
 const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
 
-// 2. 赞助商/广告卡片配置（可选）
-const sponsorItems = [];
-
-// 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序 (置顶优先 -> 权重优先)
+// 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序
 const rawItems = [
-	...toolsData.map((tool) => ({
-		title: tool.title.zh,
-		desc: tool.desc.zh,
-		url: tool.url.zh,
+	...zhTools.map((tool) => ({
+		title: tool.data.title,
+		desc: tool.data.description,
+		url: tool.data.url,
 		type: 'tool',
-		icon: tool.icon,
-		tag: tool.tag.zh,
-		keywords: `${tool.title.zh} ${tool.keywords.zh}`,
-		pinned: (tool as any).pinned || false,
-		priority: (tool as any).priority || 0
+		icon: tool.data.icon || '⚡',
+		tag: tool.data.tag || '工具',
+		keywords: `${tool.data.title} ${tool.data.keywords || ''}`,
+		pinned: tool.data.pinned || false,
+		priority: tool.data.priority || 0
 	})),
 	...zhPosts.map((post) => ({
 		title: post.data.title,
@@ -34,10 +35,20 @@ const rawItems = [
 		icon: '📚',
 		tag: '教程指南',
 		keywords: `${post.data.title} ${post.data.description}`,
-		pinned: (post.data as any).pinned || false,     // 👈 继承中文文章 Head Matter 中的 pinned
-		priority: (post.data as any).priority || 0       // 👈 继承中文文章 Head Matter 中的 priority
+		pinned: (post.data as any).pinned || false,
+		priority: (post.data as any).priority || 0
 	})),
-	...sponsorItems
+	...(sponsorItems.zh || []).map((sponsor) => ({
+		title: sponsor.title,
+		desc: sponsor.desc,
+		url: sponsor.url,
+		type: 'sponsor',
+		icon: sponsor.icon,
+		tag: sponsor.tag,
+		keywords: sponsor.keywords,
+		pinned: sponsor.pinned,
+		priority: sponsor.priority
+	}))
 ];
 
 // 统一排序：置顶优先 -> 权重高的靠前
