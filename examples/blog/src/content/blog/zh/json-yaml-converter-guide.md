@@ -1,8 +1,7 @@
 ---
 title: "JSON 与 YAML 如何高效互转？开发者必备的配置文件转换指南"
 description: "在开发、配置 CI/CD 管道或编写 Kubernetes / GitHub Actions 脚本时，如何实现 JSON 与 YAML 的无缝双向转换与语法校验？本文为你盘点高效转换技巧。"
-pubDate: "2026-07-22"
-heroImage: "src/assets/json-yaml-cover.png"
+pubDate: "2026-07-22
 lang: "zh"
 tag: "开发者工具"
 pinned: false
