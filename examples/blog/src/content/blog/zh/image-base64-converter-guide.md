@@ -2,6 +2,7 @@
 title: "网页加载提速：什么是图片 Base64 编码？何时该用它？"
 description: "如何通过将小图片、Icon 或 Logo 转换为 Base64 / DataURI 嵌入代码中来减少 HTTP 请求？本文为你深度解析图片 Base64 的优缺点与最佳实践。"
 pubDate: "2026-07-22"
+heroImage: "src/assets/image-base64-cover.svg"
 lang: "zh"
 tag: "性能优化"
 pinned: false
