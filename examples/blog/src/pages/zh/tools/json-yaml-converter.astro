@@ -1,0 +1,320 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_DESCRIPTION } from 'src/consts';
+
+const title = 'JSON 与 YAML 互转工具 - HelpMini';
+const description = '100% 本地浏览器处理，支持 JSON 格式与 YAML 配置文件的双向实时互转与格式校验。';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} />
+		<!-- 引入轻量级 YAML 解析库 js-yaml -->
+		<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 状态提示条 */
+			.status-bar {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem 1.2rem;
+				margin-bottom: 1.2rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.88rem;
+			}
+			.status-success { color: #10b981; font-weight: 600; }
+			.status-error { color: #ef4444; font-weight: 600; }
+
+			/* 双栏编辑器区 */
+			.editor-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1.2rem;
+				margin-bottom: 1.5rem;
+			}
+			@media (max-width: 768px) {
+				.editor-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+			}
+			.editor-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.editor-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-text {
+				background: none;
+				border: none;
+				color: var(--accent);
+				font-size: 0.82rem;
+				cursor: pointer;
+				font-weight: 600;
+			}
+			.btn-text:hover {
+				text-decoration: underline;
+			}
+
+			textarea {
+				width: 100%;
+				height: 400px;
+				padding: 1rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.88rem;
+				line-height: 1.6;
+				resize: vertical;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s ease;
+			}
+			textarea:focus {
+				border-color: var(--accent);
+			}
+
+			/* 操作按钮栏 */
+			.action-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+			}
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🔄 JSON 与 YAML 互转工具</h1>
+				<p>100% 本地浏览器运行，实现 JSON 格式与 YAML 配置文件的实时双向转换与语法校验。</p>
+			</div>
+
+			<!-- 状态提示条 -->
+			<div class="status-bar">
+				<span id="statusText" class="status-success">✓ 准备就绪 (输入任意内容即可实时转换)</span>
+				<span id="modeText" style="color: var(--text-muted); font-size: 0.82rem;">当前模式: JSON ➔ YAML</span>
+			</div>
+
+			<!-- 双栏转换器 -->
+			<div class="editor-grid">
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title" id="leftTitle">JSON 输入</span>
+						<button id="btnClearLeft" class="btn-text">清空</button>
+					</div>
+					<textarea id="leftInput" placeholder="在此输入 JSON 或 YAML 内容..."></textarea>
+				</div>
+
+				<div class="editor-box">
+					<div class="editor-top">
+						<span class="editor-title" id="rightTitle">YAML 输出</span>
+						<button id="btnCopyRight" class="btn-text">📋 复制结果</button>
+					</div>
+					<textarea id="rightOutput" placeholder="转换后的结果将在此处实时显示..." readonly></textarea>
+				</div>
+			</div>
+
+			<div class="action-bar">
+				<div class="btn-group">
+					<button id="btnSample" class="btn btn-secondary">加载测试示例</button>
+					<button id="btnSwap" class="btn btn-secondary">🔄 交换左右方向</button>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">结果已复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const leftInput = document.getElementById('leftInput');
+			const rightOutput = document.getElementById('rightOutput');
+			const leftTitle = document.getElementById('leftTitle');
+			const rightTitle = document.getElementById('rightTitle');
+			const statusText = document.getElementById('statusText');
+			const modeText = document.getElementById('modeText');
+			const btnClearLeft = document.getElementById('btnClearLeft');
+			const btnCopyRight = document.getElementById('btnCopyRight');
+			const btnSwap = document.getElementById('btnSwap');
+			const btnSample = document.getElementById('btnSample');
+			const toast = document.getElementById('toast');
+
+			let direction = 'json-to-yaml'; // 'json-to-yaml' 或 'yaml-to-json'
+
+			function convert() {
+				const val = leftInput.value.trim();
+				if (!val) {
+					rightOutput.value = '';
+					statusText.className = 'status-success';
+					statusText.textContent = '✓ 准备就绪';
+					return;
+				}
+
+				try {
+					if (direction === 'json-to-yaml') {
+						const jsonObj = JSON.parse(val);
+						const yamlStr = window.jsyaml.dump(jsonObj, { indent: 2 });
+						rightOutput.value = yamlStr;
+						statusText.className = 'status-success';
+						statusText.textContent = '✓ JSON 解析与 YAML 转换成功';
+					} else {
+						const jsonObj = window.jsyaml.load(val);
+						const jsonStr = JSON.stringify(jsonObj, null, 2);
+						rightOutput.value = jsonStr;
+						statusText.className = 'status-success';
+						statusText.textContent = '✓ YAML 解析与 JSON 转换成功';
+					}
+				} catch (err) {
+					statusText.className = 'status-error';
+					statusText.textContent = `❌ 语法错误: ${err.message}`;
+				}
+			}
+
+			leftInput?.addEventListener('input', convert);
+
+			// 交换方向
+			btnSwap?.addEventListener('click', () => {
+				direction = direction === 'json-to-yaml' ? 'yaml-to-json' : 'json-to-yaml';
+				if (direction === 'json-to-yaml') {
+					leftTitle.textContent = 'JSON 输入';
+					rightTitle.textContent = 'YAML 输出';
+					modeText.textContent = '当前模式: JSON ➔ YAML';
+				} else {
+					leftTitle.textContent = 'YAML 输入';
+					rightTitle.textContent = 'JSON 输出';
+					modeText.textContent = '当前模式: YAML ➔ JSON';
+				}
+				// 互换内容
+				const temp = leftInput.value;
+				leftInput.value = rightOutput.value;
+				rightOutput.value = temp;
+				convert();
+			});
+
+			btnClearLeft?.addEventListener('click', () => {
+				leftInput.value = '';
+				convert();
+			});
+
+			btnCopyRight?.addEventListener('click', () => {
+				if (!rightOutput.value) return;
+				navigator.clipboard.writeText(rightOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+
+			btnSample?.addEventListener('click', () => {
+				if (direction === 'json-to-yaml') {
+					leftInput.value = JSON.stringify({
+						site: {
+							name: "HelpMini",
+							version: "2.6.0",
+							features: ["AI Tools", "SEO Optimized", "Client-Side Privacy"],
+							config: {
+								theme: "dark",
+								maxItems: 20
+							}
+						}
+					}, null, 2);
+				} else {
+					leftInput.value = `site:\n  name: HelpMini\n  version: 2.6.0\n  features:\n    - AI Tools\n    - SEO Optimized\n  config:\n    theme: dark\n    maxItems: 20`;
+				}
+				convert();
+			});
+		</script>
+	</body>
+</html>
