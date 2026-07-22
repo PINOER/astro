@@ -56,4 +56,4 @@ HelpMini 图片转 Base64 工具 的核心优势：
 文件体积对比与预览： 实时对比原图大小与转码后的字符长度，让你清晰感知体积膨胀率。
 
 💡 立即体验：
-减少 HTTP 请求，提升网页首屏加载体验！现在就体验 HelpMini 图片转 Base64 & DataURI 工具。
+减少 HTTP 请求，提升网页首屏加载体验！现在就体验 HelpMini [图片转 Base64 & DataURI](/zh/tools/image-base64-converter/) 工具。
