@@ -25,7 +25,7 @@ const rawItems = [
 		tag: tool.data.tag || '工具',
 		keywords: `${tool.data.title} ${tool.data.keywords || ''}`,
 		pinned: tool.data.pinned || false,
-		priority: tool.data.priority || 0
+		priority: tool.data.priority || 1
 	})),
 	...zhPosts.map((post) => ({
 		title: post.data.title,
