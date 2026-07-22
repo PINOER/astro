@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
+export const frontmatter = {
+    title: "Base64 & URL Encoder/Decoder",
+    description: "Fast, 100% private online tool to encode and decode Base64 text and URL parameters.",
+    icon: "🔤",
+    tag: "Developer",
+    keywords: "base64 url encode decode encoder decoder",
+    pinned: false,
+    priority: 85
+};
+
 const pageTitle = `Base64 & URL Encoder/Decoder — ${SITE_TITLE}`;
 const pageDescription = "Fast, 100% private online tool to encode and decode Base64 text and URL parameters.";
 ---
@@ -180,7 +190,6 @@ const pageDescription = "Fast, 100% private online tool to encode and decode Bas
 				const val = inputText.value;
 				try {
 					if (currentMode === 'base64') {
-						// 支持 UTF-8 中文 Base64 编码
 						outputText.value = btoa(encodeURIComponent(val).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
 					} else {
 						outputText.value = encodeURIComponent(val);
