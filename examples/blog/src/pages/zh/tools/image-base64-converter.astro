@@ -4,6 +4,16 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_DESCRIPTION } from 'src/consts';
 
+export const frontmatter = {
+    title: "图片转 Base64 & DataURI 工具",
+    description: "100% 本地计算不上传服务器。支持 PNG, JPG, WEBP, SVG 一键转 Base64、HTML 标签与 CSS DataURI 格式。",
+    icon: "🖼️",
+    tag: "效率工具",
+    keywords: "图片转base64 datauri 转换器 png jpg webp svg css html",
+    pinned: false,
+    priority: 88
+};
+
 const title = '图片转 Base64 & DataURI 工具 - HelpMini';
 const description = '100% 本地计算不上传服务器。支持 PNG, JPG, WEBP, SVG 一键转 Base64、HTML 标签与 CSS DataURI 格式。';
 ---
