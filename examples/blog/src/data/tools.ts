@@ -187,5 +187,30 @@ export const toolsData: ToolItem[] = [
 			zh: '图片转 base64 svg datauri 图像转码 嵌入式图片 前端小工具'
 		},
 		priority: 70
+	},
+  {
+		id: 'json-yaml-converter',
+		title: {
+			en: 'JSON & YAML Converter',
+			zh: 'JSON 与 YAML 互转工具'
+		},
+		desc: {
+			en: 'Real-time two-way conversion and syntax validation between JSON and YAML.',
+			zh: '实现 JSON 格式与 YAML 配置文件之间的实时双向转换与语法校验。'
+		},
+		url: {
+			en: '/tools/json-yaml-converter',
+			zh: '/zh/tools/json-yaml-converter'
+		},
+		icon: '🔄',
+		tag: {
+			en: 'Developer Tool',
+			zh: '开发者工具'
+		},
+		keywords: {
+			en: 'json yaml converter formatter parser parser config',
+			zh: 'json yaml 互转 转换器 配置文件 格式化'
+		},
+		priority: 88
 	}
 ];
