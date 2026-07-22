@@ -6,35 +6,45 @@ import { SITE_TITLE, SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
 import { toolsData } from 'src/data/tools';
 
-// 获取博客列表供搜索使用
+// 1. Fetch English Posts
 const allPosts = await getCollection('blog');
-const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
+const enPosts = allPosts.filter((post) => post.data?.lang === 'en' || post.id.startsWith('en/'));
 
-// 动态构建供前端搜索的静态 JSON 索引（工具 + 博客）
-const searchableItems = [
+// 2. Sponsor config
+const sponsorItems = [];
+
+// 3. Search Index
+const allSearchableItems = [
 	...toolsData.map((tool) => ({
-		title: tool.title.zh,
-		desc: tool.desc.zh,
-		url: tool.url.zh,
+		title: tool.title.en,
+		desc: tool.desc.en,
+		url: tool.url.en,
 		type: 'tool',
 		icon: tool.icon,
-		keywords: `${tool.title.zh} ${tool.keywords.zh}`
+		tag: tool.tag.en,
+		keywords: `${tool.title.en} ${tool.keywords.en}`,
+		pinned: (tool as any).pinned || false,
+		priority: (tool as any).priority || 0
 	})),
-	...zhPosts.map((post) => ({
+	...enPosts.map((post) => ({
 		title: post.data.title,
 		desc: post.data.description,
 		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
 		type: 'blog',
 		icon: '📚',
-		keywords: `${post.data.title} ${post.data.description}`
-	}))
+		tag: 'Guide',
+		keywords: `${post.data.title} ${post.data.description}`,
+		pinned: false,
+		priority: 0
+	})),
+	...sponsorItems
 ];
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 	<head>
-		<BaseHead title={`帮你AI工具箱,轻量级 AI 辅助工具 - HelpMini`} description={SITE_DESCRIPTION} />
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
 			main {
 				width: 1000px;
@@ -44,7 +54,7 @@ const searchableItems = [
 			}
 			.hero {
 				text-align: center;
-				padding: 2em 0 3em;
+				padding: 2em 0 2.5em;
 				position: relative;
 			}
 			.badge {
@@ -78,10 +88,9 @@ const searchableItems = [
 				line-height: 1.6;
 			}
 
-			/* 🔍 核心搜索引擎式搜索框设计 */
 			.search-wrapper {
 				max-width: 640px;
-				margin: 0 auto 3em;
+				margin: 0 auto 2.5em;
 				position: relative;
 			}
 			.search-input-box {
@@ -112,177 +121,246 @@ const searchableItems = [
 				pointer-events: none;
 			}
 
-			/* 搜索下拉结果浮层 */
-			.search-results-dropdown {
-				position: absolute;
-				top: 105%;
-				left: 0;
-				right: 0;
-				background: var(--dropdown-bg);
-				backdrop-filter: blur(20px);
-				border: 1px solid var(--card-border);
-				border-radius: 14px;
-				max-height: 380px;
-				overflow-y: auto;
-				z-index: 50;
-				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-				display: none;
-				text-align: left;
-			}
-			.search-result-item {
+			.section-title-wrapper {
 				display: flex;
 				align-items: center;
-				gap: 1em;
+				justify-content: space-between;
+				margin-bottom: 1.2rem;
+			}
+			.section-title {
+				font-size: 1.35rem;
+				font-weight: 700;
+				letter-spacing: -0.5px;
+				color: var(--text-main);
+				margin: 0;
+			}
+			.result-count-badge {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				font-weight: 600;
+				background: var(--gray-light);
+				padding: 0.25em 0.7em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+			}
+
+			.tool-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+				gap: 0.9rem;
+			}
+
+			.item-card {
+				display: flex;
+				align-items: center;
+				gap: 1.1em;
 				padding: 0.9em 1.2em;
 				text-decoration: none;
 				color: var(--text-main);
-				border-bottom: 1px solid var(--card-border);
-				transition: background 0.2s;
+				background: var(--bg-card);
+				backdrop-filter: blur(16px);
+				-webkit-backdrop-filter: blur(16px);
+				border: 1px solid var(--card-border);
+				border-radius: 14px;
+				transition: all 0.25s ease;
+				position: relative;
+				overflow: hidden;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 			}
-			.search-result-item:hover {
+
+			.item-card:hover {
 				background: var(--dropdown-hover);
+				border-color: var(--accent);
+				transform: translateY(-2px);
+				box-shadow: 0 8px 25px -5px var(--accent-glow);
 			}
-			.result-item-title {
-				font-weight: 600;
+
+			.item-icon {
+				font-size: 1.5rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 38px;
+				height: 38px;
+				min-width: 38px;
+				border-radius: 10px;
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+			}
+
+			.item-info {
+				flex: 1;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+			}
+
+			.item-title {
+				font-weight: 700;
 				font-size: 0.98rem;
 				color: var(--text-main);
+				margin-bottom: 0.2em;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
 			}
-			.result-item-desc {
+
+			.item-desc {
 				font-size: 0.82rem;
 				color: var(--text-muted);
 				white-space: nowrap;
 				overflow: hidden;
 				text-overflow: ellipsis;
+				line-height: 1.4;
 			}
-			.result-type-badge {
+
+			.item-badge {
 				margin-left: auto;
 				font-size: 0.7rem;
 				padding: 0.2em 0.6em;
 				border-radius: 6px;
-				font-weight: 600;
+				font-weight: 700;
+				white-space: nowrap;
+				flex-shrink: 0;
 			}
-			.type-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
-			.type-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 
-			.tool-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-				gap: 1.5rem;
-				margin-top: 1.5rem;
+			.type-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.25); }
+			.type-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.25); }
+			.type-sponsor { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+			.pinned-tag {
+				font-size: 0.75rem;
+				margin-right: 0.2rem;
 			}
-			.tool-card {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.8rem;
-				text-decoration: none;
-				color: var(--text-main);
-				display: flex;
-				flex-direction: column;
-				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+			.no-results {
+				text-align: center;
+				padding: 3em 1em;
+				color: var(--text-muted);
+				grid-column: 1 / -1;
 			}
-			.tool-card:hover {
-				transform: translateY(-6px);
-				border-color: var(--accent);
-				box-shadow: 0 12px 30px -5px var(--accent-glow);
+
+			@media (max-width: 640px) {
+				.tool-grid {
+					grid-template-columns: 1fr;
+				}
 			}
-			.tool-icon { font-size: 2.2rem; margin-bottom: 1rem; }
-			.tool-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--text-main); }
-			.tool-card p { font-size: 0.92rem; color: var(--text-muted); flex: 1; margin-bottom: 1.2rem; line-height: 1.6; }
-			.tool-tag { font-size: 0.75rem; color: var(--cyan); font-weight: 600; text-transform: uppercase; }
 		</style>
 	</head>
 	<body>
-		<Header lang="zh" />
+		<Header />
 		<main>
 			<section class="hero">
-				<div class="badge">🚀 帮你 AI 工具箱，为生产力提速</div>
+				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
 
-				<!-- 🔍 搜索引擎式中央搜索框 -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
 					<input
 						type="text"
 						id="searchInput"
 						class="search-input-box"
-						placeholder="搜索您想要的工具或文档(教程)..."
+						placeholder="Search tools, guides, or keywords... (e.g., SEO, Token, Prompt)"
 						autocomplete="off"
 					/>
-					<div id="searchDropdown" class="search-results-dropdown"></div>
 				</div>
 			</section>
 
 			<section>
-				<h2 style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; color: var(--text-main);">精选微工具</h2>
-				
-				<!-- 自动读取 toolsData 渲染微工具卡片 -->
-				<div class="tool-grid">
-					{toolsData.map((tool) => (
-						<a href={tool.url.zh} class="tool-card">
-							<div class="tool-icon">{tool.icon}</div>
-							<h3>{tool.title.zh}</h3>
-							<p>{tool.desc.zh}</p>
-							<span class="tool-tag">{tool.tag.zh}</span>
-						</a>
-					))}
+				<div class="section-title-wrapper">
+					<h2 id="sectionTitle" class="section-title">Featured Micro Tools</h2>
+					<span id="resultCount" class="result-count-badge"></span>
 				</div>
+				
+				<div id="contentGrid" class="tool-grid"></div>
 			</section>
 
-			<section class="hero">
-				<p>轻量、即时且强劲的 AI 辅助工具，为你的生产力效率提升数倍。</p>
+			<section class="hero" style="padding-top: 4em;">
+				<p>Lightweight, instant productivity tools that save you hours.</p>
 			</section>
 		</main>
-		<Footer lang="zh" />
+		<Footer />
 
-		<!-- 搜索实时逻辑 -->
-		<script is:inline define:vars={{ searchableItems }}>
+		<script is:inline define:vars={{ allSearchableItems }}>
 			const searchInput = document.getElementById('searchInput');
-			const searchDropdown = document.getElementById('searchDropdown');
+			const sectionTitle = document.getElementById('sectionTitle');
+			const resultCount = document.getElementById('resultCount');
+			const contentGrid = document.getElementById('contentGrid');
+
+			function sortItems(items) {
+				return [...items].sort((a, b) => {
+					if (a.pinned && !b.pinned) return -1;
+					if (!a.pinned && b.pinned) return 1;
+					return (b.priority || 0) - (a.priority || 0);
+				});
+			}
+
+			function renderItems(items) {
+				if (!contentGrid) return;
+
+				if (items.length === 0) {
+					contentGrid.innerHTML = `
+						<div class="no-results">
+							<div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔍</div>
+							<p style="font-size: 1rem; font-weight: 600;">No matching tools or guides found</p>
+							<p style="font-size: 0.85rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
+						</div>
+					`;
+					return;
+				}
+
+				contentGrid.innerHTML = items.map(item => {
+					const isExternal = item.url.startsWith('http');
+					const typeBadgeClass = item.type === 'sponsor' ? 'type-sponsor' : (item.type === 'blog' ? 'type-blog' : 'type-tool');
+					const typeLabel = item.type === 'sponsor' ? 'Ad' : (item.type === 'blog' ? 'Blog' : 'Tool');
+
+					return `
+						<a href="${item.url}" class="item-card" ${isExternal ? 'target="_blank" rel="noopener"' : ''}>
+							<span class="item-icon">${item.icon}</span>
+							<div class="item-info">
+								<div class="item-title">${item.pinned ? '<span class="pinned-tag">📌</span>' : ''}${item.title}</div>
+								<div class="item-desc">${item.desc}</div>
+							</div>
+							<span class="item-badge ${typeBadgeClass}">${typeLabel}</span>
+						</a>
+					`;
+				}).join('');
+			}
+
+			function initDefaultView() {
+				const sorted = sortItems(allSearchableItems);
+				const default20 = sorted.slice(0, 20);
+				
+				if (sectionTitle) sectionTitle.textContent = 'Featured Micro Tools';
+				if (resultCount) resultCount.textContent = `${default20.length} items`;
+				
+				renderItems(default20);
+			}
 
 			searchInput?.addEventListener('input', (e) => {
 				const query = e.target.value.toLowerCase().trim();
 
 				if (!query) {
-					searchDropdown.style.display = 'none';
+					initDefaultView();
 					return;
 				}
 
-				// 模糊匹配关键词/标题/描述
-				const filtered = searchableItems.filter(item =>
+				const filtered = allSearchableItems.filter(item =>
 					item.title.toLowerCase().includes(query) ||
 					item.desc.toLowerCase().includes(query) ||
 					item.keywords.toLowerCase().includes(query)
 				);
 
-				if (filtered.length === 0) {
-					searchDropdown.innerHTML = `<div style="padding: 1.2em; text-align: center; color: var(--text-muted); font-size: 0.9rem;">未找到相关工具或文章</div>`;
-				} else {
-					searchDropdown.innerHTML = filtered.map(item => `
-						<a href="${item.url}" class="search-result-item">
-							<span style="font-size: 1.4rem;">${item.icon}</span>
-							<div style="flex: 1; overflow: hidden;">
-								<div class="result-item-title">${item.title}</div>
-								<div class="result-item-desc">${item.desc}</div>
-							</div>
-							<span class="result-type-badge ${item.type === 'tool' ? 'type-tool' : 'type-blog'}">
-								${item.type === 'tool' ? '工具' : '博客'}
-							</span>
-						</a>
-					`).join('');
-				}
+				const sortedResults = sortItems(filtered);
 
-				searchDropdown.style.display = 'block';
+				if (sectionTitle) sectionTitle.textContent = 'Search Results';
+				if (resultCount) resultCount.textContent = `${sortedResults.length} found`;
+
+				renderItems(sortedResults);
 			});
 
-			// 点击外部自动隐藏下拉框
-			document.addEventListener('click', (e) => {
-				if (!searchInput?.contains(e.target) && !searchDropdown?.contains(e.target)) {
-					searchDropdown.style.display = 'none';
-				}
-			});
+			initDefaultView();
 		</script>
 	</body>
 </html>
