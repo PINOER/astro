@@ -34,7 +34,7 @@ export const toolsData: ToolItem[] = [
 			en: 'prompt refiner structurer costar framework chatgpt claude generator',
 			zh: 'prompt 提示词 costar 优化 催化剂 chatgpt claude 指令工程'
 		},
-		pinned: true,
+		pinned: false,
 		priority: 100
 	},
 	{
@@ -60,7 +60,7 @@ export const toolsData: ToolItem[] = [
 			en: 'token calculator context limit count gpt4o claude deepseek gemini tiktoken',
 			zh: 'token 计算器 上下文 限制 扣费 gpt4o claude deepseek gemini 字符统计'
 		},
-		pinned: true,
+		pinned: false,
 		priority: 95
 	},
 	{
