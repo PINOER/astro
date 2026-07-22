@@ -1,0 +1,64 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+# Create figure and axis
+fig, ax = plt.subplots(figsize=(12, 6.3), dpi=100)
+fig.patch.set_facecolor('#0b0f19')
+ax.set_facecolor('#0b0f19')
+
+# Hide axes
+ax.axis('off')
+ax.set_xlim(0, 1200)
+ax.set_ylim(0, 630)
+
+# Draw Title and Subtitle
+ax.text(600, 560, 'JSON  ⇄  YAML', color='#ffffff', fontsize=32, fontweight='bold', ha='center', va='center', fontfamily='sans-serif')
+ax.text(600, 515, 'Bi-directional Real-time Converter & Validator', color='#94a3b8', fontsize=16, ha='center', va='center', fontfamily='sans-serif')
+
+# Left Panel (JSON)
+rect_json = patches.FancyBboxPatch((80, 100), 440, 360, boxstyle="round,pad=0.3,rounding_size=16",
+                                  linewidth=1.5, edgecolor='#334155', facecolor='#1e293b', alpha=0.8)
+ax.add_patch(rect_json)
+ax.text(120, 420, 'JSON FORMAT', color='#06b6d4', fontsize=14, fontweight='bold', fontfamily='monospace')
+
+json_text = """{
+  "site": {
+    "name": "HelpMini",
+    "version": "2.6.0",
+    "features": [
+      "AI Tools",
+      "SEO Optimized"
+    ]
+  }
+}"""
+ax.text(120, 260, json_text, color='#e2e8f0', fontsize=13, fontfamily='monospace', va='center')
+
+# Right Panel (YAML)
+rect_yaml = patches.FancyBboxPatch((680, 100), 440, 360, boxstyle="round,pad=0.3,rounding_size=16",
+                                  linewidth=1.5, edgecolor='#6366f1', facecolor='#1e293b', alpha=0.8)
+ax.add_patch(rect_yaml)
+ax.text(720, 420, 'YAML FORMAT', color='#818cf8', fontsize=14, fontweight='bold', fontfamily='monospace')
+
+yaml_text = """site:
+  name: HelpMini
+  version: 2.6.0
+  features:
+    - AI Tools
+    - SEO Optimized"""
+ax.text(720, 275, yaml_text, color='#e2e8f0', fontsize=13, fontfamily='monospace', va='center')
+
+# Center Arrow / Icon
+circle = patches.Circle((600, 280), radius=35, facecolor='#1e1b4b', edgecolor='#6366f1', linewidth=2)
+ax.add_patch(circle)
+ax.text(600, 280, '⇄', color='#ffffff', fontsize=28, ha='center', va='center', fontweight='bold')
+
+# Footer / Branding
+ax.text(600, 50, 'HelpMini Tools • 100% Client-Side Private Processing', color='#64748b', fontsize=13, ha='center', va='center')
+
+# Save Image
+output_path = "json-yaml-cover.png"
+plt.tight_layout()
+plt.savefig(output_path, facecolor=fig.get_facecolor(), edgecolor='none', bbox_inches='tight', pad_inches=0)
+plt.close()
+
+print(f"IMAGE_GENERATED:{output_path}")
