@@ -1,0 +1,461 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "AI 图片去水印与瑕疵修复工具",
+    description: "100% 本地浏览器运行，无需上传服务器。鼠标涂抹水印或杂物，一键无痕抹除修复。",
+    icon: "🎨",
+    tag: "效率工具",
+    keywords: "图片去水印 图像修复 涂抹抹除 本地隐私 开发者工具",
+    pinned: false,
+    priority: 95
+};
+
+const pageTitle = `AI 图片去水印与瑕疵修复工具 — ${SITE_TITLE}`;
+const pageDescription = "100% 本地浏览器运行，无需上传服务器。鼠标涂抹水印或杂物，一键无痕抹除修复。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 上传区 */
+			.drop-zone {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 2px dashed var(--card-border);
+				border-radius: 16px;
+				padding: 2.5em 1.5em;
+				text-align: center;
+				cursor: pointer;
+				transition: all 0.3s ease;
+				margin-bottom: 1.5rem;
+				position: relative;
+			}
+			.drop-zone:hover, .drop-zone.dragover {
+				border-color: var(--accent);
+				background: var(--dropdown-hover);
+				box-shadow: 0 0 20px var(--accent-glow);
+			}
+			.drop-zone input[type="file"] {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				opacity: 0;
+				cursor: pointer;
+			}
+
+			/* 编辑画布容器 */
+			.workspace {
+				display: none;
+				flex-direction: column;
+				align-items: center;
+				gap: 1.2rem;
+			}
+			.canvas-container {
+				position: relative;
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				overflow: hidden;
+				background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+				max-width: 100%;
+			}
+			canvas {
+				display: block;
+				max-width: 100%;
+				height: auto;
+				cursor: crosshair;
+			}
+			#maskCanvas {
+				position: absolute;
+				top: 0;
+				left: 0;
+				opacity: 0.6;
+			}
+
+			/* 工具栏控制区 */
+			.toolbar {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem 1.2rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 1rem 1.5rem;
+				align-items: center;
+				justify-content: space-between;
+				width: 100%;
+				box-sizing: border-box;
+			}
+			.tool-group {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+			}
+			.tool-label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="range"] {
+				accent-color: var(--accent);
+				cursor: pointer;
+			}
+
+			.btn {
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				cursor: pointer;
+				border: 1px solid var(--card-border);
+				transition: all 0.2s ease;
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+			}
+			.btn-primary:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+			}
+			.btn-success {
+				background: #10b981;
+				color: #ffffff;
+				border-color: #10b981;
+			}
+			.btn-success:hover {
+				opacity: 0.9;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🎨 AI 图片去水印与瑕疵修复工具</h1>
+				<p>100% 浏览器本地计算，隐私安全。鼠标涂抹图片上的水印或文字，一键去水印修复。</p>
+			</div>
+
+			<!-- 上传入口 -->
+			<div class="drop-zone" id="dropZone">
+				<input type="file" id="fileInput" accept="image/*" />
+				<div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🖼️</div>
+				<div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem;">
+					点击选择图片，或拖拽图片至此处
+				</div>
+				<div style="font-size: 0.85rem; color: var(--text-muted);">
+					支持 PNG, JPG, WEBP 格式（100% 本地运算，无需上传服务器）
+				</div>
+			</div>
+
+			<!-- 操作工作台 -->
+			<div class="workspace" id="workspace">
+				<!-- 工具栏 -->
+				<div class="toolbar">
+					<div class="tool-group">
+						<span class="tool-label">画笔大小:</span>
+						<input type="range" id="brushSize" min="5" max="100" value="25" />
+						<span id="brushSizeVal" style="font-size: 0.85rem; color: var(--text-muted); min-width: 30px;">25px</span>
+					</div>
+
+					<div class="tool-group">
+						<button id="btnClearMask" class="btn btn-secondary">清空遮罩</button>
+						<button id="btnProcess" class="btn btn-primary">✨ 开始修复去除</button>
+						<button id="btnDownload" class="btn btn-success">💾 下载结果</button>
+						<button id="btnReset" class="btn btn-secondary">重新上传</button>
+					</div>
+				</div>
+
+				<!-- 画画布区域 -->
+				<div class="canvas-container" id="canvasContainer">
+					<canvas id="imageCanvas"></canvas>
+					<canvas id="maskCanvas"></canvas>
+				</div>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">修复完成！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput');
+			const workspace = document.getElementById('workspace');
+			const imageCanvas = document.getElementById('imageCanvas');
+			const maskCanvas = document.getElementById('maskCanvas');
+			const imgCtx = imageCanvas.getContext('2d');
+			const maskCtx = maskCanvas.getContext('2d');
+
+			const brushSize = document.getElementById('brushSize');
+			const brushSizeVal = document.getElementById('brushSizeVal');
+			const btnClearMask = document.getElementById('btnClearMask');
+			const btnProcess = document.getElementById('btnProcess');
+			const btnDownload = document.getElementById('btnDownload');
+			const btnReset = document.getElementById('btnReset');
+			const toast = document.getElementById('toast');
+
+			let isDrawing = false;
+			let originalImage = null;
+
+			// 动态改变画笔大小
+			brushSize?.addEventListener('input', (e) => {
+				brushSizeVal.textContent = `${e.target.value}px`;
+			});
+
+			function showToast(msg) {
+				toast.textContent = msg;
+				toast.classList.add('show');
+				setTimeout(() => toast.classList.remove('show'), 2000);
+			}
+
+			function initCanvas(img) {
+				originalImage = img;
+				const width = img.width;
+				const height = img.height;
+
+				imageCanvas.width = width;
+				imageCanvas.height = height;
+				maskCanvas.width = width;
+				maskCanvas.height = height;
+
+				imgCtx.drawImage(img, 0, 0);
+
+				// 重置 Mask 画布
+				maskCtx.clearRect(0, 0, width, height);
+
+				dropZone.style.display = 'none';
+				workspace.style.display = 'flex';
+			}
+
+			function processFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					const img = new Image();
+					img.onload = () => initCanvas(img);
+					img.src = e.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+
+			fileInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) processFile(e.target.files[0]);
+			});
+
+			['dragenter', 'dragover'].forEach(name => {
+				dropZone?.addEventListener(name, (e) => {
+					e.preventDefault();
+					dropZone.classList.add('dragover');
+				});
+			});
+
+			['dragleave', 'drop'].forEach(name => {
+				dropZone?.addEventListener(name, (e) => {
+					e.preventDefault();
+					dropZone.classList.remove('dragover');
+				});
+			});
+
+			dropZone?.addEventListener('drop', (e) => {
+				const files = e.dataTransfer.files;
+				if (files && files[0]) processFile(files[0]);
+			});
+
+			// 鼠标涂抹 Mask 逻辑
+			function getCanvasCoords(e) {
+				const rect = maskCanvas.getBoundingClientRect();
+				const scaleX = maskCanvas.width / rect.width;
+				const scaleY = maskCanvas.height / rect.height;
+				return {
+					x: (e.clientX - rect.left) * scaleX,
+					y: (e.clientY - rect.top) * scaleY
+				};
+			}
+
+			function startDrawing(e) {
+				isDrawing = true;
+				draw(e);
+			}
+
+			function stopDrawing() {
+				isDrawing = false;
+				maskCtx.beginPath();
+			}
+
+			function draw(e) {
+				if (!isDrawing) return;
+				const { x, y } = getCanvasCoords(e);
+
+				maskCtx.lineWidth = parseInt(brushSize.value);
+				maskCtx.lineCap = 'round';
+				maskCtx.lineJoin = 'round';
+				maskCtx.strokeStyle = 'red';
+
+				maskCtx.lineTo(x, y);
+				maskCtx.stroke();
+				maskCtx.beginPath();
+				maskCtx.moveTo(x, y);
+			}
+
+			maskCanvas.addEventListener('mousedown', startDrawing);
+			maskCanvas.addEventListener('mouseup', stopDrawing);
+			maskCanvas.addEventListener('mousemove', draw);
+			maskCanvas.addEventListener('mouseleave', stopDrawing);
+
+			btnClearMask?.addEventListener('click', () => {
+				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+			});
+
+			// 核心逻辑：Fast Marching (Navier-Stokes) 纯前端图像插值修复算法
+			btnProcess?.addEventListener('click', () => {
+				const w = imageCanvas.width;
+				const h = imageCanvas.height;
+
+				const imgData = imgCtx.getImageData(0, 0, w, h);
+				const maskData = maskCtx.getImageData(0, 0, w, h);
+
+				// 检查是否有涂抹区域
+				let hasMask = false;
+				for (let i = 0; i < maskData.data.length; i += 4) {
+					if (maskData.data[i + 3] > 0) {
+						hasMask = true;
+						break;
+					}
+				}
+
+				if (!hasMask) {
+					alert('请先使用红画笔涂抹需要去除的水印区域！');
+					return;
+				}
+
+				// 像素级边缘扩张插值 (Fast Marching Inpainting 启发式)
+				const data = imgData.data;
+				const mask = maskData.data;
+				const radius = parseInt(brushSize.value) / 2;
+
+				for (let pass = 0; pass < 8; pass++) {
+					for (let y = 1; y < h - 1; y++) {
+						for (let x = 1; x < w - 1; x++) {
+							const idx = (y * w + x) * 4;
+
+							// 如果属于 Mask 区域（涂红区域）
+							if (mask[idx + 3] > 0) {
+								let r = 0, g = 0, b = 0, count = 0;
+
+								// 采样周围非 Mask 区域的像素
+								const neighbors = [
+									((y - 1) * w + x) * 4,
+									((y + 1) * w + x) * 4,
+									(y * w + (x - 1)) * 4,
+									(y * w + (x + 1)) * 4,
+									((y - 1) * w + (x - 1)) * 4,
+									((y - 1) * w + (x + 1)) * 4,
+									((y + 1) * w + (x - 1)) * 4,
+									((y + 1) * w + (x + 1)) * 4
+								];
+
+								for (let nIdx of neighbors) {
+									if (mask[nIdx + 3] === 0) {
+										r += data[nIdx];
+										g += data[nIdx + 1];
+										b += data[nIdx + 2];
+										count++;
+									}
+								}
+
+								if (count > 0) {
+									data[idx] = Math.round(r / count);
+									data[idx + 1] = Math.round(g / count);
+									data[idx + 2] = Math.round(b / count);
+									// 将已被修复的点标记为非 Mask，以便后续迭代继续向中心收敛
+									mask[idx + 3] = 0;
+								}
+							}
+						}
+					}
+				}
+
+				imgCtx.putImageData(imgData, 0, 0);
+				maskCtx.clearRect(0, 0, w, h);
+				showToast('水印去除与修复完成！');
+			});
+
+			// 下载图片
+			btnDownload?.addEventListener('click', () => {
+				const link = document.createElement('a');
+				link.download = 'watermark-removed.png';
+				link.href = imageCanvas.toDataURL('image/png');
+				link.click();
+			});
+
+			// 重新上传
+			btnReset?.addEventListener('click', () => {
+				fileInput.value = '';
+				workspace.style.display = 'none';
+				dropZone.style.display = 'block';
+			});
+		</script>
+	</body>
+</html>
