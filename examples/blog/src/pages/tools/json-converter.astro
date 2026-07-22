@@ -4,8 +4,18 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
-const pageTitle = `JSON & YAML Formatter / Converter — ${SITE_TITLE}`;
-const pageDescription = "Fast, secure, 100% client-side JSON formatter, validator, and YAML converter for developers and store owners.";
+export const frontmatter = {
+    title: "JSON Formatter & Validator",
+    description: "Fast, secure, 100% client-side JSON formatter, validator, and minifier for developers and store owners.",
+    icon: "⚙️",
+    tag: "Developer",
+    keywords: "json formatter validator minifier pretty print developer tools",
+    pinned: false,
+    priority: 87
+};
+
+const pageTitle = `JSON Formatter & Validator — ${SITE_TITLE}`;
+const pageDescription = "Fast, secure, 100% client-side JSON formatter, validator, and minifier for developers and store owners.";
 ---
 
 <!doctype html>
