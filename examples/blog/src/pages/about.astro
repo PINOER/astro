@@ -13,19 +13,6 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
-			:root {
-				--primary: #6366f1;
-				--accent: #06b6d4;
-				--bg-dark: #0f172a;
-				--text-main: #f8fafc;
-				--text-muted: #94a3b8;
-				--card-bg: rgba(30, 41, 59, 0.7);
-				--card-border: rgba(255, 255, 255, 0.1);
-			}
-			body {
-				background-color: var(--bg-dark);
-				color: var(--text-main);
-			}
 			main {
 				width: 800px;
 				max-width: calc(100% - 2em);
@@ -40,7 +27,7 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 				font-size: 2.5rem;
 				font-weight: 800;
 				margin-bottom: 0.4em;
-				background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #06b6d4 100%);
+				background: var(--hero-title-gradient);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
@@ -49,17 +36,17 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 				font-size: 1.15rem;
 			}
 			.content-card {
-				background: var(--card-bg);
+				background: var(--bg-card);
 				backdrop-filter: blur(12px);
 				border: 1px solid var(--card-border);
 				border-radius: 16px;
 				padding: 2.5em;
 				line-height: 1.8;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 			}
 			.content-card h2 {
 				font-size: 1.4rem;
-				color: #fff;
+				color: var(--text-main);
 				margin: 1.8em 0 0.8em;
 				display: flex;
 				align-items: center;
@@ -67,7 +54,7 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 			}
 			.content-card h2:first-child { margin-top: 0; }
 			.content-card p {
-				color: var(--text-muted);
+				color: var(--text-main);
 				margin-bottom: 1.2em;
 			}
 			.feature-list {
@@ -79,17 +66,25 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 				margin-bottom: 1em;
 				color: var(--text-main);
 			}
-			.feature-list strong { color: #a5b4fc; }
+			.feature-list strong { color: var(--accent); }
 			.contact-box {
-				background: rgba(99, 102, 241, 0.1);
-				border: 1px solid rgba(99, 102, 241, 0.25);
+				background: var(--badge-bg);
+				border: 1px solid var(--badge-border);
 				border-radius: 12px;
 				padding: 1.5em;
 				margin-top: 2em;
 				text-align: center;
 			}
+			.contact-box h3 {
+				margin: 0 0 0.5em;
+				color: var(--text-main);
+				font-size: 1.1rem;
+			}
+			.contact-box p {
+				color: var(--text-muted);
+			}
 			.contact-box a {
-				color: var(--accent);
+				color: var(--cyan);
 				font-weight: 600;
 				text-decoration: none;
 			}
@@ -132,7 +127,7 @@ const pageDescription = "HelpMini builds lightweight, instant, and 100% client-s
 				</ul>
 
 				<div class="contact-box">
-					<h3 style="margin:0 0 0.5em; color:#fff; font-size:1.1rem;">📫 Get in Touch</h3>
+					<h3>📫 Get in Touch</h3>
 					<p style="margin:0;">Have a suggestion for a new micro-tool, bug report, or business inquiry? Drop us an email anytime:</p>
 					<p style="margin:0.5em 0 0; font-size:1.1rem;">
 						📧 <a href="mailto:K162000080@gmail.com">K162000080@gmail.com</a>
