@@ -6,16 +6,16 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与专业摄影摄影控制，支持中英文自动翻译，适用于 Midjourney, Flux, SDXL Inpainting 与 ControlNet。",
+    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与独立相机/镜头控制，支持 iPhone 手机拍摄与多种欧美/东亚模特，适用于 Midjourney, Flux, SDXL 与豆包。",
     icon: "👔",
     tag: "男装商拍",
-    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 提示词生成器 controlnet inpainting midjourney flux",
+    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 iPhone拍摄 提示词生成器 midjourney flux 豆包",
     pinned: true,
     priority: 95
 };
 
 const pageTitle = `AI 男装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与专业摄影控制，支持中英文自动翻译。";
+const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与独立相机/镜头控制，支持 iPhone 手机拍摄。";
 ---
 
 <!doctype html>
@@ -206,7 +206,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 		<main>
 			<div class="tool-header">
 				<h1>👔 AI 男装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>锁定模特换男装、锁定服装换背景、锁定服装换男模，一键生成适用于 ControlNet, SDXL, Flux 与 Midjourney 的商拍 Prompt。</p>
+				<p>支持换男装、换背景、换男模，自定义 iPhone/哈苏相机与户外登山场景，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
 			</div>
 
 			<!-- 核心模式选择Tab -->
@@ -220,10 +220,11 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			<div class="form-grid">
 				<!-- 男模特征选择 -->
 				<div class="form-group" id="modelGroup">
-					<label for="modelSelect">男模特征与风格 (Male Model Specs)</label>
+					<label for="modelSelect">男模特征与形象 (Male Model Specs)</label>
 					<select id="modelSelect">
+						<option value="handsome mature 30s Caucasian male model with thick beard, sharp jawline, masculine charismatic look">欧美成熟魅力男模 (浓密络腮胡/高挺鼻梁/成熟型男)</option>
+						<option value="handsome young 20s Caucasian male model, blonde hair, deep blue eyes, athletic lean build">欧美年轻帅气阳光男模 (金发/蓝眼/清爽高挑)</option>
 						<option value="handsome 20s East Asian male model with short textured haircut, athletic build">20代东亚帅气男模 (短发/健壮身材/韩系街头)</option>
-						<option value="charismatic 30s Caucasian male model with neat beard, masculine build">30代欧美商务男模 (修长胡须/成熟硬朗/英伦)</option>
 						<option value="tall attractive Asian male model in clean minimalist style">高挑东亚极简男模 (清爽/日系冷淡风)</option>
 						<option value="muscular Black male model with short fade hair">肌肉型黑人男模 (美式高街/运动潮流)</option>
 					</select>
@@ -236,41 +237,59 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
 						<span id="outfitStatus" class="translate-status"></span>
 					</label>
-					<input type="text" id="outfitInput" placeholder="例如：重磅黑色棉质连帽卫衣搭配水洗直筒牛仔裤、精纺羊毛双排扣西装外套..." />
+					<input type="text" id="outfitInput" placeholder="例如：重磅黑色棉质连帽卫衣搭配水洗直筒牛仔裤、户外防水冲锋衣外套..." />
 				</div>
 
-				<!-- 男装生活使用场景 -->
+				<!-- 男装生活拍摄场景 -->
 				<div class="form-group" id="sceneGroup">
-					<label for="sceneSelect">男装生活拍摄场景 (Lifestyle Setting)</label>
+					<label for="sceneSelect">拍摄与生活场景 (Setting Environment)</label>
 					<select id="sceneSelect">
+						<option value="in a lush green wild forest environment with sunlight filtering through pine trees and morning mist">户外原始森林场景 (晨光树影/薄雾/松树自然感)</option>
+						<option value="on a mountain hiking trail with rocky cliffs and majestic snow peaks background">高山登山与雪山悬崖场景 (山脊视角/户外探险感)</option>
 						<option value="in a modern sunlit minimalist coffee shop with marble table">阳光充沛的现代极简咖啡馆 (Coffee Shop Scene)</option>
 						<option value="walking down a European vintage street with brick architecture">欧洲复古红砖建筑街头街拍 (City Street Scene)</option>
 						<option value="in a luxury high-rise office with glass windows overlooking skyline">高楼大厦高管办公室/落地窗 (Luxury Office)</option>
 						<option value="at a luxury golf club green course under golden sunlight">高端高尔夫球场阳光草坪 (Golf Club Lifestyle)</option>
 						<option value="in a clean industrial loft apartment with concrete walls">工业风 Loft 空旷公寓背景 (Industrial Studio)</option>
-						<option value="in a professional clean commercial photo studio, plain background">商业棚拍干净纯色背景 (Ecommerce Studio Shot)</option>
+						<option value="in a professional clean commercial photo studio, plain background">商业摄影棚纯色背景 (Ecommerce Studio Shot)</option>
 					</select>
 				</div>
 
-				<!-- 相机机身与画幅 -->
+				<!-- 相机机身 -->
 				<div class="form-group">
-					<label for="cameraSelect">专业相机与视角 (Camera & Lens)</label>
+					<label for="cameraSelect">相机机身/设备 (Camera Body)</label>
 					<select id="cameraSelect">
-						<option value="shot on Hasselblad H6D-100c, 85mm f/1.2 prime lens">哈苏中画幅 + 85mm f/1.2 (经典人像虚化大片)</option>
-						<option value="shot on Leica M11, 35mm lens, candid street photography angle">徕卡 M11 + 35mm (人文纪实街拍视角)</option>
-						<option value="shot on Sony A7R V, 50mm f/1.4, clean commercial focus">索尼 A7R V + 50mm (高锐度商业Lookbook视角)</option>
-						<option value="full-body lookbook shot, eye-level perspective">全身姿态 Lookbook 平视视角</option>
+						<option value="shot on iPhone 15 Pro Max, authentic mobile photography aesthetic">iPhone 15 Pro Max (原图直出/小红书真实生活感)</option>
+						<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (顶级中画幅画质)</option>
+						<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩与胶片感)</option>
+						<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐商业画质)</option>
+						<option value="shot on 35mm film camera">35mm 复古胶片相机 (自然复古颗粒感)</option>
+					</select>
+				</div>
+
+				<!-- 镜头与焦段 -->
+				<div class="form-group">
+					<label for="lensSelect">镜头焦段 (Lens & Perspective)</label>
+					<select id="lensSelect">
+						<option value="85mm f/1.2 prime lens, creamy bokeh depth of field">85mm f/1.2 (经典人像大光圈虚化)</option>
+						<option value="50mm f/1.4 prime lens, natural eye-level perspective">50mm f/1.4 (标准人眼视角 Lookbook)</option>
+						<option value="35mm lens, candid street style framing">35mm (人文环境街拍视角)</option>
+						<option value="24mm wide angle lens, dynamic environmental composition">24mm 广角 (大景别与户外空间张力)</option>
+						<option value="full-body lookbook framing, eye-level angle">全身姿态 Lookbook 平视构图</option>
 					</select>
 				</div>
 
 				<!-- 光线打光设计 -->
 				<div class="form-group">
-					<label for="lightingSelect">光线风格 (Lighting Setup)</label>
+					<label for="lightingSelect">光线风格 (Lighting Style)</label>
 					<select id="lightingSelect">
-						<option value="soft natural sunlight filtering through windows">柔和自然窗外阳光 (Soft Natural Sunlight)</option>
-						<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳与柔和光晕 (Golden Hour)</option>
-						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (凸显面料细节质感)</option>
-						<option value="cinematic moody side light with dark shadows">电影质感侧光与阴影 (Moody Cinematic Light)</option>
+						<option value="soft natural sunlight filtering through trees and windows">自然漫射阳光 (Soft Natural Sunlight)</option>
+						<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳 (Golden Hour Glow)</option>
+						<option value="overcast soft ambient light, clean natural skin tones">阴天漫射柔光 (Overcast Light / 清爽质感)</option>
+						<option value="dramatic rim lighting with strong edge highlights">高光轮廓光 (Dramatic Rim Lighting / 边缘剪影)</option>
+						<option value="sunlight filtering through window shutter creating dappled shadows">百叶窗斑驳光影 (Shutter Dappled Light)</option>
+						<option value="dual-tone neon lighting, cyan and magenta glow">双色霓虹环境光 (Cyberpunk Dual-Tone)</option>
+						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (商业极简/突出面料)</option>
 					</select>
 				</div>
 
@@ -279,7 +298,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					<label for="arSelect">画面宽高比 (--ar)</label>
 					<select id="arSelect">
 						<option value="--ar 3:4">--ar 3:4 (淘宝/天猫/Shopify 服装主图与详情页)</option>
-						<option value="--ar 4:5">--ar 4:5 (Instagram / TikTok 社交媒体种草海报)</option>
+						<option value="--ar 4:5">--ar 4:5 (Instagram / 小红书 / TikTok 种草图)</option>
 						<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏海报)</option>
 						<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
 					</select>
@@ -289,7 +308,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			<!-- 实时生成预览 -->
 			<div class="output-card">
 				<div class="output-header">
-					<span class="output-title">✨ 生成的英文男装商拍 Prompt (可直接用于 Inpainting / ControlNet / MJ / Flux)</span>
+					<span class="output-title">✨ 生成的英文男装商拍 Prompt (可直接用于 豆包 / Flux / Midjourney / SD)</span>
 					<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
 				</div>
 				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
@@ -310,6 +329,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			const modelSelect = document.getElementById('modelSelect');
 			const sceneSelect = document.getElementById('sceneSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
 			const lightingSelect = document.getElementById('lightingSelect');
 			const arSelect = document.getElementById('arSelect');
 
@@ -349,6 +369,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						`worn by ${modelSelect.value}`,
 						sceneSelect.value,
 						cameraSelect.value,
+						lensSelect.value,
 						lightingSelect.value,
 						'ultra-detailed fabric texture, realistic garment wrinkles, 8k resolution, raw photo',
 						arSelect.value
@@ -360,6 +381,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						`Commercial menswear photography, placing model wearing ${outfit}`,
 						`into new setting: ${sceneSelect.value}`,
 						cameraSelect.value,
+						lensSelect.value,
 						lightingSelect.value,
 						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
 						arSelect.value
@@ -372,6 +394,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						`wearing ${outfit}`,
 						sceneSelect.value,
 						cameraSelect.value,
+						lensSelect.value,
 						lightingSelect.value,
 						'natural skin texture, seamless head swap, 8k resolution, raw photo',
 						arSelect.value
@@ -384,6 +407,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						`wearing ${outfit}`,
 						sceneSelect.value,
 						cameraSelect.value,
+						lensSelect.value,
 						lightingSelect.value,
 						'ultra-detailed fabric texture, 8k resolution, raw photo',
 						arSelect.value
@@ -431,7 +455,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			});
 
 			// 下拉框监听
-			[modelSelect, sceneSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
+			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
