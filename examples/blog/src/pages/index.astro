@@ -112,7 +112,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				line-height: 1.6;
 			}
 
-			/* 🔍 中央搜索框 */
+			/* 🔍 Central Search Input */
 			.search-wrapper {
 				max-width: 640px;
 				margin: 0 auto 2.5em;
@@ -146,7 +146,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				pointer-events: none;
 			}
 
-			/* 📦 标头区 */
+			/* 📦 Section Header */
 			.section-title-wrapper {
 				display: flex;
 				align-items: center;
@@ -170,14 +170,14 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				border: 1px solid var(--card-border);
 			}
 
-			/* ⚡ 还原原生 3 列极客标准网格 */
+			/* ⚡ 3-Column Standard Grid */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
 			}
 
-			/* 💎 Astro 原生渲染的纯正卡片 (.tool-card) */
+			/* 💎 Tool Card (.tool-card) */
 			.tool-card {
 				background: var(--bg-card);
 				backdrop-filter: blur(12px);
@@ -223,7 +223,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				line-height: 1.6;
 			}
 
-			/* Footer 布局与标签 */
+			/* Footer Layout & Badges */
 			.tool-card-footer {
 				display: flex;
 				justify-content: space-between;
@@ -261,7 +261,41 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				opacity: 0.8;
 			}
 
-			/* 搜索无匹配提示 */
+			/* 📄 Client-side Pagination Styles */
+			.pagination-wrapper {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+				margin-top: 3em;
+			}
+			.page-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em 1.2em;
+				border-radius: 10px;
+				font-weight: 600;
+				font-size: 0.9rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.page-btn:hover:not(:disabled) {
+				border-color: var(--accent);
+				color: var(--accent);
+				transform: translateY(-2px);
+			}
+			.page-btn:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+			}
+			.page-info {
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: var(--text-muted);
+			}
+
+			/* No Results Alert */
 			.no-results {
 				text-align: center;
 				padding: 4em 1em;
@@ -278,7 +312,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				<div class="badge">🚀 Micro AI Tools for Big Help</div>
 				<h1>HelpMini</h1>
 				
-				<!-- 🔍 中央搜索框 -->
+				<!-- 🔍 Central Search Input -->
 				<div class="search-wrapper">
 					<span class="search-icon">🔍</span>
 					<input
@@ -291,7 +325,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				</div>
 			</section>
 
-			<!-- 📦 统一内容与搜索结果展示区 -->
+			<!-- 📦 Main Content & Search Display Area -->
 			<section>
 				<div class="section-title-wrapper">
 					<h2 id="sectionTitle" class="section-title">Featured Micro Tools</h2>
@@ -299,15 +333,13 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				</div>
 				
 				<div id="contentGrid" class="tool-grid">
-					{allSearchableItems.map((item, index) => (
+					{allSearchableItems.map((item) => (
 						<a 
 							href={item.url} 
 							class="tool-card searchable-item"
 							data-title={item.title.toLowerCase()}
 							data-desc={item.desc.toLowerCase()}
 							data-keywords={item.keywords.toLowerCase()}
-							data-default-show={index < 20 ? "true" : "false"}
-							style={index >= 20 ? "display: none;" : "display: flex;"}
 							target={item.url.startsWith('http') ? '_blank' : '_self'}
 							rel={item.url.startsWith('http') ? 'noopener' : ''}
 						>
@@ -328,6 +360,13 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						<p style="font-size: 0.88rem; opacity: 0.8;">Try searching for other keywords like "SEO", "JSON", or "Token"</p>
 					</div>
 				</div>
+
+				<!-- 📄 Dynamic Client-Side Pagination Controls -->
+				<div id="pagination" class="pagination-wrapper">
+					<button id="prevBtn" class="page-btn">← Previous</button>
+					<span id="pageInfo" class="page-info">Page 1</span>
+					<button id="nextBtn" class="page-btn">Next →</button>
+				</div>
 			</section>
 
 			<section class="hero" style="padding-top: 4em;">
@@ -336,64 +375,102 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer />
 
-		<!-- 极简客户端 JS：仅负责控制原生 DOM 的显隐 (Display) -->
+		<!-- Lightweight Client JS: Handles 21-item pagination & search filtering -->
 		<script is:inline>
+			const ITEMS_PER_PAGE = 21; // Max 21 items per page
+			let currentPage = 1;
+			let filteredItems = [];
+
 			const searchInput = document.getElementById('searchInput');
 			const sectionTitle = document.getElementById('sectionTitle');
 			const resultCount = document.getElementById('resultCount');
-			const items = document.querySelectorAll('.searchable-item');
+			const items = Array.from(document.querySelectorAll('.searchable-item'));
 			const noResults = document.getElementById('noResults');
 
-			// 初始化状态 (未输入搜索词时，仅显示前 20 项)
-			function initDefaultView() {
-				let shownCount = 0;
-				items.forEach(item => {
-					if (item.getAttribute('data-default-show') === 'true') {
-						item.style.display = 'flex';
-						shownCount++;
-					} else {
-						item.style.display = 'none';
-					}
-				});
+			const pagination = document.getElementById('pagination');
+			const prevBtn = document.getElementById('prevBtn');
+			const nextBtn = document.getElementById('nextBtn');
+			const pageInfo = document.getElementById('pageInfo');
 
-				if (sectionTitle) sectionTitle.textContent = 'Featured Micro Tools';
-				if (resultCount) resultCount.textContent = `${shownCount} items`;
-				if (noResults) noResults.style.display = 'none';
-			}
+			// Render cards for the current page
+			function renderPage() {
+				const query = searchInput?.value.toLowerCase().trim() || '';
+				const totalItems = filteredItems.length;
+				const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
 
-			// 搜索实时过滤逻辑
-			searchInput?.addEventListener('input', (e) => {
-				const query = e.target.value.toLowerCase().trim();
+				if (currentPage > totalPages) currentPage = totalPages;
+				if (currentPage < 1) currentPage = 1;
 
-				if (!query) {
-					initDefaultView();
-					return;
+				const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+				const endIndex = startIndex + ITEMS_PER_PAGE;
+
+				// Hide all cards first, then show current page items
+				items.forEach(item => item.style.display = 'none');
+				
+				const visibleItems = filteredItems.slice(startIndex, endIndex);
+				visibleItems.forEach(item => item.style.display = 'flex');
+
+				// Update title and count badge
+				if (sectionTitle) sectionTitle.textContent = query ? 'Search Results' : 'Featured Micro Tools';
+				if (resultCount) resultCount.textContent = `${totalItems} items`;
+
+				// Toggle No Results UI
+				if (noResults) {
+					noResults.style.display = totalItems === 0 ? 'block' : 'none';
 				}
 
-				let matchCount = 0;
-				items.forEach(item => {
+				// Handle pagination controls display
+				if (pagination) {
+					if (totalItems <= ITEMS_PER_PAGE) {
+						pagination.style.display = 'none'; // Hide pagination if <= 21 items
+					} else {
+						pagination.style.display = 'flex';
+						if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+						if (prevBtn) prevBtn.disabled = currentPage === 1;
+						if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+					}
+				}
+			}
+
+			// Search Filter Handler
+			function handleSearch() {
+				const query = searchInput?.value.toLowerCase().trim() || '';
+
+				filteredItems = items.filter(item => {
 					const title = item.getAttribute('data-title') || '';
 					const desc = item.getAttribute('data-desc') || '';
 					const keywords = item.getAttribute('data-keywords') || '';
-
-					if (title.includes(query) || desc.includes(query) || keywords.includes(query)) {
-						item.style.display = 'flex';
-						matchCount++;
-					} else {
-						item.style.display = 'none';
-					}
+					return title.includes(query) || desc.includes(query) || keywords.includes(query);
 				});
 
-				if (sectionTitle) sectionTitle.textContent = 'Search Results';
-				if (resultCount) resultCount.textContent = `${matchCount} found`;
+				currentPage = 1; // Reset to page 1 on search
+				renderPage();
+			}
 
-				if (noResults) {
-					noResults.style.display = matchCount === 0 ? 'block' : 'none';
+			// Pagination Event Listeners
+			prevBtn?.addEventListener('click', () => {
+				if (currentPage > 1) {
+					currentPage--;
+					renderPage();
+					window.scrollTo({ top: 300, behavior: 'smooth' });
 				}
 			});
 
-			// 页面加载即刻初始化
-			initDefaultView();
+			nextBtn?.addEventListener('click', () => {
+				const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+				if (currentPage < totalPages) {
+					currentPage++;
+					renderPage();
+					window.scrollTo({ top: 300, behavior: 'smooth' });
+				}
+			});
+
+			// Search Input Event Listener
+			searchInput?.addEventListener('input', handleSearch);
+
+			// Initial page load setup
+			filteredItems = [...items];
+			renderPage();
 		</script>
 	</body>
 </html>
