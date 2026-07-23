@@ -1,0 +1,327 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "跨境电商净利润与保本 ROAS 实时计算器",
+    description: "专为 Shopify、Amazon 与独立站卖家设计的跨境电商利润计算器！精准扣除平台抽成、Stripe/PayPal 手续费、头程运费与采购成本，实时计算净利润率、保本 ROAS 与最高广告 CPA 上限。",
+    icon: "💰",
+    tag: "金融算账",
+    keywords: "跨境电商利润计算器 保本ROAS计算器 Shopify手续费计算器 Stripe费率 独立站ROI算账工具 CPA上限",
+    pinned: true,
+    priority: 92
+};
+
+const pageTitle = `跨境电商净利润与保本 ROAS 实时计算器 — ${SITE_TITLE}`;
+const pageDescription = "专为 Shopify、Amazon 与独立站卖家设计的利润计算器！自动扣除平台抽成、网关手续费与运费，实时算清净利润与保本 ROAS。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 核心指标展示卡片网格 */
+			.stats-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1.2rem;
+				margin-bottom: 2rem;
+			}
+			.stat-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				text-align: center;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				backdrop-filter: blur(12px);
+			}
+			.stat-title {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				font-weight: 600;
+				margin-bottom: 0.5rem;
+			}
+			.stat-value {
+				font-size: 1.8rem;
+				font-weight: 800;
+				color: var(--text-main);
+			}
+			.stat-value.positive { color: #10b981; }
+			.stat-value.negative { color: #ef4444; }
+			.stat-value.accent { color: var(--accent); }
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="number"], select {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="number"]:focus, select:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.section-divider {
+				grid-column: 1 / -1;
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--accent);
+				border-bottom: 1px solid var(--card-border);
+				padding-bottom: 0.5rem;
+				margin-top: 0.5rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>💰 跨境电商净利润与保本 ROAS 实时计算器</h1>
+				<p>输入售价与成本，自动精准核算平台手续费、支付网关扣点与物流，一键得出保本 ROAS 与真实净利润率。</p>
+			</div>
+
+			<!-- 📊 核心数据实时卡片 -->
+			<div class="stats-grid">
+				<div class="stat-card">
+					<div class="stat-title">单件净利润 (Net Profit)</div>
+					<div id="profitVal" class="stat-value positive">$0.00</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">净利润率 (Net Margin)</div>
+					<div id="marginVal" class="stat-value positive">0.0%</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">保本 ROAS (Break-Even ROAS)</div>
+					<div id="roasVal" class="stat-value accent">0.00</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">保本广告费上限 (Max CPA)</div>
+					<div id="cpaVal" class="stat-value">$0.00</div>
+				</div>
+			</div>
+
+			<div class="form-grid">
+				<!-- 快捷预设平台 -->
+				<div class="form-group full-width">
+					<label for="presetSelect">快捷切换平台费率预设 (Preset Platform Rate)</label>
+					<select id="presetSelect">
+						<option value="shopify_basic">Shopify Basic (2.9% + $0.30 费率)</option>
+						<option value="shopify_standard">Shopify Standard (2.6% + $0.30 费率)</option>
+						<option value="shopify_advanced">Shopify Advanced (2.4% + $0.30 费率)</option>
+						<option value="paypal_crossborder">PayPal 跨境独立站 (4.4% + $0.30 费率)</option>
+						<option value="amazon_fba">Amazon 亚马逊 (15% 佣金预估)</option>
+						<option value="custom">自定义费率 (Custom Rate)</option>
+					</select>
+				</div>
+
+				<div class="section-divider">💵 收入与采购成本</div>
+
+				<!-- 售价 -->
+				<div class="form-group">
+					<label for="priceInput">商品售价 ($ Sales Price)</label>
+					<input type="number" id="priceInput" step="0.01" value="49.99" />
+				</div>
+
+				<!-- 商品采购价 -->
+				<div class="form-group">
+					<label for="cogsInput">商品采购成本 ($ COGS)</label>
+					<input type="number" id="cogsInput" step="0.01" value="12.00" />
+				</div>
+
+				<!-- 运费成本 -->
+				<div class="form-group">
+					<label for="shippingInput">头程+尾程运费 ($ Shipping)</label>
+					<input type="number" id="shippingInput" step="0.01" value="8.50" />
+				</div>
+
+				<div class="section-divider">💳 平台与支付网关扣点</div>
+
+				<!-- 网关百分比扣点 -->
+				<div class="form-group">
+					<label for="gatewayRateInput">网关/平台费率 (%)</label>
+					<input type="number" id="gatewayRateInput" step="0.1" value="2.9" />
+				</div>
+
+				<!-- 网关固定单笔扣点 -->
+				<div class="form-group">
+					<label for="gatewayFixedInput">单笔固定手续费 ($ Fixed Fee)</label>
+					<input type="number" id="gatewayFixedInput" step="0.01" value="0.30" />
+				</div>
+
+				<!-- 杂费/退换货损耗预留 -->
+				<div class="form-group">
+					<label for="miscInput">退换货/损耗预估 (%)</label>
+					<input type="number" id="miscInput" step="0.1" value="3.0" />
+				</div>
+
+				<div class="section-divider">🎯 广告投入与预估 (可选)</div>
+
+				<!-- 预估广告 CPA -->
+				<div class="form-group full-width">
+					<label for="adCpaInput">
+						实际/预估广告获得成本 ($ Estimated Ad CPA)
+						<span class="sub-tag">输入后将得出扣除广告费后的最终纯利润</span>
+					</label>
+					<input type="number" id="adCpaInput" step="0.01" value="15.00" />
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const presetSelect = document.getElementById('presetSelect');
+			const priceInput = document.getElementById('priceInput');
+			const cogsInput = document.getElementById('cogsInput');
+			const shippingInput = document.getElementById('shippingInput');
+			const gatewayRateInput = document.getElementById('gatewayRateInput');
+			const gatewayFixedInput = document.getElementById('gatewayFixedInput');
+			const miscInput = document.getElementById('miscInput');
+			const adCpaInput = document.getElementById('adCpaInput');
+
+			const profitVal = document.getElementById('profitVal');
+			const marginVal = document.getElementById('marginVal');
+			const roasVal = document.getElementById('roasVal');
+			const cpaVal = document.getElementById('cpaVal');
+
+			// 预设费率联动
+			presetSelect?.addEventListener('change', () => {
+				const val = presetSelect.value;
+				if (val === 'shopify_basic') {
+					gatewayRateInput.value = '2.9';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_standard') {
+					gatewayRateInput.value = '2.6';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_advanced') {
+					gatewayRateInput.value = '2.4';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'paypal_crossborder') {
+					gatewayRateInput.value = '4.4';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'amazon_fba') {
+					gatewayRateInput.value = '15.0';
+					gatewayFixedInput.value = '0.00';
+				}
+				calculateProfit();
+			});
+
+			function calculateProfit() {
+				const price = parseFloat(priceInput.value) || 0;
+				const cogs = parseFloat(cogsInput.value) || 0;
+				const shipping = parseFloat(shippingInput.value) || 0;
+				const gatewayRate = (parseFloat(gatewayRateInput.value) || 0) / 100;
+				const gatewayFixed = parseFloat(gatewayFixedInput.value) || 0;
+				const miscRate = (parseFloat(miscInput.value) || 0) / 100;
+				const adCpa = parseFloat(adCpaInput.value) || 0;
+
+				if (price <= 0) {
+					profitVal.textContent = '$0.00';
+					marginVal.textContent = '0.0%';
+					roasVal.textContent = '0.00';
+					cpaVal.textContent = '$0.00';
+					return;
+				}
+
+				// 计算各项扣扣
+				const gatewayFee = (price * gatewayRate) + gatewayFixed;
+				const miscCost = price * miscRate;
+				const totalBaseCost = cogs + shipping + gatewayFee + miscCost;
+
+				// 未扣除广告费前的最大毛利 (即最高允许给广告的 CPA 上限)
+				const maxCPA = price - totalBaseCost;
+
+				// 扣除预估广告费后的最终净利润
+				const netProfit = maxCPA - adCpa;
+				const netMargin = (netProfit / price) * 100;
+
+				// 保本 ROAS = 售价 / maxCPA
+				const breakEvenROAS = maxCPA > 0 ? (price / maxCPA) : 0;
+
+				// 渲染 UI
+				profitVal.textContent = `$${netProfit.toFixed(2)}`;
+				profitVal.className = `stat-value ${netProfit >= 0 ? 'positive' : 'negative'}`;
+
+				marginVal.textContent = `${netMargin.toFixed(1)}%`;
+				marginVal.className = `stat-value ${netMargin >= 0 ? 'positive' : 'negative'}`;
+
+				cpaVal.textContent = `$${maxCPA.toFixed(2)}`;
+				roasVal.textContent = breakEvenROAS > 0 ? breakEvenROAS.toFixed(2) : 'N/A';
+			}
+
+			// 监听输入框
+			[priceInput, cogsInput, shippingInput, gatewayRateInput, gatewayFixedInput, miscInput, adCpaInput].forEach(el => {
+				el?.addEventListener('input', calculateProfit);
+			});
+
+			calculateProfit();
+		</script>
+	</body>
+</html>
