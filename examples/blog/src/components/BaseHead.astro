@@ -78,3 +78,13 @@ const siteUrl = Astro.site || Astro.url.origin;
 <link rel="alternate" hreflang="en" href={new URL(`/en${cleanPath}`, siteUrl)} />
 <link rel="alternate" hreflang="zh" href={new URL(`/zh${cleanPath}`, siteUrl)} />
 <link rel="alternate" hreflang="x-default" href={new URL(cleanPath || '/', siteUrl)} />
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-C9TPJSCL9L"></script>
+<script is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-C9TPJSCL9L');
+</script>
