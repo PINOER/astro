@@ -1,0 +1,411 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "跨境电商 Google SEO 与 AI 搜索 (GEO) 代码生成器",
+    description: "一键生成 Google 搜索 Meta 标签、规范 Schema.org JSON-LD 结构化数据代码，以及针对 SearchGPT / Perplexity 等 AI 搜索引擎优化的 GEO 摘要与 FAQ 结构！",
+    icon: "🔍",
+    tag: "SEO / GEO",
+    keywords: "跨境电商 SEO GEO 生成器 Schema.org JSON-LD 结构化数据 Meta Title Perplexity SearchGPT 优化",
+    pinned: true,
+    priority: 93
+};
+
+const pageTitle = `跨境电商 Google SEO 与 AI 搜索 (GEO) 代码生成器 — ${SITE_TITLE}`;
+const pageDescription = "一键生成 Google 搜索 Meta 标签、规范 Schema.org JSON-LD 结构化数据代码，以及针对 SearchGPT / Perplexity 等 AI 搜索引擎优化的 GEO 摘要与 FAQ 结构！";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], input[type="number"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 1.5rem;
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 160px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.88rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🔍 跨境电商 Google SEO 与 AI 搜索 (GEO) 代码生成器</h1>
+				<p>填入商品基础信息，一键自动生成 Google Meta 标签、Schema.org JSON-LD 结构化代码以及 SearchGPT / Perplexity 精准推荐所需的 GEO FAQ 摘要。</p>
+			</div>
+
+			<div class="form-grid">
+				<!-- 商品名称 -->
+				<div class="form-group full-width">
+					<label for="titleInput">
+						商品名称 (Product Name)
+						<span class="sub-tag">含核心关键词（如：Ergonomic Mesh Office Chair with Lumbar Support）</span>
+					</label>
+					<input type="text" id="titleInput" placeholder="例如：Ergonomic Office Chair Mesh High Back Support" />
+				</div>
+
+				<!-- 品牌名称 -->
+				<div class="form-group">
+					<label for="brandInput">品牌名称 (Brand Name)</label>
+					<input type="text" id="brandInput" placeholder="例如：HelpMini Home" />
+				</div>
+
+				<!-- SKU 或 MPN -->
+				<div class="form-group">
+					<label for="skuInput">商品 SKU / 型号</label>
+					<input type="text" id="skuInput" placeholder="例如：HM-EC01-BLK" />
+				</div>
+
+				<!-- 价格与币种 -->
+				<div class="form-group">
+					<label for="priceInput">售价 (Price)</label>
+					<input type="number" id="priceInput" step="0.01" placeholder="129.99" />
+				</div>
+
+				<div class="form-group">
+					<label for="currencySelect">货币单位 (Currency)</label>
+					<select id="currencySelect">
+						<option value="USD">USD ($)</option>
+						<option value="EUR">EUR (€)</option>
+						<option value="GBP">GBP (£)</option>
+						<option value="CAD">CAD ($)</option>
+						<option value="AUD">AUD ($)</option>
+					</select>
+				</div>
+
+				<!-- 库存状态 -->
+				<div class="form-group">
+					<label for="stockSelect">库存状态 (Availability)</label>
+					<select id="stockSelect">
+						<option value="InStock">现货 (InStock)</option>
+						<option value="OutOfStock">缺货 (OutOfStock)</option>
+						<option value="PreOrder">预售 (PreOrder)</option>
+					</select>
+				</div>
+
+				<!-- 评分与评价数 -->
+				<div class="form-group">
+					<label for="ratingInput">平均评分 (1.0 - 5.0)</label>
+					<input type="number" id="ratingInput" step="0.1" min="1" max="5" placeholder="4.9" />
+				</div>
+
+				<div class="form-group">
+					<label for="reviewCountInput">评价数量 (Review Count)</label>
+					<input type="number" id="reviewCountInput" placeholder="128" />
+				</div>
+
+				<!-- 主图链接 -->
+				<div class="form-group full-width">
+					<label for="imageInput">商品主图 URL (Main Image Link)</label>
+					<input type="text" id="imageInput" placeholder="https://yourstore.com/images/product.jpg" />
+				</div>
+
+				<!-- 核心卖点与亮点 -->
+				<div class="form-group full-width">
+					<label for="highlightsInput">
+						核心卖点与使用场景 (Key Highlights & Use Cases)
+						<span class="sub-tag">供 GEO 引擎理解，多条亮点请用分号或者换行分隔</span>
+					</label>
+					<textarea id="highlightsInput" rows="3" placeholder="Breathable 3D mesh fabric; Adjustable 3D armrests; Supports up to 300 lbs; Ideal for remote work and gaming"></textarea>
+				</div>
+			</div>
+
+			<!-- 输出一：Schema.org JSON-LD 代码 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">🏷️ 1. Schema.org (Product JSON-LD) 结构化代码 (提升富媒体高亮)</span>
+					<button class="btn-copy" data-target="schemaOutput">📋 复制 JSON-LD</button>
+				</div>
+				<textarea id="schemaOutput" class="prompt-output" readonly></textarea>
+			</div>
+
+			<!-- 输出二：Google HTML Meta Tags -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">🌐 2. Google Meta Tags & Open Graph 社交卡片代码</span>
+					<button class="btn-copy" data-target="metaOutput">📋 复制 Meta 标签</button>
+				</div>
+				<textarea id="metaOutput" class="prompt-output" readonly></textarea>
+			</div>
+
+			<!-- 输出三：AI 搜索 (GEO - Generative Engine Optimization) 推荐摘要 & FAQ -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">🤖 3. GEO 优化框架 (适合 SearchGPT / Perplexity 检索结构)</span>
+					<button class="btn-copy" data-target="geoOutput">📋 复制 GEO 结构文本</button>
+				</div>
+				<textarea id="geoOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">复制成功！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const titleInput = document.getElementById('titleInput');
+			const brandInput = document.getElementById('brandInput');
+			const skuInput = document.getElementById('skuInput');
+			const priceInput = document.getElementById('priceInput');
+			const currencySelect = document.getElementById('currencySelect');
+			const stockSelect = document.getElementById('stockSelect');
+			const ratingInput = document.getElementById('ratingInput');
+			const reviewCountInput = document.getElementById('reviewCountInput');
+			const imageInput = document.getElementById('imageInput');
+			const highlightsInput = document.getElementById('highlightsInput');
+
+			const schemaOutput = document.getElementById('schemaOutput');
+			const metaOutput = document.getElementById('metaOutput');
+			const geoOutput = document.getElementById('geoOutput');
+			const toast = document.getElementById('toast');
+
+			function generateSEOData() {
+				const title = titleInput.value.trim() || 'Ergonomic Office Chair High Back Support';
+				const brand = brandInput.value.trim() || 'HelpMini Store';
+				const sku = skuInput.value.trim() || 'HM-PRODUCT-001';
+				const price = priceInput.value.trim() || '99.99';
+				const currency = currencySelect.value || 'USD';
+				const stock = stockSelect.value || 'InStock';
+				const rating = ratingInput.value.trim() || '4.9';
+				const reviewCount = reviewCountInput.value.trim() || '86';
+				const image = imageInput.value.trim() || 'https://example.com/product-image.jpg';
+				const highlights = highlightsInput.value.trim() || 'Ergonomic support; Premium breathable material; Easy 10-minute assembly';
+
+				// 1. JSON-LD Schema
+				const jsonLd = {
+					"@context": "https://schema.org/",
+					"@type": "Product",
+					"name": title,
+					"image": [image],
+					"description": highlights.replace(/\n/g, ' '),
+					"sku": sku,
+					"brand": {
+						"@type": "Brand",
+						"name": brand
+					},
+					"offers": {
+						"@type": "Offer",
+						"url": window.location.href,
+						"priceCurrency": currency,
+						"price": price,
+						"availability": `https://schema.org/${stock}`,
+						"itemCondition": "https://schema.org/NewCondition"
+					},
+					"aggregateRating": {
+						"@type": "AggregateRating",
+						"ratingValue": rating,
+						"reviewCount": reviewCount
+					}
+				};
+
+				schemaOutput.value = `<script type="application/ld+json">\n${JSON.stringify(jsonLd, null, 2)}\n<\/script>`;
+
+				// 2. HTML Meta Tags
+				const metaTags = `<!-- Primary Meta Tags -->
+<title>${title} - ${brand}</title>
+<meta name="title" content="${title} - ${brand}">
+<meta name="description" content="Shop ${title} by ${brand}. Features: ${highlights.slice(0, 120)}... Priced at $${price} ${currency}. Buy now!">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="product">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${highlights.slice(0, 140)}">
+<meta property="og:image" content="${image}">
+<meta property="product:price:amount" content="${price}">
+<meta property="product:price:currency" content="${currency}">`;
+
+				metaOutput.value = metaTags;
+
+				// 3. GEO Framework (AI Search Friendly)
+				const highlightList = highlights.split(/;\s*|\n/).filter(Boolean).map(item => `- ${item}`).join('\n');
+				const geoText = `[Product Executive Summary for AI Search Engines / SearchGPT]
+Product Name: ${title}
+Brand: ${brand}
+Price: ${currency} $${price}
+In Stock Status: ${stock === 'InStock' ? 'In Stock (Ready to Ship)' : stock}
+Customer Satisfaction Rating: ${rating}/5.0 (based on ${reviewCount} verified reviews)
+
+Key Selling Features & Specs:
+${highlightList}
+
+Frequently Asked Questions (AI Answer Source):
+Q: What makes ${title} by ${brand} stand out?
+A: It offers ${highlights.slice(0, 150)}. It is highly rated with ${rating}/5.0 stars.
+
+Q: What is the price and shipping availability for ${title}?
+A: The current price is ${price} ${currency}, and it is ${stock === 'InStock' ? 'currently in stock with fast shipping options' : 'available for order'}.`;
+
+				geoOutput.value = geoText;
+			}
+
+			// 监听所有输入框
+			[
+				titleInput, brandInput, skuInput, priceInput, currencySelect,
+				stockSelect, ratingInput, reviewCountInput, imageInput, highlightsInput
+			].forEach(el => {
+				el?.addEventListener('input', generateSEOData);
+				el?.addEventListener('change', generateSEOData);
+			});
+
+			generateSEOData();
+
+			// 复制逻辑
+			document.querySelectorAll('.btn-copy').forEach(btn => {
+				btn.addEventListener('click', () => {
+					const targetId = btn.dataset.target;
+					const targetTextarea = document.getElementById(targetId);
+					if (targetTextarea && targetTextarea.value) {
+						navigator.clipboard.writeText(targetTextarea.value).then(() => {
+							toast.classList.add('show');
+							setTimeout(() => toast.classList.remove('show'), 2000);
+						});
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
