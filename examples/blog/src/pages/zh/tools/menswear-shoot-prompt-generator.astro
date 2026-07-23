@@ -6,16 +6,16 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与独立相机/镜头控制，支持 iPhone 手机拍摄与多种欧美/东亚模特，适用于 Midjourney, Flux, SDXL 与豆包。",
+    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持 iPhone 手机拍摄与多种模特风格，适用于 Midjourney, Flux, SDXL 与豆包。",
     icon: "👔",
     tag: "男装商拍",
-    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 iPhone拍摄 提示词生成器 midjourney flux 豆包",
+    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 鞋包穿搭 iPhone拍摄 提示词生成器 midjourney flux 豆包",
     pinned: true,
     priority: 95
 };
 
 const pageTitle = `AI 男装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与独立相机/镜头控制，支持 iPhone 手机拍摄。";
+const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持 iPhone 手机拍摄。";
 ---
 
 <!doctype html>
@@ -206,7 +206,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 		<main>
 			<div class="tool-header">
 				<h1>👔 AI 男装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>支持换男装、换背景、换男模，自定义 iPhone/哈苏相机与户外登山场景，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
+				<p>支持换男装、换背景、换男模，自由搭配鞋靴与配饰，自定义 iPhone/哈苏相机与户外登山场景，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
 			</div>
 
 			<!-- 核心模式选择Tab -->
@@ -233,11 +233,21 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 				<!-- 男装品类与版型 -->
 				<div class="form-group full-width" id="outfitGroup">
 					<label for="outfitInput">
-						<span>男装服饰、材质与细节 (Outfit & Fabric)</span>
+						<span>男装主服饰、材质与细节 (Main Outfit & Fabric)</span>
 						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
 						<span id="outfitStatus" class="translate-status"></span>
 					</label>
 					<input type="text" id="outfitInput" placeholder="例如：重磅黑色棉质连帽卫衣搭配水洗直筒牛仔裤、户外防水冲锋衣外套..." />
+				</div>
+
+				<!-- 新增：鞋靴与穿搭配饰 -->
+				<div class="form-group full-width" id="accessoryGroup">
+					<label for="accessoryInput">
+						<span>鞋靴与穿搭配饰 (Accessories & Footwear)</span>
+						<span class="sub-tag">可选：靴子、球鞋、手表、墨镜、帽子、斜挎包等</span>
+						<span id="accessoryStatus" class="translate-status"></span>
+					</label>
+					<input type="text" id="accessoryInput" placeholder="例如：复古黑色切尔西皮靴、白色高帮运动鞋，搭配黑色墨镜与皮质斜挎包..." />
 				</div>
 
 				<!-- 男装生活拍摄场景 -->
@@ -325,6 +335,8 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			const tabBtns = document.querySelectorAll('.tab-btn');
 			const outfitInput = document.getElementById('outfitInput');
 			const outfitStatus = document.getElementById('outfitStatus');
+			const accessoryInput = document.getElementById('accessoryInput');
+			const accessoryStatus = document.getElementById('accessoryStatus');
 
 			const modelSelect = document.getElementById('modelSelect');
 			const sceneSelect = document.getElementById('sceneSelect');
@@ -338,7 +350,10 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			const toast = document.getElementById('toast');
 
 			let translatedOutfit = 'heavyweight black cotton hoodie paired with washed straight jeans';
+			let translatedAccessory = '';
+
 			let outfitTimer = null;
+			let accessoryTimer = null;
 
 			function containsChinese(text) {
 				return /[\u4e00-\u9fa5]/.test(text);
@@ -358,6 +373,8 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 
 			function buildPrompt() {
 				const outfit = translatedOutfit || 'heavyweight black cotton hoodie';
+				const accessoryStr = translatedAccessory ? `styled with ${translatedAccessory}` : '';
+
 				let modePrefix = '';
 				let components = [];
 
@@ -366,6 +383,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					modePrefix = '[Inpainting / Outfit Swap Focus]';
 					components = [
 						`Commercial menswear photography, replacing outfit with ${outfit}`,
+						accessoryStr,
 						`worn by ${modelSelect.value}`,
 						sceneSelect.value,
 						cameraSelect.value,
@@ -379,6 +397,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					modePrefix = '[Background Swap Focus]';
 					components = [
 						`Commercial menswear photography, placing model wearing ${outfit}`,
+						accessoryStr,
 						`into new setting: ${sceneSelect.value}`,
 						cameraSelect.value,
 						lensSelect.value,
@@ -392,6 +411,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					components = [
 						`Commercial menswear photography, replacing model face and body with ${modelSelect.value}`,
 						`wearing ${outfit}`,
+						accessoryStr,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -405,6 +425,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					components = [
 						`Commercial menswear photography shot featuring ${modelSelect.value}`,
 						`wearing ${outfit}`,
+						accessoryStr,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -427,7 +448,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 				});
 			});
 
-			// 监听服装输入框防抖翻译
+			// 监听主服装输入框防抖翻译
 			outfitInput?.addEventListener('input', () => {
 				clearTimeout(outfitTimer);
 				const rawValue = outfitInput.value.trim();
@@ -450,6 +471,33 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 				outfitTimer = setTimeout(async () => {
 					translatedOutfit = await translateText(rawValue);
 					outfitStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 监听穿搭配饰输入框防抖翻译
+			accessoryInput?.addEventListener('input', () => {
+				clearTimeout(accessoryTimer);
+				const rawValue = accessoryInput.value.trim();
+
+				if (!rawValue) {
+					translatedAccessory = '';
+					accessoryStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+
+				if (!containsChinese(rawValue)) {
+					translatedAccessory = rawValue;
+					accessoryStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+
+				accessoryStatus.textContent = '翻译中...';
+				accessoryTimer = setTimeout(async () => {
+					translatedAccessory = await translateText(rawValue);
+					accessoryStatus.textContent = '✓ 已转英文';
 					buildPrompt();
 				}, 500);
 			});
