@@ -1,0 +1,327 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "Pro eCommerce Net Profit & Break-Even ROAS Calculator",
+    description: "Real-time eCommerce net profit calculator for Shopify, Amazon, and DTC stores. Accurately deduct platform fees, Stripe/PayPal transaction rates, shipping, and COGS to calculate net margin, break-even ROAS, and max CPA limit.",
+    icon: "💰",
+    tag: "AI Tools",
+    keywords: "ecommerce profit calculator break even roas shopify fee calculator stripe rate calculator cpa limit margin tracker",
+    pinned: true,
+    priority: 92
+};
+
+const pageTitle = `Pro eCommerce Net Profit & Break-Even ROAS Calculator — ${SITE_TITLE}`;
+const pageDescription = "Real-time eCommerce net profit calculator for Shopify, Amazon, and DTC stores. Calculate net margin, break-even ROAS, and max CPA limit instantly.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* Live Dashboard Cards Grid */
+			.stats-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1.2rem;
+				margin-bottom: 2rem;
+			}
+			.stat-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				text-align: center;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				backdrop-filter: blur(12px);
+			}
+			.stat-title {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				font-weight: 600;
+				margin-bottom: 0.5rem;
+			}
+			.stat-value {
+				font-size: 1.8rem;
+				font-weight: 800;
+				color: var(--text-main);
+			}
+			.stat-value.positive { color: #10b981; }
+			.stat-value.negative { color: #ef4444; }
+			.stat-value.accent { color: var(--accent); }
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="number"], select {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="number"]:focus, select:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.section-divider {
+				grid-column: 1 / -1;
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--accent);
+				border-bottom: 1px solid var(--card-border);
+				padding-bottom: 0.5rem;
+				margin-top: 0.5rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>💰 Pro eCommerce Net Profit & Break-Even ROAS Calculator</h1>
+				<p>Input selling price and cost structure to instantly calculate net profit margin, break-even ROAS, and maximum allowable ad CPA.</p>
+			</div>
+
+			<!-- 📊 Live Metrics Dashboard -->
+			<div class="stats-grid">
+				<div class="stat-card">
+					<div class="stat-title">Net Profit / Unit</div>
+					<div id="profitVal" class="stat-value positive">$0.00</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">Net Margin</div>
+					<div id="marginVal" class="stat-value positive">0.0%</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">Break-Even ROAS</div>
+					<div id="roasVal" class="stat-value accent">0.00</div>
+				</div>
+				<div class="stat-card">
+					<div class="stat-title">Max Ad CPA Limit</div>
+					<div id="cpaVal" class="stat-value">$0.00</div>
+				</div>
+			</div>
+
+			<div class="form-grid">
+				<!-- Platform Preset -->
+				<div class="form-group full-width">
+					<label for="presetSelect">Platform & Payment Rate Presets</label>
+					<select id="presetSelect">
+						<option value="shopify_basic">Shopify Basic (2.9% + $0.30 Rate)</option>
+						<option value="shopify_standard">Shopify Standard (2.6% + $0.30 Rate)</option>
+						<option value="shopify_advanced">Shopify Advanced (2.4% + $0.30 Rate)</option>
+						<option value="paypal_crossborder">PayPal Cross-Border DTC (4.4% + $0.30 Rate)</option>
+						<option value="amazon_fba">Amazon Referral Fee (15.0% Estimated)</option>
+						<option value="custom">Custom Rate Setup</option>
+					</select>
+				</div>
+
+				<div class="section-divider">💵 Sales Price & Base Costs</div>
+
+				<!-- Selling Price -->
+				<div class="form-group">
+					<label for="priceInput">Selling Price ($)</label>
+					<input type="number" id="priceInput" step="0.01" value="49.99" />
+				</div>
+
+				<!-- Product Cost (COGS) -->
+				<div class="form-group">
+					<label for="cogsInput">Cost of Goods Sold / COGS ($)</label>
+					<input type="number" id="cogsInput" step="0.01" value="12.00" />
+				</div>
+
+				<!-- Shipping Cost -->
+				<div class="form-group">
+					<label for="shippingInput">Shipping & Fulfillment ($)</label>
+					<input type="number" id="shippingInput" step="0.01" value="8.50" />
+				</div>
+
+				<div class="section-divider">💳 Platform & Payment Gateway Fees</div>
+
+				<!-- Gateway Percentage Fee -->
+				<div class="form-group">
+					<label for="gatewayRateInput">Gateway / Platform Rate (%)</label>
+					<input type="number" id="gatewayRateInput" step="0.1" value="2.9" />
+				</div>
+
+				<!-- Gateway Fixed Fee -->
+				<div class="form-group">
+					<label for="gatewayFixedInput">Gateway Fixed Fee ($)</label>
+					<input type="number" id="gatewayFixedInput" step="0.01" value="0.30" />
+				</div>
+
+				<!-- Miscellaneous Buffer -->
+				<div class="form-group">
+					<label for="miscInput">Refunds / Loss Allowance (%)</label>
+					<input type="number" id="miscInput" step="0.1" value="3.0" />
+				</div>
+
+				<div class="section-divider">🎯 Ad Spend & Performance (Optional)</div>
+
+				<!-- Estimated CPA -->
+				<div class="form-group full-width">
+					<label for="adCpaInput">
+						Estimated / Target Ad CPA ($)
+						<span class="sub-tag">Input your actual ad CPA to get final net profit after marketing</span>
+					</label>
+					<input type="number" id="adCpaInput" step="0.01" value="15.00" />
+				</div>
+			</div>
+		</main>
+
+		<Footer />
+
+		<script is:inline>
+			const presetSelect = document.getElementById('presetSelect');
+			const priceInput = document.getElementById('priceInput');
+			const cogsInput = document.getElementById('cogsInput');
+			const shippingInput = document.getElementById('shippingInput');
+			const gatewayRateInput = document.getElementById('gatewayRateInput');
+			const gatewayFixedInput = document.getElementById('gatewayFixedInput');
+			const miscInput = document.getElementById('miscInput');
+			const adCpaInput = document.getElementById('adCpaInput');
+
+			const profitVal = document.getElementById('profitVal');
+			const marginVal = document.getElementById('marginVal');
+			const roasVal = document.getElementById('roasVal');
+			const cpaVal = document.getElementById('cpaVal');
+
+			// Preset rate switching listener
+			presetSelect?.addEventListener('change', () => {
+				const val = presetSelect.value;
+				if (val === 'shopify_basic') {
+					gatewayRateInput.value = '2.9';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_standard') {
+					gatewayRateInput.value = '2.6';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_advanced') {
+					gatewayRateInput.value = '2.4';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'paypal_crossborder') {
+					gatewayRateInput.value = '4.4';
+					gatewayFixedInput.value = '0.30';
+				} else if (val === 'amazon_fba') {
+					gatewayRateInput.value = '15.0';
+					gatewayFixedInput.value = '0.00';
+				}
+				calculateProfit();
+			});
+
+			function calculateProfit() {
+				const price = parseFloat(priceInput.value) || 0;
+				const cogs = parseFloat(cogsInput.value) || 0;
+				const shipping = parseFloat(shippingInput.value) || 0;
+				const gatewayRate = (parseFloat(gatewayRateInput.value) || 0) / 100;
+				const gatewayFixed = parseFloat(gatewayFixedInput.value) || 0;
+				const miscRate = (parseFloat(miscInput.value) || 0) / 100;
+				const adCpa = parseFloat(adCpaInput.value) || 0;
+
+				if (price <= 0) {
+					profitVal.textContent = '$0.00';
+					marginVal.textContent = '0.0%';
+					roasVal.textContent = '0.00';
+					cpaVal.textContent = '$0.00';
+					return;
+				}
+
+				// Deductions calculation
+				const gatewayFee = (price * gatewayRate) + gatewayFixed;
+				const miscCost = price * miscRate;
+				const totalBaseCost = cogs + shipping + gatewayFee + miscCost;
+
+				// Max CPA allowed before ad spend (Break-Even Ad Budget)
+				const maxCPA = price - totalBaseCost;
+
+				// Final net profit after ad CPA
+				const netProfit = maxCPA - adCpa;
+				const netMargin = (netProfit / price) * 100;
+
+				// Break-even ROAS = Price / maxCPA
+				const breakEvenROAS = maxCPA > 0 ? (price / maxCPA) : 0;
+
+				// UI Rendering
+				profitVal.textContent = `$${netProfit.toFixed(2)}`;
+				profitVal.className = `stat-value ${netProfit >= 0 ? 'positive' : 'negative'}`;
+
+				marginVal.textContent = `${netMargin.toFixed(1)}%`;
+				marginVal.className = `stat-value ${netMargin >= 0 ? 'positive' : 'negative'}`;
+
+				cpaVal.textContent = `$${maxCPA.toFixed(2)}`;
+				roasVal.textContent = breakEvenROAS > 0 ? breakEvenROAS.toFixed(2) : 'N/A';
+			}
+
+			// Add input listeners
+			[priceInput, cogsInput, shippingInput, gatewayRateInput, gatewayFixedInput, miscInput, adCpaInput].forEach(el => {
+				el?.addEventListener('input', calculateProfit);
+			});
+
+			calculateProfit();
+		</script>
+	</body>
+</html>
