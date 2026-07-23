@@ -261,6 +261,40 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				opacity: 0.8;
 			}
 
+			/* 📄 纯代码 UI 分页控件器 */
+			.pagination-wrapper {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				gap: 1rem;
+				margin-top: 3em;
+			}
+			.page-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em 1.2em;
+				border-radius: 10px;
+				font-weight: 600;
+				font-size: 0.9rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.page-btn:hover:not(:disabled) {
+				border-color: var(--accent);
+				color: var(--accent);
+				transform: translateY(-2px);
+			}
+			.page-btn:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+			}
+			.page-info {
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: var(--text-muted);
+			}
+
 			/* 搜索无匹配提示 */
 			.no-results {
 				text-align: center;
@@ -299,15 +333,13 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				</div>
 				
 				<div id="contentGrid" class="tool-grid">
-					{allSearchableItems.map((item, index) => (
+					{allSearchableItems.map((item) => (
 						<a 
 							href={item.url} 
 							class="tool-card searchable-item"
 							data-title={item.title.toLowerCase()}
 							data-desc={item.desc.toLowerCase()}
 							data-keywords={item.keywords.toLowerCase()}
-							data-default-show={index < 20 ? "true" : "false"}
-							style={index >= 20 ? "display: none;" : "display: flex;"}
 							target={item.url.startsWith('http') ? '_blank' : '_self'}
 							rel={item.url.startsWith('http') ? 'noopener' : ''}
 						>
@@ -328,6 +360,13 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						<p style="font-size: 0.85rem; opacity: 0.8;">尝试搜索其他关键词，例如 "SEO"、"JSON" 或 "Token"</p>
 					</div>
 				</div>
+
+				<!-- 📄 动态纯前端分页控件 -->
+				<div id="pagination" class="pagination-wrapper">
+					<button id="prevBtn" class="page-btn">← 上一页</button>
+					<span id="pageInfo" class="page-info">第 1 页</span>
+					<button id="nextBtn" class="page-btn">下一页 →</button>
+				</div>
 			</section>
 
 			<section class="hero" style="padding-top: 4em;">
@@ -336,64 +375,102 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer lang="zh" />
 
-		<!-- 极简客户端 JS：仅负责控制原生 DOM 的显隐 (Display) -->
+		<!-- 极简客户端 JS：控制 21 条/页 分页与搜索过滤 -->
 		<script is:inline>
+			const ITEMS_PER_PAGE = 21; // 单页最多显示 21 条卡片
+			let currentPage = 1;
+			let filteredItems = [];
+
 			const searchInput = document.getElementById('searchInput');
 			const sectionTitle = document.getElementById('sectionTitle');
 			const resultCount = document.getElementById('resultCount');
-			const items = document.querySelectorAll('.searchable-item');
+			const items = Array.from(document.querySelectorAll('.searchable-item'));
 			const noResults = document.getElementById('noResults');
 
-			// 初始化状态 (未输入搜索词时，仅显示前 20 项)
-			function initDefaultView() {
-				let shownCount = 0;
-				items.forEach(item => {
-					if (item.getAttribute('data-default-show') === 'true') {
-						item.style.display = 'flex';
-						shownCount++;
-					} else {
-						item.style.display = 'none';
-					}
-				});
+			const pagination = document.getElementById('pagination');
+			const prevBtn = document.getElementById('prevBtn');
+			const nextBtn = document.getElementById('nextBtn');
+			const pageInfo = document.getElementById('pageInfo');
 
-				if (sectionTitle) sectionTitle.textContent = '精选微工具';
-				if (resultCount) resultCount.textContent = `共 ${shownCount} 个推荐`;
-				if (noResults) noResults.style.display = 'none';
-			}
+			// 渲染当前页面的卡片
+			function renderPage() {
+				const query = searchInput?.value.toLowerCase().trim() || '';
+				const totalItems = filteredItems.length;
+				const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
 
-			// 搜索实时过滤逻辑
-			searchInput?.addEventListener('input', (e) => {
-				const query = e.target.value.toLowerCase().trim();
+				if (currentPage > totalPages) currentPage = totalPages;
+				if (currentPage < 1) currentPage = 1;
 
-				if (!query) {
-					initDefaultView();
-					return;
+				const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+				const endIndex = startIndex + ITEMS_PER_PAGE;
+
+				// 隐藏所有卡片，仅显示当前页匹配的卡片
+				items.forEach(item => item.style.display = 'none');
+				
+				const visibleItems = filteredItems.slice(startIndex, endIndex);
+				visibleItems.forEach(item => item.style.display = 'flex');
+
+				// 更新标题与数量提示
+				if (sectionTitle) sectionTitle.textContent = query ? '搜索结果' : '精选微工具';
+				if (resultCount) resultCount.textContent = `共 ${totalItems} 个工具/文档`;
+
+				// 控制无结果展示
+				if (noResults) {
+					noResults.style.display = totalItems === 0 ? 'block' : 'none';
 				}
 
-				let matchCount = 0;
-				items.forEach(item => {
+				// 控制分页按钮状态
+				if (pagination) {
+					if (totalItems <= ITEMS_PER_PAGE) {
+						pagination.style.display = 'none'; // 少于等于 21 条时隐藏分页
+					} else {
+						pagination.style.display = 'flex';
+						if (pageInfo) pageInfo.textContent = `第 ${currentPage} / ${totalPages} 页`;
+						if (prevBtn) prevBtn.disabled = currentPage === 1;
+						if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+					}
+				}
+			}
+
+			// 搜素过滤逻辑
+			function handleSearch() {
+				const query = searchInput?.value.toLowerCase().trim() || '';
+
+				filteredItems = items.filter(item => {
 					const title = item.getAttribute('data-title') || '';
 					const desc = item.getAttribute('data-desc') || '';
 					const keywords = item.getAttribute('data-keywords') || '';
-
-					if (title.includes(query) || desc.includes(query) || keywords.includes(query)) {
-						item.style.display = 'flex';
-						matchCount++;
-					} else {
-						item.style.display = 'none';
-					}
+					return title.includes(query) || desc.includes(query) || keywords.includes(query);
 				});
 
-				if (sectionTitle) sectionTitle.textContent = '搜索结果';
-				if (resultCount) resultCount.textContent = `找到 ${matchCount} 条相关结果`;
+				currentPage = 1; // 搜素时重置为第 1 页
+				renderPage();
+			}
 
-				if (noResults) {
-					noResults.style.display = matchCount === 0 ? 'block' : 'none';
+			// 分页按钮事件监听
+			prevBtn?.addEventListener('click', () => {
+				if (currentPage > 1) {
+					currentPage--;
+					renderPage();
+					window.scrollTo({ top: 300, behavior: 'smooth' });
 				}
 			});
 
-			// 页面加载即刻初始化
-			initDefaultView();
+			nextBtn?.addEventListener('click', () => {
+				const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+				if (currentPage < totalPages) {
+					currentPage++;
+					renderPage();
+					window.scrollTo({ top: 300, behavior: 'smooth' });
+				}
+			});
+
+			// 搜索框输入事件监听
+			searchInput?.addEventListener('input', handleSearch);
+
+			// 页面首次加载初始化数据
+			filteredItems = [...items];
+			renderPage();
 		</script>
 	</body>
 </html>
