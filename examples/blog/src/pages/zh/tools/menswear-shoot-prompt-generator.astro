@@ -6,16 +6,16 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持 iPhone 手机拍摄与多种模特风格，适用于 Midjourney, Flux, SDXL 与豆包。",
+    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持双图参考换装与保持原图背景控制，适用于 Midjourney, Flux, SDXL 与豆包。",
     icon: "👔",
     tag: "男装商拍",
-    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 鞋包穿搭 iPhone拍摄 提示词生成器 midjourney flux 豆包",
+    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 鞋包穿搭 双图换装 提示词生成器 midjourney flux 豆包",
     pinned: true,
     priority: 95
 };
 
 const pageTitle = `AI 男装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持 iPhone 手机拍摄。";
+const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、双图参考换装，支持保持原图背景不变。";
 ---
 
 <!doctype html>
@@ -206,14 +206,14 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 		<main>
 			<div class="tool-header">
 				<h1>👔 AI 男装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>支持换男装、换背景、换男模，自由搭配鞋靴与配饰，自定义 iPhone/哈苏相机与户外登山场景，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
+				<p>支持换男装（双图服装精准迁移）、换背景、换男模（保持背景原貌），生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
 			</div>
 
 			<!-- 核心模式选择Tab -->
 			<div class="mode-tabs">
-				<button class="tab-btn active" data-mode="outfit">一、男装换装模式 (固定模特)</button>
+				<button class="tab-btn active" data-mode="outfit">一、男装换装模式 (双图参考: 衣服图+模特图)</button>
 				<button class="tab-btn" data-mode="scene">二、男装换背景模式 (固定模特+服装)</button>
-				<button class="tab-btn" data-mode="head">三、男装换头模式 (固定服装+背景)</button>
+				<button class="tab-btn" data-mode="head">三、男装换头/换模模式 (固定服装与背景)</button>
 				<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
 			</div>
 
@@ -240,7 +240,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					<input type="text" id="outfitInput" placeholder="例如：重磅黑色棉质连帽卫衣搭配水洗直筒牛仔裤、户外防水冲锋衣外套..." />
 				</div>
 
-				<!-- 新增：鞋靴与穿搭配饰 -->
+				<!-- 鞋靴与穿搭配饰 -->
 				<div class="form-group full-width" id="accessoryGroup">
 					<label for="accessoryInput">
 						<span>鞋靴与穿搭配饰 (Accessories & Footwear)</span>
@@ -250,10 +250,11 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					<input type="text" id="accessoryInput" placeholder="例如：复古黑色切尔西皮靴、白色高帮运动鞋，搭配黑色墨镜与皮质斜挎包..." />
 				</div>
 
-				<!-- 男装生活拍摄场景 -->
+				<!-- 男装生活拍摄场景（优化：新增“保持原图背景不变”选项） -->
 				<div class="form-group" id="sceneGroup">
 					<label for="sceneSelect">拍摄与生活场景 (Setting Environment)</label>
 					<select id="sceneSelect">
+						<option value="preserve original background environment and scene lighting exactly as is">🔒 保持原图背景不变 (Keep Original Background Unchanged)</option>
 						<option value="in a lush green wild forest environment with sunlight filtering through pine trees and morning mist">户外原始森林场景 (晨光树影/薄雾/松树自然感)</option>
 						<option value="on a mountain hiking trail with rocky cliffs and majestic snow peaks background">高山登山与雪山悬崖场景 (山脊视角/户外探险感)</option>
 						<option value="in a modern sunlit minimalist coffee shop with marble table">阳光充沛的现代极简咖啡馆 (Coffee Shop Scene)</option>
@@ -379,17 +380,18 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 				let components = [];
 
 				if (currentMode === 'outfit') {
-					// 场景一：换装模式 (固定模特)
-					modePrefix = '[Inpainting / Outfit Swap Focus]';
+					// 场景一：换装模式 (修复 BUG 1：注入双图参考逻辑，将服装图平扣到模特图上)
+					modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
 					components = [
-						`Commercial menswear photography, replacing outfit with ${outfit}`,
+						`Commercial menswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
+						`replacing current outfit with ${outfit}`,
 						accessoryStr,
 						`worn by ${modelSelect.value}`,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
 						lightingSelect.value,
-						'ultra-detailed fabric texture, realistic garment wrinkles, 8k resolution, raw photo',
+						'ultra-detailed fabric texture, seamless clothing fit, natural drape wrinkles, 8k resolution, raw photo',
 						arSelect.value
 					];
 				} else if (currentMode === 'scene') {
@@ -406,17 +408,17 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						arSelect.value
 					];
 				} else if (currentMode === 'head') {
-					// 场景三：换模特/换头模式 (固定服装+背景)
+					// 场景三：换模特/换头模式 (修复 BUG 2：支持保持背景原貌不变)
 					modePrefix = '[Model / Head Swap Focus]';
 					components = [
 						`Commercial menswear photography, replacing model face and body with ${modelSelect.value}`,
 						`wearing ${outfit}`,
 						accessoryStr,
-						sceneSelect.value,
+						sceneSelect.value, // 如果选择“保持原图背景不变”，这里输出 preserve original background...
 						cameraSelect.value,
 						lensSelect.value,
 						lightingSelect.value,
-						'natural skin texture, seamless head swap, 8k resolution, raw photo',
+						'natural skin texture, seamless face swap, preserve garment integrity, 8k resolution, raw photo',
 						arSelect.value
 					];
 				} else {
