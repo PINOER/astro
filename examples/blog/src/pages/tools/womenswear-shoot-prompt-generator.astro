@@ -1,0 +1,440 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "Pro AI Women's Fashion & Outfit Shoot Prompt Generator",
+    description: "Design commercial prompts for women's fashion eCommerce! Easily swap outfits, backgrounds, and models while controlling fabrics, accessories, and camera setups for Midjourney, Flux, SDXL, and Doubao.",
+    icon: "👗",
+    tag: "AI Tools",
+    keywords: "ai womenswear prompt generator fashion photoshoot helper midjourney outfit swap flux ecommerce fashion prompt controlnet inpainting",
+    pinned: false,
+    priority: 1
+};
+
+const pageTitle = `Pro AI Women's Fashion & Outfit Shoot Prompt Generator — ${SITE_TITLE}`;
+const pageDescription = "Design commercial prompts for women's fashion eCommerce! Easily swap outfits, backgrounds, and models while controlling fabrics, accessories, and camera setups for Midjourney, Flux, and SDXL.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* Mode Selection Tabs */
+			.mode-tabs {
+				display: flex;
+				justify-content: center;
+				gap: 0.8rem;
+				margin-bottom: 1.8rem;
+				flex-wrap: wrap;
+			}
+			.tab-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-muted);
+				padding: 0.7em 1.4em;
+				border-radius: 10px;
+				font-size: 0.9rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.tab-btn.active {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+				box-shadow: 0 4px 15px var(--accent-glow);
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>👗 Pro AI Women's Fashion & Outfit Shoot Prompt Generator</h1>
+				<p>Seamlessly swap outfits, backgrounds, and models for womenswear eCommerce. Customize fabrics, shoes, bags, iPhone/Hasselblad lenses, and luxury scenes.</p>
+			</div>
+
+			<!-- Core Mode Selection Tabs -->
+			<div class="mode-tabs">
+				<button class="tab-btn active" data-mode="outfit">1. Outfit Swap Mode (Fixed Model)</button>
+				<button class="tab-btn" data-mode="scene">2. Background Swap Mode (Fixed Model + Outfit)</button>
+				<button class="tab-btn" data-mode="head">3. Model / Head Swap Mode (Fixed Outfit + Background)</button>
+				<button class="tab-btn" data-mode="full">4. Full Custom Shoot</button>
+			</div>
+
+			<div class="form-grid">
+				<!-- Model Features & Style -->
+				<div class="form-group" id="modelGroup">
+					<label for="modelSelect">Female Model Specs & Aesthetic</label>
+					<select id="modelSelect">
+						<option value="stunning 20s East Asian female model with delicate features, long wavy hair, elegant sweet aesthetic">20s East Asian Model (Sweet & Elegant Korean Style)</option>
+						<option value="chic Parisian 20s Caucasian female model with messy bob haircut, effortless elegant style">Parisian Chic Model (Effortless French Bob / Vogue Look)</option>
+						<option value="sophisticated 30s East Asian female model, minimalist cold aesthetic, high fashion face">30s High-Fashion East Asian Model (Quiet Luxury / Minimalist Cold Aesthetic)</option>
+						<option value="gorgeous young blonde Caucasian female model, bright smile, slender build">Blonde Caucasian Model (Slender / Bright & Sunny Resort Vibe)</option>
+						<option value="stylish Black female model with afro curls, high fashion editorial look">High-Fashion Black Model (Afro Curls / Editorial Cover Presence)</option>
+					</select>
+				</div>
+
+				<!-- Main Garment, Fabric & Cut -->
+				<div class="form-group full-width" id="outfitGroup">
+					<label for="outfitInput">
+						Main Outfit, Fabric & Cut
+						<span class="sub-tag">Specify clothing items, fabrics (e.g. 100% mulberry silk, tweed, ribbed cashmere)</span>
+					</label>
+					<input type="text" id="outfitInput" placeholder="e.g., Champagne silk slip dress with vintage floral pattern, oversized tweed jacket paired with high-waisted wide-leg trousers..." />
+				</div>
+
+				<!-- Footwear & Fashion Accessories -->
+				<div class="form-group full-width" id="accessoryGroup">
+					<label for="accessoryInput">
+						Footwear & Accessories
+						<span class="sub-tag">Optional: Pointy heels, leather handbag, pearl necklace, sunglasses, hat</span>
+					</label>
+					<input type="text" id="accessoryInput" placeholder="e.g., Styled with black pointed-toe stiletto heels, pearl earrings, and a vintage leather quilted handbag..." />
+				</div>
+
+				<!-- Setting Environment -->
+				<div class="form-group" id="sceneGroup">
+					<label for="sceneSelect">Setting & Environment Scene</label>
+					<select id="sceneSelect">
+						<option value="at a sunlit outdoor Parisian sidewalk cafe with marble table and bistro chairs">Parisian Outdoor Sidewalk Cafe (Marble Table / Bistro Chairs)</option>
+						<option value="on a sunny Mediterranean beach resort with blue ocean and palm trees background">Mediterranean Beach Resort (Ocean View / Coastal Palm Trees)</option>
+						<option value="in a luxury bright Scandinavian minimalist interior with soft beige furniture">Scandinavian Minimalist Interior (Soft Beige Aesthetic)</option>
+						<option value="walking on a retro European cobblestone street with vintage boutique shops">Vintage European Cobblestone Street (Chic Streetwear Shot)</option>
+						<option value="in an elegant luxury hotel lobby with marble columns and warm golden lighting">Luxury Hotel Lobby (Marble Columns / High-End Evening Ambience)</option>
+						<option value="in a lush botanical greenhouse garden with tropical flowers and soft sunlight">Botanical Greenhouse Garden (Tropical Flora / Soft Sunlight)</option>
+						<option value="in a clean professional commercial photo studio with neutral backdrop">Commercial Photo Studio (Ecommerce Neutral Backdrop)</option>
+					</select>
+				</div>
+
+				<!-- Camera Body -->
+				<div class="form-group">
+					<label for="cameraSelect">Camera Body / Device</label>
+					<select id="cameraSelect">
+						<option value="shot on iPhone 15 Pro Max, authentic social media photography aesthetic">iPhone 15 Pro Max (Instagram / Social Media Candid Look)</option>
+						<option value="shot on Hasselblad H6D-100c">Hasselblad H6D-100c (Medium Format Ultra-Sharp Detail)</option>
+						<option value="shot on Leica M11">Leica M11 (Classic Color Grading & Film Feel)</option>
+						<option value="shot on Sony Alpha A7R V">Sony Alpha A7R V (Modern Sharp Commercial Focus)</option>
+						<option value="shot on 35mm film camera">35mm Vintage Film Camera (Soft Grain Aesthetic)</option>
+					</select>
+				</div>
+
+				<!-- Lens & Focal Length -->
+				<div class="form-group">
+					<label for="lensSelect">Lens & Perspective</label>
+					<select id="lensSelect">
+						<option value="85mm f/1.2 prime lens, creamy bokeh depth of field">85mm f/1.2 (Creamy Portrait Bokeh / Isolate Outfit)</option>
+						<option value="50mm f/1.4 prime lens, natural eye-level perspective">50mm f/1.4 (Standard Lookbook Eye-Level Angle)</option>
+						<option value="35mm lens, candid street style framing">35mm (Environmental French Street Aesthetic)</option>
+						<option value="24mm wide angle lens, dynamic full-body perspective">24mm Wide Angle (Elongate Legs / Full Atmosphere)</option>
+						<option value="full-body lookbook framing, fashion editorial angle">Full-Body Editorial Lookbook Framing</option>
+					</select>
+				</div>
+
+				<!-- Lighting Style -->
+				<div class="form-group">
+					<label for="lightingSelect">Lighting Setup</label>
+					<select id="lightingSelect">
+						<option value="soft natural sunlight filtering through leaves and windows">Soft Natural Sunlight</option>
+						<option value="golden hour warm sunset backlighting with subtle lens flare">Golden Hour Sunset Backlighting</option>
+						<option value="overcast soft ambient light, clean natural skin tones">Overcast Soft Light (Pure & Clean Skin Tones)</option>
+						<option value="dramatic rim lighting with strong edge highlights">Dramatic Edge Rim Lighting (Silhouette Contour)</option>
+						<option value="sunlight filtering through window shutter creating dappled shadows">Shutter Dappled Shadow Effect</option>
+						<option value="clean studio softbox lighting, sharp fabric texture">Studio Softbox Lighting (Highlight Fabric Texture)</option>
+					</select>
+				</div>
+
+				<!-- Aspect Ratio -->
+				<div class="form-group">
+					<label for="arSelect">Aspect Ratio (--ar)</label>
+					<select id="arSelect">
+						<option value="--ar 3:4">--ar 3:4 (Standard Shopify / Amazon / E-Commerce Hero)</option>
+						<option value="--ar 4:5">--ar 4:5 (Instagram Portrait / Social Media Poster)</option>
+						<option value="--ar 9:16">--ar 9:16 (Full Screen Mobile Story / Poster)</option>
+						<option value="--ar 1:1">--ar 1:1 (Square Product Card)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- Output Preview -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ Generated Commercial Prompt (Midjourney / Flux / SDXL / ControlNet)</span>
+					<button class="btn-copy" id="btnCopy">📋 Copy Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Prompt copied to clipboard!</div>
+
+		<Footer />
+
+		<script is:inline>
+			let currentMode = 'outfit'; // Default mode: Outfit Swap
+
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const outfitInput = document.getElementById('outfitInput');
+			const accessoryInput = document.getElementById('accessoryInput');
+
+			const modelSelect = document.getElementById('modelSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const outfit = outfitInput.value.trim() || 'champagne silk slip dress with vintage floral pattern';
+				const accessoryVal = accessoryInput.value.trim();
+				const accessoryStr = accessoryVal ? `styled with ${accessoryVal}` : '';
+
+				let modePrefix = '';
+				let components = [];
+
+				if (currentMode === 'outfit') {
+					// Mode 1: Outfit Swap (Fixed Model)
+					modePrefix = '[Inpainting / Outfit Swap Focus]';
+					components = [
+						`Commercial womenswear photography, replacing outfit with ${outfit}`,
+						accessoryStr,
+						`worn by ${modelSelect.value}`,
+						sceneSelect.value,
+						cameraSelect.value,
+						lensSelect.value,
+						lightingSelect.value,
+						'ultra-detailed fabric texture, realistic garment drapes, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else if (currentMode === 'scene') {
+					// Mode 2: Background Swap (Fixed Model + Outfit)
+					modePrefix = '[Background Swap Focus]';
+					components = [
+						`Commercial womenswear photography, placing model wearing ${outfit}`,
+						accessoryStr,
+						`into new setting: ${sceneSelect.value}`,
+						cameraSelect.value,
+						lensSelect.value,
+						lightingSelect.value,
+						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else if (currentMode === 'head') {
+					// Mode 3: Model / Head Swap (Fixed Outfit + Background)
+					modePrefix = '[Model / Head Swap Focus]';
+					components = [
+						`Commercial womenswear photography, replacing model face and body with ${modelSelect.value}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect.value,
+						cameraSelect.value,
+						lensSelect.value,
+						lightingSelect.value,
+						'natural skin texture, seamless head swap, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else {
+					// Mode 4: Full Custom Shoot
+					modePrefix = '[Full Custom Shoot]';
+					components = [
+						`Commercial womenswear photography shot featuring ${modelSelect.value}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect.value,
+						cameraSelect.value,
+						lensSelect.value,
+						lightingSelect.value,
+						'ultra-detailed fabric texture, 8k resolution, raw photo',
+						arSelect.value
+					];
+				}
+
+				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+			}
+
+			// Mode Tab Switching
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.dataset.mode;
+					buildPrompt();
+				});
+			});
+
+			// Input Listeners
+			[outfitInput, accessoryInput].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+			});
+
+			// Select Listeners
+			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// Copy Function
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
