@@ -1,0 +1,450 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
+    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与专业摄影摄影控制，支持中英文自动翻译，适用于 Midjourney, Flux, SDXL Inpainting 与 ControlNet。",
+    icon: "👔",
+    tag: "男装商拍",
+    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 提示词生成器 controlnet inpainting midjourney flux",
+    pinned: true,
+    priority: 95
+};
+
+const pageTitle = `AI 男装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
+const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头与专业摄影控制，支持中英文自动翻译。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 模式选择切换选项卡 */
+			.mode-tabs {
+				display: flex;
+				justify-content: center;
+				gap: 0.8rem;
+				margin-bottom: 1.8rem;
+				flex-wrap: wrap;
+			}
+			.tab-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-muted);
+				padding: 0.7em 1.4em;
+				border-radius: 10px;
+				font-size: 0.9rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.tab-btn.active {
+				background: var(--accent);
+				color: #ffffff;
+				border-color: var(--accent);
+				box-shadow: 0 4px 15px var(--accent-glow);
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+			.translate-status {
+				font-size: 0.75rem;
+				color: var(--accent);
+				font-weight: 600;
+				margin-left: auto;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 140px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>👔 AI 男装电商商拍与精准换装/换背景提示词生成器</h1>
+				<p>锁定模特换男装、锁定服装换背景、锁定服装换男模，一键生成适用于 ControlNet, SDXL, Flux 与 Midjourney 的商拍 Prompt。</p>
+			</div>
+
+			<!-- 核心模式选择Tab -->
+			<div class="mode-tabs">
+				<button class="tab-btn active" data-mode="outfit">一、男装换装模式 (固定模特)</button>
+				<button class="tab-btn" data-mode="scene">二、男装换背景模式 (固定模特+服装)</button>
+				<button class="tab-btn" data-mode="head">三、男装换头模式 (固定服装+背景)</button>
+				<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
+			</div>
+
+			<div class="form-grid">
+				<!-- 男模特征选择 -->
+				<div class="form-group" id="modelGroup">
+					<label for="modelSelect">男模特征与风格 (Male Model Specs)</label>
+					<select id="modelSelect">
+						<option value="handsome 20s East Asian male model with short textured haircut, athletic build">20代东亚帅气男模 (短发/健壮身材/韩系街头)</option>
+						<option value="charismatic 30s Caucasian male model with neat beard, masculine build">30代欧美商务男模 (修长胡须/成熟硬朗/英伦)</option>
+						<option value="tall attractive Asian male model in clean minimalist style">高挑东亚极简男模 (清爽/日系冷淡风)</option>
+						<option value="muscular Black male model with short fade hair">肌肉型黑人男模 (美式高街/运动潮流)</option>
+					</select>
+				</div>
+
+				<!-- 男装品类与版型 -->
+				<div class="form-group full-width" id="outfitGroup">
+					<label for="outfitInput">
+						<span>男装服饰、材质与细节 (Outfit & Fabric)</span>
+						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
+						<span id="outfitStatus" class="translate-status"></span>
+					</label>
+					<input type="text" id="outfitInput" placeholder="例如：重磅黑色棉质连帽卫衣搭配水洗直筒牛仔裤、精纺羊毛双排扣西装外套..." />
+				</div>
+
+				<!-- 男装生活使用场景 -->
+				<div class="form-group" id="sceneGroup">
+					<label for="sceneSelect">男装生活拍摄场景 (Lifestyle Setting)</label>
+					<select id="sceneSelect">
+						<option value="in a modern sunlit minimalist coffee shop with marble table">阳光充沛的现代极简咖啡馆 (Coffee Shop Scene)</option>
+						<option value="walking down a European vintage street with brick architecture">欧洲复古红砖建筑街头街拍 (City Street Scene)</option>
+						<option value="in a luxury high-rise office with glass windows overlooking skyline">高楼大厦高管办公室/落地窗 (Luxury Office)</option>
+						<option value="at a luxury golf club green course under golden sunlight">高端高尔夫球场阳光草坪 (Golf Club Lifestyle)</option>
+						<option value="in a clean industrial loft apartment with concrete walls">工业风 Loft 空旷公寓背景 (Industrial Studio)</option>
+						<option value="in a professional clean commercial photo studio, plain background">商业棚拍干净纯色背景 (Ecommerce Studio Shot)</option>
+					</select>
+				</div>
+
+				<!-- 相机机身与画幅 -->
+				<div class="form-group">
+					<label for="cameraSelect">专业相机与视角 (Camera & Lens)</label>
+					<select id="cameraSelect">
+						<option value="shot on Hasselblad H6D-100c, 85mm f/1.2 prime lens">哈苏中画幅 + 85mm f/1.2 (经典人像虚化大片)</option>
+						<option value="shot on Leica M11, 35mm lens, candid street photography angle">徕卡 M11 + 35mm (人文纪实街拍视角)</option>
+						<option value="shot on Sony A7R V, 50mm f/1.4, clean commercial focus">索尼 A7R V + 50mm (高锐度商业Lookbook视角)</option>
+						<option value="full-body lookbook shot, eye-level perspective">全身姿态 Lookbook 平视视角</option>
+					</select>
+				</div>
+
+				<!-- 光线打光设计 -->
+				<div class="form-group">
+					<label for="lightingSelect">光线风格 (Lighting Setup)</label>
+					<select id="lightingSelect">
+						<option value="soft natural sunlight filtering through windows">柔和自然窗外阳光 (Soft Natural Sunlight)</option>
+						<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳与柔和光晕 (Golden Hour)</option>
+						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (凸显面料细节质感)</option>
+						<option value="cinematic moody side light with dark shadows">电影质感侧光与阴影 (Moody Cinematic Light)</option>
+					</select>
+				</div>
+
+				<!-- 画幅比例 -->
+				<div class="form-group">
+					<label for="arSelect">画面宽高比 (--ar)</label>
+					<select id="arSelect">
+						<option value="--ar 3:4">--ar 3:4 (淘宝/天猫/Shopify 服装主图与详情页)</option>
+						<option value="--ar 4:5">--ar 4:5 (Instagram / TikTok 社交媒体种草海报)</option>
+						<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏海报)</option>
+						<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- 实时生成预览 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ 生成的英文男装商拍 Prompt (可直接用于 Inpainting / ControlNet / MJ / Flux)</span>
+					<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">提示词已成功复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			let currentMode = 'outfit'; // 默认模式：男装换装
+
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const outfitInput = document.getElementById('outfitInput');
+			const outfitStatus = document.getElementById('outfitStatus');
+
+			const modelSelect = document.getElementById('modelSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			let translatedOutfit = 'heavyweight black cotton hoodie paired with washed straight jeans';
+			let outfitTimer = null;
+
+			function containsChinese(text) {
+				return /[\u4e00-\u9fa5]/.test(text);
+			}
+
+			async function translateText(text) {
+				if (!text.trim()) return '';
+				if (!containsChinese(text)) return text;
+				try {
+					const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`);
+					const data = await res.json();
+					return data.responseData?.translatedText || text;
+				} catch (e) {
+					return text;
+				}
+			}
+
+			function buildPrompt() {
+				const outfit = translatedOutfit || 'heavyweight black cotton hoodie';
+				let modePrefix = '';
+				let components = [];
+
+				if (currentMode === 'outfit') {
+					// 场景一：换装模式 (固定模特)
+					modePrefix = '[Inpainting / Outfit Swap Focus]';
+					components = [
+						`Commercial menswear photography, replacing outfit with ${outfit}`,
+						`worn by ${modelSelect.value}`,
+						sceneSelect.value,
+						cameraSelect.value,
+						lightingSelect.value,
+						'ultra-detailed fabric texture, realistic garment wrinkles, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else if (currentMode === 'scene') {
+					// 场景二：换背景模式 (固定模特+服装)
+					modePrefix = '[Background Swap Focus]';
+					components = [
+						`Commercial menswear photography, placing model wearing ${outfit}`,
+						`into new setting: ${sceneSelect.value}`,
+						cameraSelect.value,
+						lightingSelect.value,
+						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else if (currentMode === 'head') {
+					// 场景三：换模特/换头模式 (固定服装+背景)
+					modePrefix = '[Model / Head Swap Focus]';
+					components = [
+						`Commercial menswear photography, replacing model face and body with ${modelSelect.value}`,
+						`wearing ${outfit}`,
+						sceneSelect.value,
+						cameraSelect.value,
+						lightingSelect.value,
+						'natural skin texture, seamless head swap, 8k resolution, raw photo',
+						arSelect.value
+					];
+				} else {
+					// 场景四：全定制商拍模式
+					modePrefix = '[Full Custom Shoot]';
+					components = [
+						`Commercial menswear photography shot featuring ${modelSelect.value}`,
+						`wearing ${outfit}`,
+						sceneSelect.value,
+						cameraSelect.value,
+						lightingSelect.value,
+						'ultra-detailed fabric texture, 8k resolution, raw photo',
+						arSelect.value
+					];
+				}
+
+				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+			}
+
+			// Tab 按钮切换事件
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.dataset.mode;
+					buildPrompt();
+				});
+			});
+
+			// 监听服装输入框防抖翻译
+			outfitInput?.addEventListener('input', () => {
+				clearTimeout(outfitTimer);
+				const rawValue = outfitInput.value.trim();
+
+				if (!rawValue) {
+					translatedOutfit = '';
+					outfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+
+				if (!containsChinese(rawValue)) {
+					translatedOutfit = rawValue;
+					outfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+
+				outfitStatus.textContent = '翻译中...';
+				outfitTimer = setTimeout(async () => {
+					translatedOutfit = await translateText(rawValue);
+					outfitStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 下拉框监听
+			[modelSelect, sceneSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
