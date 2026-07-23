@@ -1,0 +1,312 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "跨境社媒爆款文案 AI 提示词生成器",
+    description: "专为跨境电商卖家与自媒体博主设计！一键生成适配 TikTok、Instagram、Facebook 与小红书的高转化文案 Prompt，自带 Hook 钩子、Emoji 与精准 Hashtag 标签结构。",
+    icon: "📱",
+    tag: "社媒文案",
+    keywords: "TikTok爆款文案 Instagram种草文案 小红书文案生成器 跨境电商文案Prompt 社交媒体营销 写作提示词生成器",
+    pinned: true,
+    priority: 91
+};
+
+const pageTitle = `跨境社媒爆款文案 AI 提示词生成器 — ${SITE_TITLE}`;
+const pageDescription = "专为跨境电商与博主设计！一键生成适配 TikTok、Instagram、Facebook 与小红书的爆款文案 Prompt。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 160px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>📱 跨境社媒爆款文案 AI 提示词生成器</h1>
+				<p>选择平台与语气，填入产品卖点，自动生成调教好的 ChatGPT / Claude 高转化率爆款文案生成 Prompt。</p>
+			</div>
+
+			<div class="form-grid">
+				<!-- 目标社交平台 -->
+				<div class="form-group">
+					<label for="platformSelect">目标社交平台 (Target Platform)</label>
+					<select id="platformSelect">
+						<option value="TikTok">TikTok (短视频爆款/前3秒强Hook/网感流行词)</option>
+						<option value="Instagram">Instagram (精致生活方式/审美文案/Bio引流)</option>
+						<option value="Facebook">Facebook (长文案故事/痛点共鸣/高转化CTA)</option>
+						<option value="Xiaohongshu">小红书 (真实种草/情绪价值/Emoji密集的干货文)</option>
+						<option value="EDM_Email">Email 营销邮件 (吸引点击的主题行+转化正文)</option>
+					</select>
+				</div>
+
+				<!-- 文案语气与风格 -->
+				<div class="form-group">
+					<label for="toneSelect">文案语气与调性 (Tone & Style)</label>
+					<select id="toneSelect">
+						<option value="Enthusiastic & Viral">热情种草与 viral 爆款风 (超级推荐/兴奋感)</option>
+						<option value="Aesthetic & Minimalist">静奢高级与极简美学 (Quiet Luxury/高级感)</option>
+						<option value="Problem-Solving & Educational">干货干练与痛点解决 (突出产品功能性)</option>
+						<option value="Urgent & FOMO">限时促成与 FOMO 紧迫感 (限量/折扣/促销)</option>
+						<option value="Humorous & Relatable">幽默接地气与搞笑吐槽 (易引起评论区互动)</option>
+					</select>
+				</div>
+
+				<!-- 产品或主题 -->
+				<div class="form-group full-width">
+					<label for="productInput">
+						产品名称与核心卖点 (Product & Highlights)
+						<span class="sub-tag">支持中文或英文输入（如：无线降噪耳机，电池能续航 40 小时，极简磨砂质感）</span>
+					</label>
+					<input type="text" id="productInput" placeholder="例如：防泼水户外冲锋衣，超轻透气，带隐形防风口袋，适合登山与日常街拍" />
+				</div>
+
+				<!-- 目标人群与场景 -->
+				<div class="form-group">
+					<label for="audienceInput">目标受众与使用场景 (Target Audience)</label>
+					<input type="text" id="audienceInput" placeholder="例如：海外年轻户外爱好者、常年徒步露营人群、学生党" />
+				</div>
+
+				<!-- 行动召唤 (CTA) -->
+				<div class="form-group">
+					<label for="ctaSelect">行动召唤 (Call to Action)</label>
+					<select id="ctaSelect">
+						<option value="Click the link in Bio to shop now">点击 Bio 主页链接购买 (Link in Bio)</option>
+						<option value="Comment 'WANT' below to get the exclusive discount code">评论区回复关键词获取优惠码 (Comment to Get Discount)</option>
+						<option value="Save and share this with someone who needs it">收藏并分享给需要的亲友 (Save & Share)</option>
+						<option value="Limited time offer! Grab yours before it sells out">限时限量促销！抢完即止 (Limited Stock)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- 实时生成 Prompt 结果 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ 生成的 AI 文案写作 Prompt (直接复制塞给 ChatGPT / Claude / 豆包)</span>
+					<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Prompt 已成功复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const platformSelect = document.getElementById('platformSelect');
+			const toneSelect = document.getElementById('toneSelect');
+			const productInput = document.getElementById('productInput');
+			const audienceInput = document.getElementById('audienceInput');
+			const ctaSelect = document.getElementById('ctaSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const platform = platformSelect.value;
+				const tone = toneSelect.value;
+				const product = productInput.value.trim() || 'Wireless Noise-Canceling Headphones with 40-hour battery life';
+				const audience = audienceInput.value.trim() || 'Tech enthusiasts and daily commuters';
+				const cta = ctaSelect.value;
+
+				let platformSpec = '';
+				if (platform === 'TikTok') {
+					platformSpec = 'Format for TikTok. Must start with a 3-second scroll-stopping HOOK. Use trendy Gen-Z/viral social language, well-placed Emojis, line breaks for fast reading, and include 3-5 trending relevant hashtags.';
+				} else if (platform === 'Instagram') {
+					platformSpec = 'Format for Instagram Caption. Focus on aesthetic storytelling, line breaks for clean structure, engaging Emojis, a clear Call-to-Action to check link in bio, and a block of 8-10 targeted hashtags at the end.';
+				} else if (platform === 'Facebook') {
+					platformSpec = 'Format for Facebook Ad / Post. Focus on story-driven copywriting addressing customer pain points, building social proof, clear feature bullets, and a strong CTA link prompt.';
+				} else if (platform === 'Xiaohongshu') {
+					platformSpec = 'Format for Xiaohongshu (RED / 小红书). High emoji density, highly engaging personal experience tone, eye-catching Title with brackets [ ], pain-point analysis, and natural lifestyle recommendations.';
+				} else {
+					platformSpec = 'Format for Email Marketing. Provide 3 catchy, high-CTR Subject Line options, followed by a punchy email body with a clear CTA button callout.';
+				}
+
+				const prompt = `Act as an expert senior eCommerce Copywriter and Social Media Specialist.
+
+Write a high-converting copy for ${platform}.
+
+[Product Details & Key Highlights]: ${product}
+[Target Audience & Scenario]: ${audience}
+[Tone & Style]: ${tone}
+[Call-to-Action (CTA)]: ${cta}
+
+[Platform Formatting Rules]:
+${platformSpec}
+
+Please output 2 distinct creative variations so I can A/B test them. Keep the language natural, engaging, and persuasive!`;
+
+				promptOutput.value = prompt;
+			}
+
+			// 监听所有输入与下拉框
+			[platformSelect, toneSelect, productInput, audienceInput, ctaSelect].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
