@@ -1,0 +1,319 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程 AI 趣味项目与 Scratch/Python 教程生成器",
+    description: "专为家长与编程老师打造的儿童编程学习辅助小工具！支持一键生成 Scratch 积木搭法、Python 探险剧情与逐步教学指令，激发孩子 STEM 编程兴趣。",
+    icon: "🧩",
+    tag: "儿童编程",
+    keywords: "儿童编程 Scratch教程 Python入门 积木编程 STEM教育 编程教案生成器 儿童编程AI指令",
+    pinned: false,
+    priority: 90
+};
+
+const pageTitle = `儿童编程 AI 趣味项目与 Scratch/Python 教程生成器 — ${SITE_TITLE}`;
+const pageDescription = "专为家长与老师设计的儿童编程项目生成器！一键生成趣味关卡剧情与 Scratch/Python 逐步指导 Prompt。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.8rem;
+				backdrop-filter: blur(12px);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.form-group.full-width {
+				grid-column: 1 / -1;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			label .sub-tag {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				font-weight: normal;
+			}
+
+			input[type="text"], select, textarea {
+				width: 100%;
+				padding: 0.75em 1em;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, select:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+
+			.output-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 1.5rem;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				margin-bottom: 1.5rem;
+			}
+			.output-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.output-title {
+				font-size: 1.05rem;
+				font-weight: 700;
+				color: var(--text-main);
+			}
+			.btn-copy {
+				background: var(--accent);
+				color: #ffffff;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 700;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.btn-copy:hover {
+				background: var(--accent-hover);
+				transform: translateY(-1px);
+			}
+			.prompt-output {
+				width: 100%;
+				height: 160px;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 1rem;
+				color: var(--text-main);
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				resize: vertical;
+				box-sizing: border-box;
+				outline: none;
+			}
+
+			.toast {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				background: var(--accent);
+				color: #fff;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-size: 0.88rem;
+				font-weight: 600;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+				opacity: 0;
+				transform: translateY(10px);
+				transition: all 0.3s ease;
+				pointer-events: none;
+				z-index: 100;
+			}
+			.toast.show {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🧩 儿童编程 AI 趣味项目与 Scratch/Python 教程生成器</h1>
+				<p>选定编程语言与剧情主题，一键生成带有故事情境、关卡挑战与 AI 逐步搭积木/写代码指导的教学 Prompt。</p>
+			</div>
+
+			<div class="form-grid">
+				<!-- 编程平台 -->
+				<div class="form-group">
+					<label for="platformSelect">编程工具 / 语言 (Language/Platform)</label>
+					<select id="platformSelect">
+						<option value="Scratch 3.0 (积木编程)">Scratch 3.0 (图形化积木编程，适合 6-12 岁)</option>
+						<option value="Python (Turtle 海龟绘图)">Python Turtle (海龟视觉绘图，适合 8-14 岁)</option>
+						<option value="Python (基础语法/小游戏)">Python 基础小游戏 (猜数字/文字冒险，10+ 岁)</option>
+						<option value="Micro:bit / MakeCode">Micro:bit 硬件编程 ( MakeCode 积木与硬件交互)</option>
+					</select>
+				</div>
+
+				<!-- 适合年龄与难度 -->
+				<div class="form-group">
+					<label for="levelSelect">年龄段与难度 (Difficulty Level)</label>
+					<select id="levelSelect">
+						<option value="启蒙级 (5-7 岁): 顺序结构、点击事件、基础移动">🟢 启蒙级 (5-7 岁): 顺序结构与点击事件</option>
+						<option value="进阶级 (8-10 岁): 循环结构、条件判断 if-else、碰撞检测">🟡 进阶级 (8-10 岁): 循环与条件判断</option>
+						<option value="挑战级 (11+ 岁): 变量存储、广播消息、克隆体与函数">🔴 挑战级 (11+ 岁): 变量、广播与克隆</option>
+					</select>
+				</div>
+
+				<!-- 趣味剧情主题 -->
+				<div class="form-group">
+					<label for="themeSelect">故事背景与主题 (Story Theme)</label>
+					<select id="themeSelect">
+						<option value="🚀 太空救援 (帮助小猫宇航员躲避陨石并收集能量晶体)">🚀 太空救援 (收集晶体/躲避陨石)</option>
+						<option value="🏰 魔法城堡解谜 (用密码与条件判断解开魔法门禁)">🏰 魔法城堡解谜 (条件判断/密码锁)</option>
+						<option value="🦖 恐龙大逃亡 (控制小恐龙跳跃障碍物，类似谷歌小恐龙)">🦖 恐龙大逃亡 (跑酷跳跃/计分器)</option>
+						<option value="🤖 智能机器人送快递 (在迷宫中自动寻路)">🤖 迷宫机器人 (自动寻路/方向控制)</option>
+						<option value="🎨 魔法画笔 (用键盘控制画笔绘制绚丽几何图案)">🎨 魔法画笔 (几何图案/画笔拓展)</option>
+					</select>
+				</div>
+
+				<!-- 核心知识点焦点 -->
+				<div class="form-group">
+					<label for="conceptSelect">核心编程概念 (Core Concept)</label>
+					<select id="conceptSelect">
+						<option value="事件触发 (When Green Flag Clicked / Key Pressed)">事件触发 (Event Driven)</option>
+						<option value="循环重复 (Repeat / Forever Loops)">循环结构 (Loops)</option>
+						<option value="逻辑判断 (If-Then / If-Then-Else)">逻辑判断 (Conditionals)</option>
+						<option value="变量与计分 (Variables & Score Keeping)">变量与计分 (Variables)</option>
+						<option value="角色广播与交互 (Broadcast Messages)">广播与消息交互 (Messaging)</option>
+					</select>
+				</div>
+
+				<!-- 自定义角色或要求 -->
+				<div class="form-group full-width">
+					<label for="customInput">
+						自定义角色或偏好 (Optional Custom Elements)
+						<span class="sub-tag">可选：加入孩子喜欢的角色（如皮卡丘、小黄人、奥特曼或加音效）</span>
+					</label>
+					<input type="text" id="customInput" placeholder="例如：主角换成皮卡丘，踩到金币要发出“叮”的音效，得分达到 10 分通关" />
+				</div>
+			</div>
+
+			<!-- 结果输出 -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✨ 生成的儿童编程教学 AI Prompt (粘贴给 ChatGPT / 豆包，秒出教案与步骤)</span>
+					<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+				</div>
+				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			</div>
+		</main>
+
+		<div id="toast" class="toast">Prompt 已成功复制到剪贴板！</div>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const platformSelect = document.getElementById('platformSelect');
+			const levelSelect = document.getElementById('levelSelect');
+			const themeSelect = document.getElementById('themeSelect');
+			const conceptSelect = document.getElementById('conceptSelect');
+			const customInput = document.getElementById('customInput');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+			const toast = document.getElementById('toast');
+
+			function buildPrompt() {
+				const platform = platformSelect.value;
+				const level = levelSelect.value;
+				const theme = themeSelect.value;
+				const concept = conceptSelect.value;
+				const custom = customInput.value.trim();
+
+				const customText = custom ? `[自定义要求]: ${custom}` : '';
+
+				const prompt = `你是一位经验极其丰富、富有耐心且生动有趣的儿童 STEM 编程教育专家。
+
+请为我设计一个适合儿童学习的 ${platform} 编程教学项目。
+
+【项目背景与要求】：
+1. 编程工具: ${platform}
+2. 目标年龄与难度: ${level}
+3. 故事剧情主题: ${theme}
+4. 核心考察知识点: ${concept}
+${customText}
+
+【请按以下结构输出一份儿童友好型的项目指导教程】：
+
+一、🎈 故事引入 (小任务)：
+- 用极其生动、有代入感的童话/探险故事介绍本次项目的目标，让孩子感到兴奋。
+
+二、🖼️ 角色与舞台准备：
+- 详细列出需要添加的角色 (Sprites) 与背景 (Backdrop)。
+
+三、🧩 积木搭法 / 代码步骤 (一步步详细教学)：
+- 按逻辑拆解为 3-4 个简单步骤。
+- 如果是 Scratch，请用清晰的【积木块颜色 + 文本】格式展示 (如：[事件] 当绿旗被点击 -> [控制] 重复执行 -> [运动] 移动 10 步)。
+- 如果是 Python，请提供带有详细中文注释的极简代码，并解释每行代码的含义。
+
+四、🌟 扩展挑战 (挑战小勇士)：
+- 提出 1-2 个引导孩子思考与动手拓展的小任务 (例如：尝试改变颜色、增加音效或加快速度)。`;
+
+				promptOutput.value = prompt;
+			}
+
+			// 监听所有输入与下拉框
+			[platformSelect, levelSelect, themeSelect, conceptSelect, customInput].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					toast.classList.add('show');
+					setTimeout(() => toast.classList.remove('show'), 2000);
+				});
+			});
+		</script>
+	</body>
+</html>
