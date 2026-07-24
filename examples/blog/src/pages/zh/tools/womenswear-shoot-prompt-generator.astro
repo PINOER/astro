@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "AI 女装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为女装电商与时尚品牌设计的 AI 商拍工具！涵盖女装换装、背景切换、模特换头、面料版型与鞋包配饰组合，支持 iPhone 与哈苏相机控制，适用于 Midjourney, Flux, SDXL 与豆包。",
+    title: "Pro AI 女装电商商拍与精准换装/换背景提示词生成器",
+    description: "专为女装电商卖家设计的 AI 商拍工具！涵盖女装换装、背景切换、模特姿态视角控制（9大角度）、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
     icon: "👗",
     tag: "女装商拍",
-    keywords: "AI 女装换装 电商商拍 时尚女模 服装换背景 穿搭配饰 iPhone拍摄 提示词生成器 midjourney flux 豆包",
-    pinned: false,
+    keywords: "AI 女装换装 电商商拍 模特角度 模特换头 女装换背景 鞋包穿搭 提示词生成器 midjourney flux 豆包",
+    pinned: true,
     priority: 94
 };
 
-const pageTitle = `AI 女装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工具！涵盖女装换装、背景切换、模特换头、面料版型与鞋包配饰组合，支持 iPhone 与哈苏相机控制。";
+const pageTitle = `Pro AI 女装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
+const pageDescription = "专为女装电商卖家设计的 AI 商拍工具！涵盖女装换装、背景切换、模特 9 大姿态视角控制、双图参考换装，支持保持原图背景不变。";
 ---
 
 <!doctype html>
@@ -205,99 +205,116 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>👗 AI 女装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>支持换女装、换背景、换女模，灵活搭配面料剪裁与鞋包配饰，自定义 iPhone/哈苏相机与法式/度假场景，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
+				<h1>👗 Pro AI 女装电商商拍与精准换装/换背景提示词生成器</h1>
+				<p>支持换女装（双图服装精准迁移）、换背景、换女模（保持背景原貌），精准控制 9 大模特视角与姿态，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
 			</div>
 
 			<!-- 核心模式选择Tab -->
 			<div class="mode-tabs">
-				<button class="tab-btn active" data-mode="outfit">一、女装换装模式 (固定模特)</button>
+				<button class="tab-btn active" data-mode="outfit">一、女装换装模式 (双图参考: 衣服图+模特图)</button>
 				<button class="tab-btn" data-mode="scene">二、女装换背景模式 (固定模特+服装)</button>
-				<button class="tab-btn" data-mode="head">三、女装换头模式 (固定服装+背景)</button>
+				<button class="tab-btn" data-mode="head">三、女装换头像模式 (固定服装)</button>
 				<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
 			</div>
 
 			<div class="form-grid">
 				<!-- 女模特征选择 -->
 				<div class="form-group" id="modelGroup">
-					<label for="modelSelect">女模特征与气质 (Female Model Specs)</label>
+					<label for="modelSelect">女模特征与形象</label>
 					<select id="modelSelect">
-						<option value="stunning 20s East Asian female model with delicate features, long wavy hair, elegant sweet aesthetic">20代东亚精致女模 (长卷发/优雅甜美/韩系风)</option>
-						<option value="chic Parisian 20s Caucasian female model with messy bob haircut, effortless elegant style">法式慵懒女模 (法式波波头/自然优雅/Vogue质感)</option>
-						<option value="sophisticated 30s East Asian female model, minimalist cold aesthetic, high fashion face">30代清冷系东亚女模 (高级时装脸/静奢冷淡风)</option>
-						<option value="gorgeous young blonde Caucasian female model, bright smile, slender build">欧美年轻阳光女模 (金发碧眼/高挑纤细/度假风)</option>
-						<option value="stylish Black female model with afro curls, high fashion editorial look">高街时尚黑人女模 (羊毛卷发/封面超模气场)</option>
+						<option value="stunning 20s East Asian female model with delicate features, long wavy hair, elegant sweet aesthetic">20代东亚甜美优雅女模 (韩系甜美/五官精致/波浪长发)</option>
+						<option value="chic Parisian 20s Caucasian female model with messy bob haircut, effortless elegant style">法式复古时尚女模 (法式波波头/随性高级感)</option>
+						<option value="sophisticated 30s East Asian female model, minimalist cold aesthetic, high fashion face">30代东亚高级冷感女模 (静奢风/清冷御姐/超模脸)</option>
+						<option value="gorgeous young blonde Caucasian female model, bright smile, slender build">欧美金发阳光女模 (高挑苗条/法式度假风)</option>
+						<option value="stylish Black female model with afro curls, high fashion editorial look">高街时尚黑人女模 (蓬松卷发/封面超模气场)</option>
 					</select>
 				</div>
 
-				<!-- 女装主服饰与版型面料 -->
+				<!-- 模特姿态与拍摄角度 -->
+				<div class="form-group">
+					<label for="angleSelect">模特姿态/视角</label>
+					<select id="angleSelect">
+						<option value="">不指定 (Default / Random)</option>
+						<option value="front view, standing facing directly forward towards camera, full symmetric posture">正面 (Front View)</option>
+						<option value="three-quarter left side view, model turned 45 degrees to the left">左微侧 45° (Left 3/4 View)</option>
+						<option value="exact left side profile view, model facing 90 degrees left, full side profile shot">左正侧 (Left Profile View)</option>
+						<option value="three-quarter right side view, model turned 45 degrees to the right">右微侧 45° (Right 3/4 View)</option>
+						<option value="exact right side profile view, model facing 90 degrees right, full side profile shot">右正侧 (Right Profile View)</option>
+						<option value="back view, full rear view showing back details of clothing, facing away from camera">正背面 (Back View)</option>
+						<option value="rear three-quarter left view, model turned 45 degrees away to the left">背面左微侧 45° (Rear Left 3/4)</option>
+						<option value="rear three-quarter right view, model turned 45 degrees away to the right">背面右微侧 45° (Rear Right 3/4)</option>
+					</select>
+				</div>
+
+				<!-- 女装品类与版型 -->
 				<div class="form-group full-width" id="outfitGroup">
 					<label for="outfitInput">
-						<span>女装主服饰、面料与剪裁 (Main Outfit & Fabric)</span>
-						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准时尚词汇</span>
+						<span>女装主服饰、材质与细节</span>
+						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
 						<span id="outfitStatus" class="translate-status"></span>
 					</label>
-					<input type="text" id="outfitInput" placeholder="例如：法式复古碎花香槟色真丝吊带连衣裙、小香风粗花呢短款外套搭配高腰阔腿裤..." />
+					<input type="text" id="outfitInput" placeholder="例如：香槟色桑蚕丝吊带连衣裙复古印花、廓形小香风粗花呢外套搭配高腰阔腿裤..." />
 				</div>
 
 				<!-- 鞋靴与穿搭配饰 -->
 				<div class="form-group full-width" id="accessoryGroup">
 					<label for="accessoryInput">
-						<span>鞋靴与时尚配饰 (Accessories & Shoes)</span>
-						<span class="sub-tag">可选：高跟鞋、复古手袋、珍珠项链、墨镜、帽饰等</span>
+						<span>鞋靴与穿搭配饰</span>
+						<span class="sub-tag">可选：高跟鞋、手提包、珍珠项链、墨镜、草帽等</span>
 						<span id="accessoryStatus" class="translate-status"></span>
 					</label>
-					<input type="text" id="accessoryInput" placeholder="例如：搭配黑色尖头细高跟鞋、珍珠耳环与复古皮革手袋..." />
+					<input type="text" id="accessoryInput" placeholder="例如：黑色尖头细高跟鞋、复古珍珠耳环搭配菱格皮质手提包..." />
 				</div>
 
 				<!-- 女装生活拍摄场景 -->
 				<div class="form-group" id="sceneGroup">
-					<label for="sceneSelect">拍摄与生活场景 (Setting Environment)</label>
+					<label for="sceneSelect">拍摄与生活场景</label>
 					<select id="sceneSelect">
-						<option value="at a sunlit outdoor Parisian sidewalk cafe with marble table and bistro chairs">巴黎户外阳光咖啡馆 (法式街头/大理石圆桌)</option>
-						<option value="on a sunny Mediterranean beach resort with blue ocean and palm trees background">地中海海岛度假沙滩 (蔚蓝大海/棕榈树度假感)</option>
-						<option value="in a luxury bright Scandinavian minimalist interior with soft beige furniture">北欧极简米色温馨室内 (Scandinavian Interior)</option>
-						<option value="walking on a retro European cobblestone street with vintage boutique shops">欧洲复古鹅卵石街区 (优雅街拍/复古精品店)</option>
-						<option value="in an elegant luxury hotel lobby with marble columns and warm golden lighting">高档奢华酒店大堂 (大理石柱/高级酒会氛围)</option>
-						<option value="in a lush botanical greenhouse garden with tropical flowers and soft sunlight">绿意盎然植物园温室 (花草自然感/清新光影)</option>
-						<option value="in a clean professional commercial photo studio with neutral backdrop">商业摄影棚纯色背景 (Ecommerce Lookbook Studio)</option>
+						<option value="preserve original background environment and scene lighting exactly as is">🔒 默认原图背景</option>
+						<option value="at a sunlit outdoor Parisian sidewalk cafe with marble table and bistro chairs">巴黎露天街角咖啡馆 (大理石台面/法式休闲)</option>
+						<option value="on a sunny Mediterranean beach resort with blue ocean and palm trees background">地中海海滨度假胜地 (阳光蔚蓝海景/椰林度假风)</option>
+						<option value="in a luxury bright Scandinavian minimalist interior with soft beige furniture">北欧极简极奢室内家居 (米色柔和审美)</option>
+						<option value="walking on a retro European cobblestone street with vintage boutique shops">欧洲复古鹅卵石街区 (时尚街拍 Lookbook)</option>
+						<option value="in an elegant luxury hotel lobby with marble columns and warm golden lighting">高端奢华酒店大堂 (大理石柱/温暖金光)</option>
+						<option value="in a lush botanical greenhouse garden with tropical flowers and soft sunlight">植物园玻璃温室花园 (热带花卉/漫射阳光)</option>
+						<option value="in a clean professional commercial photo studio with neutral backdrop">商业摄影棚纯色背景 (电商高清主图)</option>
 					</select>
 				</div>
 
 				<!-- 相机机身 -->
 				<div class="form-group">
-					<label for="cameraSelect">相机机身/设备 (Camera Body)</label>
+					<label for="cameraSelect">相机机身/设备</label>
 					<select id="cameraSelect">
-						<option value="shot on iPhone 15 Pro Max, authentic social media photography aesthetic">iPhone 15 Pro Max (小红书/Instagram 真实种草直出感)</option>
-						<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (顶级中画幅超高清质感)</option>
-						<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩与优雅胶片感)</option>
-						<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐商业大片画质)</option>
-						<option value="shot on 35mm film camera">35mm 复古胶片相机 (柔和质感与复古颗粒)</option>
+						<option value="shot on iPhone 15 Pro Max, authentic mobile photography aesthetic">iPhone 15 Pro Max (原图直出/小红书真实生活感)</option>
+						<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (顶级中画幅画质)</option>
+						<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩与胶片感)</option>
+						<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐商业画质)</option>
+						<option value="shot on 35mm film camera">35mm 复古胶片相机 (自然复古颗粒感)</option>
 					</select>
 				</div>
 
 				<!-- 镜头与焦段 -->
 				<div class="form-group">
-					<label for="lensSelect">镜头焦段 (Lens & Perspective)</label>
+					<label for="lensSelect">镜头焦段</label>
 					<select id="lensSelect">
-						<option value="85mm f/1.2 prime lens, creamy bokeh depth of field">85mm f/1.2 (经典人像大光圈虚化/突出人物服饰)</option>
-						<option value="50mm f/1.4 prime lens, natural eye-level perspective">50mm f/1.4 (标准 Lookbook 平视视角)</option>
-						<option value="35mm lens, candid street style framing">35mm (法式氛围感环境街拍视角)</option>
-						<option value="24mm wide angle lens, dynamic full-body perspective">24mm 广角 (拉长腿部线条/大景别空间感)</option>
-						<option value="full-body lookbook framing, fashion editorial angle">全身 Lookbook 服饰全身构图</option>
+						<option value="85mm f/1.2 prime lens, creamy bokeh depth of field">85mm f/1.2 (经典人像大光圈虚化)</option>
+						<option value="50mm f/1.4 prime lens, natural eye-level perspective">50mm f/1.4 (标准人眼视角 Lookbook)</option>
+						<option value="35mm lens, candid street style framing">35mm (法式环境街拍视角)</option>
+						<option value="24mm wide angle lens, dynamic full-body perspective">24mm 广角 (拉长腿部线条/大空间感)</option>
+						<option value="full-body lookbook framing, fashion editorial angle">全身姿态 Lookbook 时尚大片构图</option>
 					</select>
 				</div>
 
 				<!-- 光线打光设计 -->
 				<div class="form-group">
-					<label for="lightingSelect">光线风格 (Lighting Style)</label>
+					<label for="lightingSelect">光线风格</label>
 					<select id="lightingSelect">
 						<option value="soft natural sunlight filtering through leaves and windows">自然漫射阳光 (Soft Natural Sunlight)</option>
 						<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳 (Golden Hour Glow)</option>
-						<option value="overcast soft ambient light, clean natural skin tones">阴天漫射柔光 (Overcast Soft Light / 清纯自然)</option>
-						<option value="dramatic rim lighting with strong edge highlights">高光轮廓光 (Dramatic Rim Lighting / 优雅剪影)</option>
-						<option value="sunlight filtering through window shutter creating dappled shadows">百叶窗斑驳光影 (Shutter Dappled Shadow)</option>
-						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (商业极简/突出面料纹理)</option>
+						<option value="overcast soft ambient light, clean natural skin tones">阴天漫射柔光 (Overcast Light / 通透肤色)</option>
+						<option value="dramatic rim lighting with strong edge highlights">高光轮廓光 (Dramatic Rim Lighting / 轮廓剪影)</option>
+						<option value="sunlight filtering through window shutter creating dappled shadows">百叶窗斑驳光影 (Shutter Dappled Light)</option>
+						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (商业极简/突出面料)</option>
 					</select>
 				</div>
 
@@ -306,7 +323,7 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 					<label for="arSelect">画面宽高比 (--ar)</label>
 					<select id="arSelect">
 						<option value="--ar 3:4">--ar 3:4 (淘宝/天猫/Shopify 服装主图与详情页)</option>
-						<option value="--ar 4:5">--ar 4:5 (小红书 / Instagram / TikTok 种草爆款海报)</option>
+						<option value="--ar 4:5">--ar 4:5 (Instagram / 小红书 / TikTok 种草图)</option>
 						<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏海报)</option>
 						<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
 					</select>
@@ -337,6 +354,7 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 			const accessoryStatus = document.getElementById('accessoryStatus');
 
 			const modelSelect = document.getElementById('modelSelect');
+			const angleSelect = document.getElementById('angleSelect');
 			const sceneSelect = document.getElementById('sceneSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
 			const lensSelect = document.getElementById('lensSelect');
@@ -377,12 +395,14 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 				let components = [];
 
 				if (currentMode === 'outfit') {
-					// 场景一：换装模式 (固定模特)
-					modePrefix = '[Inpainting / Outfit Swap Focus]';
+					// 场景一：换装模式 (双图参考逻辑，结合姿态角度控制)
+					modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
 					components = [
-						`Commercial womenswear photography, replacing outfit with ${outfit}`,
+						`Commercial womenswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
+						`replacing current outfit with ${outfit}`,
 						accessoryStr,
 						`worn by ${modelSelect.value}`,
+						angleSelect.value,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -396,6 +416,7 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 					components = [
 						`Commercial womenswear photography, placing model wearing ${outfit}`,
 						accessoryStr,
+						angleSelect.value,
 						`into new setting: ${sceneSelect.value}`,
 						cameraSelect.value,
 						lensSelect.value,
@@ -404,17 +425,18 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 						arSelect.value
 					];
 				} else if (currentMode === 'head') {
-					// 场景三：换模特/换头模式 (固定服装+背景)
+					// 场景三：换模特/换头模式 (支持保持背景原貌不变)
 					modePrefix = '[Model / Head Swap Focus]';
 					components = [
 						`Commercial womenswear photography, replacing model face and body with ${modelSelect.value}`,
 						`wearing ${outfit}`,
 						accessoryStr,
+						angleSelect.value,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
 						lightingSelect.value,
-						'natural skin texture, seamless head swap, 8k resolution, raw photo',
+						'natural skin texture, seamless face swap, preserve garment integrity, 8k resolution, raw photo',
 						arSelect.value
 					];
 				} else {
@@ -424,6 +446,7 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 						`Commercial womenswear photography shot featuring ${modelSelect.value}`,
 						`wearing ${outfit}`,
 						accessoryStr,
+						angleSelect.value,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -501,7 +524,7 @@ const pageDescription = "专为女装电商与时尚品牌设计的 AI 商拍工
 			});
 
 			// 下拉框监听
-			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+			[modelSelect, angleSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
