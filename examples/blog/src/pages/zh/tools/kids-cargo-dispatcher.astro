@@ -1,0 +1,540 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程互动游戏：星际货运调度员",
+    description: "免安装！专为儿童设计的数据结构与广播算法编程游戏。通过组合“先进先出(队列)”、“后进先出(栈)”与“颜色广播”积木，指挥飞船有序停泊，掌握硬核调度算法！",
+    icon: "🛸",
+    tag: "儿童编程",
+    keywords: "儿童编程游戏 数据结构少儿编程 队列Queue 栈Stack 广播算法 STEM 互动教学",
+    pinned: true,
+    priority: 83
+};
+
+const pageTitle = `儿童编程互动游戏：星际货运调度员 — ${SITE_TITLE}`;
+const pageDescription = "免安装！专为儿童设计的数据结构编程游戏，通过队列与广播指令指挥飞船停泊。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 游戏主舞台 */
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.5rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				position: relative;
+			}
+			
+			.level-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.6em 1em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-weight: 700;
+				font-size: 0.92rem;
+			}
+
+			/* 停泊港口区 (目标) */
+			.docks-area {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 10px;
+				height: 100px;
+			}
+			.dock {
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				background: #0f172a;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.1rem;
+				font-weight: 800;
+				color: #fff;
+				position: relative;
+				transition: border-color 0.3s;
+			}
+			.dock.blue { border-color: #3b82f6; color: #93c5fd; }
+			.dock.red { border-color: #ef4444; color: #fca5a5; }
+			.dock.yellow { border-color: #eab308; color: #fde047; }
+			
+			.dock-status {
+				position: absolute;
+				bottom: -8px;
+				font-size: 0.75rem;
+				padding: 2px 6px;
+				border-radius: 4px;
+			}
+			.dock.blue .dock-status { background: #3b82f6; }
+			.dock.red .dock-status { background: #ef4444; }
+			.dock.yellow .dock-status { background: #eab308; }
+
+			/* 港口中央模拟器画面 */
+			.visual-stage {
+				background: #05070a;
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				height: 280px;
+				position: relative;
+				overflow: hidden;
+				padding: 10px;
+			}
+
+			/* 进站等待区 (队列 FIFO 容器) */
+			.queue-lane {
+				position: absolute;
+				left: 0;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 80px;
+				height: calc(100% - 20px);
+				border-right: 2px dashed rgba(255,255,255,0.1);
+				display: flex;
+				flex-direction: column-reverse;
+				justify-content: flex-start;
+				align-items: center;
+				padding-bottom: 10px;
+				gap: 8px;
+			}
+			.queue-label {
+				position: absolute;
+				top: 5px;
+				font-size: 0.7rem;
+				color: rgba(255,255,255,0.5);
+				font-weight: bold;
+				writing-mode: vertical-rl;
+			}
+
+			/* 飞船主体 */
+			.ship {
+				font-size: 1.8rem;
+				cursor: pointer;
+				transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+				position: relative;
+				filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+			}
+			.ship.blue { filter: drop-shadow(0 0 8px #3b82f6); }
+			.ship.red { filter: drop-shadow(0 0 8px #ef4444); }
+			.ship.yellow { filter: drop-shadow(0 0 8px #eab308); }
+
+			/* 右侧编辑器 */
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.9rem;
+			}
+
+			.panel-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+
+			.block-palette {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.5rem;
+			}
+
+			.block-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.5em 0.6em;
+				border-radius: 10px;
+				font-size: 0.82rem;
+				font-weight: 700;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+				transition: all 0.2s ease;
+			}
+			.block-btn:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+			.block-btn.blue { border-left: 4px solid #3b82f6; }
+			.block-btn.red { border-left: 4px solid #ef4444; }
+			.block-btn.yellow { border-left: 4px solid #eab308; }
+			.block-btn.purple { border-left: 4px solid #8b5cf6; }
+
+			.code-workspace {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem;
+				min-height: 180px;
+				max-height: 220px;
+				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+
+			.code-item {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				padding: 0.4em 0.7em;
+				font-size: 0.82rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.code-item .remove-btn { color: #ef4444; cursor: pointer; font-weight: bold; }
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.btn-run {
+				background: #8b5cf6;
+				color: #fff;
+				border: none;
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 800;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-run:hover { opacity: 0.9; transform: scale(1.02); }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 700;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-reset:hover { border-color: var(--accent); }
+
+			.empty-hint {
+				color: var(--text-muted);
+				font-size: 0.8rem;
+				text-align: center;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🛸 少儿编程互动游戏：星际货运调度员</h1>
+				<p>组合“先进先出(队列)调度”与“颜色消息广播”算法积木，将港口的飞船安全调度入泊！</p>
+			</div>
+
+			<div class="game-container">
+				<!-- 左侧：港口画面区 -->
+				<div class="stage-box">
+					<div class="level-bar">
+						<span id="levelTitle">关卡 1: FIFO 顺序调度</span>
+						<span>⭐ 分数: <span id="starScore">0/100</span></span>
+					</div>
+
+					<!-- 目标港位 -->
+					<div class="docks-area">
+						<div class="dock blue"><span>港位 1</span><span class="dock-status">需要蓝色</span></div>
+						<div class="dock red"><span>港位 2</span><span class="dock-status">需要红色</span></div>
+						<div class="dock yellow"><span>港位 3</span><span class="dock-status">需要黄色</span></div>
+					</div>
+
+					<!-- 中央模拟器大厅 -->
+					<div class="visual-stage" id="visualStage">
+						<!-- 进站队列区 (FIFO数据结构区) -->
+						<div class="queue-lane" id="queueLane">
+							<span class="queue-label">等待区 (队列/Queue)</span>
+							<!-- 飞船将在这里按FIFO顺序排列 -->
+						</div>
+					</div>
+				</div>
+
+				<!-- 右侧：代码积木区 -->
+				<div class="editor-box">
+					<div class="panel-title">🧩 1. 点击添加调度指令</div>
+					<div class="block-palette">
+						<button class="block-btn blue" data-action="BC_BLUE">📢 广播: 蓝色入泊</button>
+						<button class="block-btn red" data-action="BC_RED">📢 广播: 红色入泊</button>
+						<button class="block-btn yellow" data-action="BC_YELLOW">📢 广播: 黄色入泊</button>
+						<button class="block-btn purple" data-action="SCH_FIFO">🔄 队列: 按进站顺序调度</button>
+					</div>
+
+					<div class="panel-title">📜 2. 我的调度逻辑代码</div>
+					<div class="code-workspace" id="codeWorkspace">
+						<div class="empty-hint" id="emptyHint">点击上方积木排列港口调度算法...</div>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-run" id="btnRun">▶ 启动调度程序</button>
+						<button class="btn-reset" id="btnReset">🧹 清空指令</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const LEVELS = [
+				{
+					title: "关卡 1: FIFO 顺序调度",
+					targetScore: 30,
+					targetOrder: ['blue', 'red', 'yellow'],
+					shipQueue: ['blue', 'red', 'yellow']
+				},
+				{
+					title: "关卡 2: 颜色广播挑战",
+					targetScore: 50,
+					targetOrder: ['red', 'blue', 'yellow', 'red', 'yellow'],
+					shipQueue: ['red', 'yellow', 'blue', 'yellow', 'red']
+				}
+			];
+
+			let currentLvlIdx = 0;
+			let currentScore = 0;
+			let isRunning = false;
+			let instructions = [];
+			let runningQueue = []; // 当前港口的飞船实体数组
+
+			const visualStage = document.getElementById('visualStage');
+			const queueLane = document.getElementById('queueLane');
+			const codeWorkspace = document.getElementById('codeWorkspace');
+			const emptyHint = document.getElementById('emptyHint');
+			const levelTitle = document.getElementById('levelTitle');
+			const starScore = document.getElementById('starScore');
+			const btnRun = document.getElementById('btnRun');
+			const btnReset = document.getElementById('btnReset');
+
+			const SHIP_EMOJIS = { blue: '🛸', red: '🚁', yellow: '🚀' };
+
+			// 初始化港口场景
+			function initPort(idx) {
+				const lvl = LEVELS[idx];
+				levelTitle.textContent = lvl.title;
+				currentScore = 0;
+				isRunning = false;
+				instructions = [];
+				runningQueue = [];
+				updateScoreUI();
+				renderWorkspace();
+				renderQueueLobby(lvl.shipQueue);
+			}
+
+			function updateScoreUI() {
+				starScore.textContent = `${currentScore}/${LEVELS[currentLvlIdx].targetScore}`;
+			}
+
+			// 渲染等待区的飞船队列 (可视化的FIFO结构)
+			function renderQueueLobby(ships) {
+				queueLane.querySelectorAll('.ship').forEach(s => s.remove()); // 清空
+
+				ships.forEach((color, i) => {
+					const el = document.createElement('div');
+					el.className = `ship ${color}`;
+					el.textContent = SHIP_EMOJIS[color];
+					el.dataset.color = color;
+					el.dataset.originalIdx = i;
+					queueLane.appendChild(el);
+					runningQueue.push(el); // 加入逻辑队列
+				});
+			}
+
+			// 积木点击添加指令
+			document.querySelectorAll('.block-palette .block-btn').forEach(btn => {
+				btn.addEventListener('click', () => {
+					if (isRunning) return;
+					const action = btn.dataset.action;
+					const label = btn.textContent;
+					instructions.push({ action, label });
+					renderWorkspace();
+				});
+			});
+
+			function renderWorkspace() {
+				if (instructions.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.innerHTML = '';
+					codeWorkspace.appendChild(emptyHint);
+					return;
+				}
+				emptyHint.style.display = 'none';
+				codeWorkspace.innerHTML = '';
+
+				instructions.forEach((item, idx) => {
+					const el = document.createElement('div');
+					el.className = 'code-item';
+					el.innerHTML = `
+						<span>${idx + 1}. ${item.label}</span>
+						<span class="remove-btn" onclick="removeInstruction(${idx})">✕</span>
+					`;
+					codeWorkspace.appendChild(el);
+				});
+			}
+
+			window.removeInstruction = function(idx) {
+				if (isRunning) return;
+				instructions.splice(idx, 1);
+				renderWorkspace();
+			};
+
+			// 运行调度算法
+			btnRun.addEventListener('click', async () => {
+				if (isRunning || instructions.length === 0 || runningQueue.length === 0) return;
+				isRunning = true;
+				btnRun.disabled = true;
+
+				const lvl = LEVELS[currentLvlIdx];
+
+				for (let item of instructions) {
+					await new Promise(r => setTimeout(r, 600)); // 指令间隔
+
+					if (runningQueue.length === 0) break;
+
+					let targetShip = null;
+					let targetDockColor = null;
+
+					// FIFO 顺序调度逻辑 (取队列第1个)
+					if (item.action === 'SCH_FIFO') {
+						targetShip = runningQueue.shift(); // FIFO: 出队
+						targetDockColor = targetShip.dataset.color; // 按它自己的颜色去对应港口
+					}
+					// 颜色广播消息 (满足该颜色的第1个进站)
+					else if (item.action === 'BC_BLUE' || item.action === 'BC_RED' || item.action === 'BC_YELLOW') {
+						targetDockColor = item.action.split('_')[1].toLowerCase();
+						const shipIdx = runningQueue.findIndex(s => s.dataset.color === targetDockColor);
+						if (shipIdx !== -1) {
+							targetShip = runningQueue.splice(shipIdx, 1)[0]; // 移除该颜色在队列中的那一个
+						}
+					}
+
+					if (targetShip && targetDockColor) {
+						moveShipToDock(targetShip, targetDockColor);
+					} else {
+						// 消息广播无人响应，港口产生微波报警 (SEO优化体验)
+						const dock = document.querySelector(`.dock.${targetDockColor || 'blue'}`);
+						if(dock) dock.style.borderColor = '#ef4444'; 
+						await new Promise(r => setTimeout(r, 300));
+						if(dock) dock.style.borderColor = ''; 
+					}
+				}
+
+				isRunning = false;
+				btnRun.disabled = false;
+			});
+
+			// 飞船停泊动画逻辑
+			function moveShipToDock(shipEl, color) {
+				visualStage.appendChild(shipEl); // 从等待区移出，加入港口中央大厅
+				shipEl.style.position = 'absolute';
+				shipEl.style.left = '40px';
+				shipEl.style.top = '140px'; // 队列区初始位置
+
+				requestAnimationFrame(() => {
+					// 动画移至中央广播响应点
+					shipEl.style.left = '190px';
+					
+					setTimeout(() => {
+						// 确定对应的港位XY
+						const targetDock = document.querySelector(`.dock.${color}`);
+						const dockRect = targetDock.getBoundingClientRect();
+						const stageRect = visualStage.getBoundingClientRect();
+						
+						// 计算飞船相对港口模拟器的终点坐标
+						const targetX = dockRect.left + dockRect.width / 2 - stageRect.left - 15; // 居中
+						const targetY = dockRect.top + dockRect.height / 2 - stageRect.top - 15;
+
+						shipEl.style.left = `${targetX}px`;
+						shipEl.style.top = `${targetY}px`;
+						shipEl.style.transform = 'scale(0.7)';
+
+						setTimeout(() => {
+							currentScore += 10;
+							updateScoreUI();
+							shipEl.remove(); // 停泊完成移出画面
+
+							// 通关检测
+							const lvl = LEVELS[currentLvlIdx];
+							if (currentScore >= lvl.targetScore) {
+								alert(`🎉 太棒了调度员！你成功用广播算法将所有飞船无序转有序，正确停泊！分数：${currentScore}`);
+								currentLvlIdx = (currentLvlIdx + 1) % LEVELS.length;
+								initPort(currentLvlIdx);
+							} else if (runningQueue.length === 0 && currentScore < lvl.targetScore) {
+								// 飞船用完且分数不够 (SEO优化体验)
+								alert(`😅 分数未达标！调度算法还需要优化哦，重试一下 FIFO 或颜色广播结合！`);
+								initPort(currentLvlIdx);
+							}
+						}, 550);
+
+					}, 400); // 中央点停留时间
+				});
+			}
+
+			btnReset.addEventListener('click', () => {
+				if (isRunning) return;
+				initPort(currentLvlIdx);
+			});
+
+			initPort(0);
+		</script>
+	</body>
+</html>
