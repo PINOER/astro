@@ -1,0 +1,483 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程互动游戏：疯狂物理弹珠台",
+    description: "免安装！专为儿童设计的物理逻辑编程游戏。通过摆放转向板、加速弹簧与传送门积木，改变弹珠下落轨迹，砸中目标星星，培养空间物理与函数映射思维！",
+    icon: "🔮",
+    tag: "儿童编程",
+    keywords: "儿童编程游戏 物理弹珠 空间思维 函数映射 少儿编程体验 Canvas游戏 STEM",
+    pinned: true,
+    priority: 84
+};
+
+const pageTitle = `儿童编程互动游戏：疯狂物理弹珠台 — ${SITE_TITLE}`;
+const pageDescription = "免安装！专为儿童设计的物理逻辑编程游戏，摆放机关积木改变弹珠轨迹。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.5rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+			.level-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.6em 1em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-weight: 700;
+				font-size: 0.92rem;
+			}
+
+			.canvas-board {
+				background: #0b0f19;
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				width: 100%;
+				max-width: 380px;
+				aspect-ratio: 1 / 1;
+				box-sizing: border-box;
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.9rem;
+			}
+
+			.panel-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+
+			.block-palette {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.5rem;
+			}
+
+			.block-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em 0.6em;
+				border-radius: 10px;
+				font-size: 0.82rem;
+				font-weight: 700;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+				transition: all 0.2s ease;
+			}
+			.block-btn:hover {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+			}
+
+			.block-btn.cyan { border-left: 4px solid #06b6d4; }
+			.block-btn.amber { border-left: 4px solid #f59e0b; }
+			.block-btn.purple { border-left: 4px solid #8b5cf6; }
+
+			.code-workspace {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem;
+				min-height: 180px;
+				max-height: 220px;
+				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+
+			.code-item {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				padding: 0.4em 0.7em;
+				font-size: 0.82rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.code-item .remove-btn {
+				color: #ef4444;
+				cursor: pointer;
+				font-weight: bold;
+			}
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.btn-run {
+				background: #06b6d4;
+				color: #fff;
+				border: none;
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 800;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-run:hover { opacity: 0.9; transform: scale(1.02); }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 700;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-reset:hover { border-color: var(--accent); }
+
+			.empty-hint {
+				color: var(--text-muted);
+				font-size: 0.8rem;
+				text-align: center;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🔮 儿童编程小游戏：疯狂物理弹珠台</h1>
+				<p>布置“反弹板”、“弹簧加速”与“方向机关”，改变弹珠物理下落轨迹，击碎所有目标星星！</p>
+			</div>
+
+			<div class="game-container">
+				<!-- 左侧 Canvas 物理画布 -->
+				<div class="stage-box">
+					<div class="level-bar">
+						<span id="levelTitle">关卡 1: 斜向偏转</span>
+						<span>⭐ 目标星星: <span id="starScore">0/1</span></span>
+					</div>
+
+					<canvas id="physicsCanvas" class="canvas-board" width="380" height="380"></canvas>
+				</div>
+
+				<!-- 右侧机关控制区 -->
+				<div class="editor-box">
+					<div class="panel-title">🧩 1. 点击添加轨迹机关</div>
+					<div class="block-palette">
+						<button class="block-btn cyan" data-type="BOUNCE_RIGHT">↘️ 右偏转板</button>
+						<button class="block-btn cyan" data-type="BOUNCE_LEFT">↙️ 左偏转板</button>
+						<button class="block-btn amber" data-type="BOOSTER">🚀 弹簧加速管</button>
+						<button class="block-btn purple" data-type="TELEPORT">🌀 传送通道</button>
+					</div>
+
+					<div class="panel-title">📜 2. 机关安装顺序 (由上至下)</div>
+					<div class="code-workspace" id="codeWorkspace">
+						<div class="empty-hint" id="emptyHint">点击上方机关积木设计弹珠路径...</div>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-run" id="btnRun">🟢 释放弹珠</button>
+						<button class="btn-reset" id="btnReset">🔄 清空机关</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const LEVELS = [
+				{
+					title: "关卡 1: 斜向偏转",
+					ballStart: { x: 190, y: 30 },
+					stars: [{ x: 310, y: 220, hit: false }],
+					obstacles: [{ x: 190, y: 150 }]
+				},
+				{
+					title: "关卡 2: 双重弹射",
+					ballStart: { x: 190, y: 30 },
+					stars: [{ x: 70, y: 220, hit: false }, { x: 310, y: 320, hit: false }],
+					obstacles: [{ x: 190, y: 120 }, { x: 70, y: 320 }]
+				}
+			];
+
+			let currentLvlIdx = 0;
+			let gadgets = [];
+			let ball = null;
+			let isSimulating = false;
+			let animId = null;
+
+			const canvas = document.getElementById('physicsCanvas');
+			const ctx = canvas.getContext('2d');
+			const levelTitle = document.getElementById('levelTitle');
+			const starScore = document.getElementById('starScore');
+			const codeWorkspace = document.getElementById('codeWorkspace');
+			const emptyHint = document.getElementById('emptyHint');
+			const btnRun = document.getElementById('btnRun');
+			const btnReset = document.getElementById('btnReset');
+
+			function initStage(idx) {
+				const lvl = LEVELS[idx];
+				levelTitle.textContent = lvl.title;
+				lvl.stars.forEach(s => s.hit = false);
+				updateScoreUI();
+
+				ball = {
+					x: lvl.ballStart.x,
+					y: lvl.ballStart.y,
+					vx: 0,
+					vy: 2,
+					radius: 10
+				};
+
+				draw();
+			}
+
+			function updateScoreUI() {
+				const lvl = LEVELS[currentLvlIdx];
+				const hitCount = lvl.stars.filter(s => s.hit).length;
+				starScore.textContent = `${hitCount}/${lvl.stars.length}`;
+			}
+
+			function draw() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				const lvl = LEVELS[currentLvlIdx];
+
+				// 绘制起点发射台
+				ctx.fillStyle = '#38bdf8';
+				ctx.beginPath();
+				ctx.arc(lvl.ballStart.x, lvl.ballStart.y, 6, 0, Math.PI * 2);
+				ctx.fill();
+
+				// 绘制黑洞障碍
+				lvl.obstacles.forEach(obs => {
+					ctx.fillStyle = '#ef4444';
+					ctx.beginPath();
+					ctx.arc(obs.x, obs.y, 16, 0, Math.PI * 2);
+					ctx.fill();
+					ctx.strokeStyle = '#fca5a5';
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				});
+
+				// 绘制目标星星
+				lvl.stars.forEach(s => {
+					if (!s.hit) {
+						ctx.fillStyle = '#f59e0b';
+						ctx.font = '22px sans-serif';
+						ctx.fillText('⭐', s.x - 11, s.y + 8);
+					}
+				});
+
+				// 绘制放置的机关
+				gadgets.forEach((g, i) => {
+					const yPos = 100 + i * 70;
+					ctx.fillStyle = g.color;
+					ctx.fillRect(g.x - 30, yPos - 8, 60, 16);
+					ctx.fillStyle = '#ffffff';
+					ctx.font = '12px sans-serif';
+					ctx.textAlign = 'center';
+					ctx.fillText(g.symbol, g.x, yPos + 4);
+				});
+
+				// 绘制弹珠
+				if (ball) {
+					ctx.fillStyle = '#e0e7ff';
+					ctx.beginPath();
+					ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+					ctx.fill();
+					ctx.strokeStyle = '#818cf8';
+					ctx.lineWidth = 2;
+					ctx.stroke();
+				}
+			}
+
+			// 添加机关积木
+			document.querySelectorAll('.block-palette .block-btn').forEach(btn => {
+				btn.addEventListener('click', () => {
+					if (isSimulating || gadgets.length >= 3) return;
+					const type = btn.dataset.type;
+					const label = btn.textContent;
+
+					let gData = { type, label, x: 190, color: '#06b6d4', symbol: '↘️' };
+					if (type === 'BOUNCE_RIGHT') { gData.symbol = '↘️'; gData.color = '#06b6d4'; }
+					if (type === 'BOUNCE_LEFT') { gData.symbol = '↙️'; gData.color = '#06b6d4'; }
+					if (type === 'BOOSTER') { gData.symbol = '🚀'; gData.color = '#f59e0b'; }
+					if (type === 'TELEPORT') { gData.symbol = '🌀'; gData.color = '#8b5cf6'; }
+
+					gadgets.push(gData);
+					renderWorkspace();
+					draw();
+				});
+			});
+
+			function renderWorkspace() {
+				if (gadgets.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.innerHTML = '';
+					codeWorkspace.appendChild(emptyHint);
+					return;
+				}
+				emptyHint.style.display = 'none';
+				codeWorkspace.innerHTML = '';
+
+				gadgets.forEach((item, idx) => {
+					const el = document.createElement('div');
+					el.className = 'code-item';
+					el.innerHTML = `
+						<span>第 ${idx + 1} 层: ${item.label}</span>
+						<span class="remove-btn" onclick="removeGadget(${idx})">✕</span>
+					`;
+					codeWorkspace.appendChild(el);
+				});
+			}
+
+			window.removeGadget = function(idx) {
+				if (isSimulating) return;
+				gadgets.splice(idx, 1);
+				renderWorkspace();
+				draw();
+			};
+
+			// 物理模拟引擎循环
+			function updatePhysics() {
+				if (!isSimulating) return;
+
+				ball.y += ball.vy;
+				ball.x += ball.vx;
+
+				const lvl = LEVELS[currentLvlIdx];
+
+				// 碰撞检测：机关
+				gadgets.forEach((g, i) => {
+					const gY = 100 + i * 70;
+					if (Math.abs(ball.y - gY) < 12 && Math.abs(ball.x - g.x) < 35) {
+						if (g.type === 'BOUNCE_RIGHT') { ball.vx = 3; }
+						if (g.type === 'BOUNCE_LEFT') { ball.vx = -3; }
+						if (g.type === 'BOOSTER') { ball.vy = 5; }
+						if (g.type === 'TELEPORT') { ball.x = (ball.x > 190) ? 70 : 310; }
+					}
+				});
+
+				// 碰撞检测：目标星星
+				lvl.stars.forEach(s => {
+					if (!s.hit && Math.hypot(ball.x - s.x, ball.y - s.y) < 22) {
+						s.hit = true;
+						updateScoreUI();
+					}
+				});
+
+				// 碰撞检测：障碍黑洞
+				lvl.obstacles.forEach(obs => {
+					if (Math.hypot(ball.x - obs.x, ball.y - obs.y) < 20) {
+						isSimulating = false;
+						alert('💥 弹珠掉入黑洞！调整一下机关位置再试试！');
+						initStage(currentLvlIdx);
+						return;
+					}
+				});
+
+				// 边界判断
+				if (ball.y > canvas.height || ball.x < 0 || ball.x > canvas.width) {
+					isSimulating = false;
+					const allHit = lvl.stars.every(s => s.hit);
+					if (allHit) {
+						alert('🎉 太棒了！弹珠顺利击中所有目标星星！通关！');
+						currentLvlIdx = (currentLvlIdx + 1) % LEVELS.length;
+						gadgets = [];
+						renderWorkspace();
+						initStage(currentLvlIdx);
+					} else {
+						alert('😅 弹珠掉落了，没有击中所有星星哦，重试一下！');
+						initStage(currentLvlIdx);
+					}
+					return;
+				}
+
+				draw();
+				animId = requestAnimationFrame(updatePhysics);
+			}
+
+			btnRun.addEventListener('click', () => {
+				if (isSimulating) return;
+				isSimulating = true;
+				updatePhysics();
+			});
+
+			btnReset.addEventListener('click', () => {
+				isSimulating = false;
+				if (animId) cancelAnimationFrame(animId);
+				gadgets = [];
+				renderWorkspace();
+				initStage(currentLvlIdx);
+			});
+
+			initStage(0);
+		</script>
+	</body>
+</html>
