@@ -6,16 +6,16 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、服装与鞋包穿搭组合，支持双图参考换装与保持原图背景控制，适用于 Midjourney, Flux, SDXL 与豆包。",
+    description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特姿态视角控制（9大角度）、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
     icon: "👔",
     tag: "男装商拍",
-    keywords: "AI 男装换装 电商商拍 模特换头 男装换背景 鞋包穿搭 双图换装 提示词生成器 midjourney flux 豆包",
+    keywords: "AI 男装换装 电商商拍 模特角度 模特换头 男装换背景 鞋包穿搭 提示词生成器 midjourney flux 豆包",
     pinned: true,
     priority: 95
 };
 
 const pageTitle = `AI 男装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特换头、双图参考换装，支持保持原图背景不变。";
+const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特 9 大姿态视角控制、双图参考换装，支持保持原图背景不变。";
 ---
 
 <!doctype html>
@@ -206,7 +206,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 		<main>
 			<div class="tool-header">
 				<h1>👔 AI 男装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>支持换男装（双图服装精准迁移）、换背景、换男模（保持背景原貌），生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
+				<p>支持换男装（双图服装精准迁移）、换背景、换男模（保持背景原貌），精准控制 9 大模特视角与姿态，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
 			</div>
 
 			<!-- 核心模式选择Tab -->
@@ -230,10 +230,26 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					</select>
 				</div>
 
+				<!-- ✨ 新增：模特姿态与拍摄角度 -->
+				<div class="form-group">
+					<label for="angleSelect">模特姿态/视角 (Model Angle)</label>
+					<select id="angleSelect">
+						<option value="">不指定 (Default / Random)</option>
+						<option value="front view, standing facing directly forward towards camera, full symmetric posture">正面 (Front View)</option>
+						<option value="three-quarter left side view, model turned 45 degrees to the left">左微侧 45° (Left 3/4 View)</option>
+						<option value="exact left side profile view, model facing 90 degrees left, full side profile shot">左正侧 (Left Profile View)</option>
+						<option value="three-quarter right side view, model turned 45 degrees to the right">右微侧 45° (Right 3/4 View)</option>
+						<option value="exact right side profile view, model facing 90 degrees right, full side profile shot">右正侧 (Right Profile View)</option>
+						<option value="back view, full rear view showing back details of clothing, facing away from camera">正背面 (Back View)</option>
+						<option value="rear three-quarter left view, model turned 45 degrees away to the left">背面左微侧 45° (Rear Left 3/4)</option>
+						<option value="rear three-quarter right view, model turned 45 degrees away to the right">背面右微侧 45° (Rear Right 3/4)</option>
+					</select>
+				</div>
+
 				<!-- 男装品类与版型 -->
 				<div class="form-group full-width" id="outfitGroup">
 					<label for="outfitInput">
-						<span>男装主服饰、材质与细</span>
+						<span>男装主服饰、材质与细节</span>
 						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
 						<span id="outfitStatus" class="translate-status"></span>
 					</label>
@@ -250,7 +266,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					<input type="text" id="accessoryInput" placeholder="例如：复古黑色切尔西皮靴、白色高帮运动鞋，搭配黑色墨镜与皮质斜挎包..." />
 				</div>
 
-				<!-- 男装生活拍摄场景（优化：新增“保持原图背景不变”选项） -->
+				<!-- 男装生活拍摄场景 -->
 				<div class="form-group" id="sceneGroup">
 					<label for="sceneSelect">拍摄与生活场景</label>
 					<select id="sceneSelect">
@@ -340,6 +356,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			const accessoryStatus = document.getElementById('accessoryStatus');
 
 			const modelSelect = document.getElementById('modelSelect');
+			const angleSelect = document.getElementById('angleSelect');
 			const sceneSelect = document.getElementById('sceneSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
 			const lensSelect = document.getElementById('lensSelect');
@@ -380,13 +397,14 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 				let components = [];
 
 				if (currentMode === 'outfit') {
-					// 场景一：换装模式 (修复 BUG 1：注入双图参考逻辑，将服装图平扣到模特图上)
+					// 场景一：换装模式 (双图参考逻辑，结合姿态角度控制)
 					modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
 					components = [
 						`Commercial menswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
 						`replacing current outfit with ${outfit}`,
 						accessoryStr,
 						`worn by ${modelSelect.value}`,
+						angleSelect.value,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -400,6 +418,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 					components = [
 						`Commercial menswear photography, placing model wearing ${outfit}`,
 						accessoryStr,
+						angleSelect.value,
 						`into new setting: ${sceneSelect.value}`,
 						cameraSelect.value,
 						lensSelect.value,
@@ -408,13 +427,14 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						arSelect.value
 					];
 				} else if (currentMode === 'head') {
-					// 场景三：换模特/换头模式 (修复 BUG 2：支持保持背景原貌不变)
+					// 场景三：换模特/换头模式 (支持保持背景原貌不变)
 					modePrefix = '[Model / Head Swap Focus]';
 					components = [
 						`Commercial menswear photography, replacing model face and body with ${modelSelect.value}`,
 						`wearing ${outfit}`,
 						accessoryStr,
-						sceneSelect.value, // 如果选择“保持原图背景不变”，这里输出 preserve original background...
+						angleSelect.value,
+						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
 						lightingSelect.value,
@@ -428,6 +448,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 						`Commercial menswear photography shot featuring ${modelSelect.value}`,
 						`wearing ${outfit}`,
 						accessoryStr,
+						angleSelect.value,
 						sceneSelect.value,
 						cameraSelect.value,
 						lensSelect.value,
@@ -505,7 +526,7 @@ const pageDescription = "专为男装电商卖家设计的 AI 商拍工具！涵
 			});
 
 			// 下拉框监听
-			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+			[modelSelect, angleSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
