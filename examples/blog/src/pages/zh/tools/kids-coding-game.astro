@@ -1,0 +1,498 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程互动小游戏：太空探险家",
+    description: "免安装！专为 5-12 岁儿童设计的在线可视化编程游戏。通过组合“前进”、“转向”与“重复”积木，指挥飞船穿过陨石带收集能量晶体，轻松掌握算法逻辑！",
+    icon: "🚀",
+    tag: "儿童编程",
+    keywords: "儿童编程游戏 在线 Scratch 积木编程 少儿编程闯关 STEM 互动教学",
+    pinned: true,
+    priority: 88
+};
+
+const pageTitle = `儿童编程互动小游戏：太空探险家 — ${SITE_TITLE}`;
+const pageDescription = "免安装！专为 5-12 岁儿童设计的在线可视化编程小游戏，通过积木指令指挥飞船通关。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 游戏主舞台布局 */
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.5rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			/* 画面网格 */
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+			.level-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.6em 1em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-weight: 700;
+				font-size: 0.92rem;
+			}
+
+			.grid-board {
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				grid-template-rows: repeat(5, 1fr);
+				gap: 6px;
+				width: 100%;
+				max-width: 400px;
+				aspect-ratio: 1 / 1;
+				background: #0d1117;
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				padding: 10px;
+				box-sizing: border-box;
+			}
+
+			.grid-cell {
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px dashed rgba(255, 255, 255, 0.1);
+				border-radius: 10px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 2rem;
+				position: relative;
+				transition: all 0.2s ease;
+			}
+
+			.player-avatar {
+				transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+				display: inline-block;
+			}
+
+			/* 控制逻辑区 */
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+			}
+
+			.panel-title {
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+
+			/* 指令指令块选择面板 */
+			.block-palette {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.6rem;
+			}
+
+			.block-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em 0.8em;
+				border-radius: 10px;
+				font-size: 0.85rem;
+				font-weight: 700;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				transition: all 0.2s ease;
+			}
+			.block-btn:hover {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+				box-shadow: 0 4px 12px var(--accent-glow);
+			}
+
+			.block-btn.blue { border-left: 4px solid #3b82f6; }
+			.block-btn.amber { border-left: 4px solid #f59e0b; }
+			.block-btn.emerald { border-left: 4px solid #10b981; }
+
+			/* 代码积木序列槽位 */
+			.code-workspace {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem;
+				min-height: 200px;
+				max-height: 260px;
+				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.code-item {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				padding: 0.5em 0.8em;
+				font-size: 0.85rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				animation: slideIn 0.2s ease;
+			}
+
+			.code-item .remove-btn {
+				color: #ef4444;
+				cursor: pointer;
+				font-weight: bold;
+				padding: 0 0.3em;
+			}
+
+			@keyframes slideIn {
+				from { opacity: 0; transform: translateX(-10px); }
+				to { opacity: 1; transform: translateX(0); }
+			}
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.btn-run {
+				background: #10b981;
+				color: #fff;
+				border: none;
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 800;
+				font-size: 0.95rem;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.btn-run:hover { background: #059669; transform: scale(1.02); }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 700;
+				font-size: 0.95rem;
+				cursor: pointer;
+			}
+			.btn-reset:hover { border-color: var(--accent); }
+
+			.empty-hint {
+				color: var(--text-muted);
+				font-size: 0.8rem;
+				text-align: center;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🚀 儿童编程小游戏：太空探险家</h1>
+				<p>点击积木指令指挥飞船避开陨石，收集能量晶体到达终点星门吧！</p>
+			</div>
+
+			<div class="game-container">
+				<!-- 左侧：游戏地图画面 -->
+				<div class="stage-box">
+					<div class="level-bar">
+						<span id="levelTitle">关卡 1: 直线发射</span>
+						<span>💎 晶体: <span id="crystalCount">0/1</span></span>
+					</div>
+
+					<div class="grid-board" id="gridBoard">
+						<!-- JavaScript 动态生成 5x5 地图格子 -->
+					</div>
+				</div>
+
+				<!-- 右侧：积木代码编写区 -->
+				<div class="editor-box">
+					<div class="panel-title">🧩 点击添加指令积木</div>
+					<div class="block-palette">
+						<button class="block-btn blue" data-action="MOVE">🚀 前进 1 格</button>
+						<button class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
+						<button class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
+						<button class="block-btn emerald" data-action="REPEAT_2">🔁 重复 2 次</button>
+					</div>
+
+					<div class="panel-title">📜 你的程序代码</div>
+					<div class="code-workspace" id="codeWorkspace">
+						<div class="empty-hint" id="emptyHint">点击上方积木开始编排指令...</div>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-run" id="btnRun">▶ 运行程序</button>
+						<button class="btn-reset" id="btnReset">🔄 重置路线</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			// 关卡设计数据
+			const LEVELS = [
+				{
+					title: "关卡 1: 直线发射",
+					start: { x: 0, y: 2, dir: 1 }, // dir: 0上, 1右, 2下, 3左
+					target: { x: 4, y: 2 },
+					crystals: [{ x: 2, y: 2 }],
+					asteroids: []
+				},
+				{
+					title: "关卡 2: 转弯避障",
+					start: { x: 0, y: 0, dir: 1 },
+					target: { x: 4, y: 4 },
+					crystals: [{ x: 2, y: 0 }, { x: 2, y: 4 }],
+					asteroids: [{ x: 2, y: 2 }, { x: 1, y: 2 }]
+				},
+				{
+					title: "关卡 3: 循环迷宫",
+					start: { x: 0, y: 4, dir: 0 },
+					target: { x: 4, y: 0 },
+					crystals: [{ x: 0, y: 2 }, { x: 2, y: 0 }],
+					asteroids: [{ x: 1, y: 1 }, { x: 3, y: 3 }]
+				}
+			];
+
+			let currentLevelIndex = 0;
+			let playerState = { x: 0, y: 0, dir: 1 };
+			let instructions = [];
+			let collectedCrystals = 0;
+			let isRunning = false;
+
+			const gridBoard = document.getElementById('gridBoard');
+			const codeWorkspace = document.getElementById('codeWorkspace');
+			const emptyHint = document.getElementById('emptyHint');
+			const levelTitle = document.getElementById('levelTitle');
+			const crystalCount = document.getElementById('crystalCount');
+			const btnRun = document.getElementById('btnRun');
+			const btnReset = document.getElementById('btnReset');
+
+			// 初始化地图与玩家
+			function initLevel(index) {
+				const lvl = LEVELS[index];
+				levelTitle.textContent = lvl.title;
+				playerState = { ...lvl.start };
+				collectedCrystals = 0;
+				updateStats();
+				renderGrid();
+			}
+
+			function updateStats() {
+				const lvl = LEVELS[currentLevelIndex];
+				crystalCount.textContent = `${collectedCrystals}/${lvl.crystals.length}`;
+			}
+
+			function renderGrid() {
+				gridBoard.innerHTML = '';
+				const lvl = LEVELS[currentLevelIndex];
+
+				for (let r = 0; r < 5; r++) {
+					for (let c = 0; c < 5; c++) {
+						const cell = document.createElement('div');
+						cell.className = 'grid-cell';
+
+						// 渲染主角飞船
+						if (r === playerState.y && c === playerState.x) {
+							const ship = document.createElement('span');
+							ship.className = 'player-avatar';
+							ship.textContent = '🚀';
+							const rotations = [270, 0, 90, 180]; // 方向对应角度
+							ship.style.transform = `rotate(${rotations[playerState.dir]}deg)`;
+							cell.appendChild(ship);
+						}
+						// 渲染终点星门
+						else if (r === lvl.target.y && c === lvl.target.x) {
+							cell.textContent = '🌀';
+						}
+						// 渲染晶体
+						else if (lvl.crystals.some(crs => crs.x === c && crs.y === r)) {
+							cell.textContent = '💎';
+						}
+						// 渲染陨石障碍
+						else if (lvl.asteroids.some(ast => ast.x === c && ast.y === r)) {
+							cell.textContent = '🪨';
+						}
+
+						gridBoard.appendChild(cell);
+					}
+				}
+			}
+
+			// 添加指令积木
+			document.querySelectorAll('.block-palette .block-btn').forEach(btn => {
+				btn.addEventListener('click', () => {
+					if (isRunning) return;
+					const action = btn.dataset.action;
+					const label = btn.textContent;
+					instructions.push({ action, label });
+					renderWorkspace();
+				});
+			});
+
+			function renderWorkspace() {
+				if (instructions.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.innerHTML = '';
+					codeWorkspace.appendChild(emptyHint);
+					return;
+				}
+				emptyHint.style.display = 'none';
+				codeWorkspace.innerHTML = '';
+
+				instructions.forEach((item, idx) => {
+					const el = document.createElement('div');
+					el.className = 'code-item';
+					el.innerHTML = `
+						<span>${idx + 1}. ${item.label}</span>
+						<span class="remove-btn" onclick="removeInstruction(${idx})">✕</span>
+					`;
+					codeWorkspace.appendChild(el);
+				});
+			}
+
+			window.removeInstruction = function(idx) {
+				if (isRunning) return;
+				instructions.splice(idx, 1);
+				renderWorkspace();
+			};
+
+			// 执行动画代码
+			btnRun.addEventListener('click', async () => {
+				if (isRunning || instructions.length === 0) return;
+				isRunning = true;
+				btnRun.disabled = true;
+
+				// 展开重复循环指令
+				let expandedQueue = [];
+				for (let i = 0; i < instructions.length; i++) {
+					if (instructions[i].action === 'REPEAT_2') {
+						if (i > 0) expandedQueue.push(instructions[i - 1].action); // 重复前一条指令
+					} else {
+						expandedQueue.push(instructions[i].action);
+					}
+				}
+
+				const lvl = LEVELS[currentLevelIndex];
+
+				for (let act of expandedQueue) {
+					await new Promise(r => setTimeout(r, 450)); // 动画间隔
+
+					if (act === 'MOVE') {
+						let nextX = playerState.x;
+						let nextY = playerState.y;
+						if (playerState.dir === 0) nextY--; // 上
+						if (playerState.dir === 1) nextX++; // 右
+						if (playerState.dir === 2) nextY++; // 下
+						if (playerState.dir === 3) nextX--; // 左
+
+						// 越界或撞陨石判断
+						if (nextX < 0 || nextX > 4 || nextY < 0 || nextY > 4 || lvl.asteroids.some(a => a.x === nextX && a.y === nextY)) {
+							alert('💥 警告！飞船偏离航道或撞到了陨石！');
+							break;
+						}
+						playerState.x = nextX;
+						playerState.y = nextY;
+
+						// 收集晶体
+						const crsIndex = lvl.crystals.findIndex(c => c.x === nextX && c.y === nextY);
+						if (crsIndex !== -1) {
+							lvl.crystals.splice(crsIndex, 1);
+							collectedCrystals++;
+							updateStats();
+						}
+					} else if (act === 'TURN_LEFT') {
+						playerState.dir = (playerState.dir + 3) % 4;
+					} else if (act === 'TURN_RIGHT') {
+						playerState.dir = (playerState.dir + 1) % 4;
+					}
+
+					renderGrid();
+
+					// 胜利通关判断
+					if (playerState.x === lvl.target.x && playerState.y === lvl.target.y) {
+						setTimeout(() => {
+							alert('🎉 太棒了！飞船顺利到达目标星门！解锁下一关！');
+							currentLevelIndex = (currentLevelIndex + 1) % LEVELS.length;
+							instructions = [];
+							renderWorkspace();
+							initLevel(currentLevelIndex);
+						}, 200);
+						break;
+					}
+				}
+
+				isRunning = false;
+				btnRun.disabled = false;
+			});
+
+			btnReset.addEventListener('click', () => {
+				if (isRunning) return;
+				initLevel(currentLevelIndex);
+			});
+
+			// 初始化第 1 关
+			initLevel(0);
+		</script>
+	</body>
+</html>
