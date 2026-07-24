@@ -1,0 +1,531 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程互动游戏：机器人像素画师",
+    description: "免安装！专为 6-12 岁儿童设计的绘图编程游戏。通过组合“画线”、“转向”、“换颜色”与“循环”积木，指挥机器人画出艺术图案，轻松掌握循环与算法！",
+    icon: "🎨",
+    tag: "儿童编程",
+    keywords: "儿童编程游戏 机器人画画 编程绘图 循环结构少儿编程 STEM 艺术编程",
+    pinned: true,
+    priority: 87
+};
+
+const pageTitle = `儿童编程互动游戏：机器人像素画师 — ${SITE_TITLE}`;
+const pageDescription = "免安装！专为儿童设计的绘图编程游戏，通过积木算法指挥机器人画出美丽图案。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			/* 游戏画布与代码区双栏 */
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.5rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			/* 画布区域 */
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+			.level-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.6em 1em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-weight: 700;
+				font-size: 0.92rem;
+			}
+
+			.canvas-grid {
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				grid-template-rows: repeat(6, 1fr);
+				gap: 4px;
+				width: 100%;
+				max-width: 380px;
+				aspect-ratio: 1 / 1;
+				background: #1e1e2e;
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				padding: 10px;
+				box-sizing: border-box;
+			}
+
+			.pixel-cell {
+				background: rgba(255, 255, 255, 0.04);
+				border: 1px dashed rgba(255, 255, 255, 0.08);
+				border-radius: 8px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.8rem;
+				position: relative;
+				transition: background-color 0.3s ease;
+			}
+
+			.target-hint {
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				border: 2px dashed rgba(255, 255, 255, 0.4);
+			}
+
+			.painter-robot {
+				position: absolute;
+				transition: transform 0.25s ease;
+				z-index: 10;
+			}
+
+			/* 编辑与工具区 */
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.9rem;
+			}
+
+			.panel-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+
+			/* 指令块按钮网格 */
+			.block-palette {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.5rem;
+			}
+
+			.block-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.5em 0.7em;
+				border-radius: 10px;
+				font-size: 0.82rem;
+				font-weight: 700;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.3rem;
+				transition: all 0.2s ease;
+			}
+			.block-btn:hover {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+				box-shadow: 0 4px 12px var(--accent-glow);
+			}
+
+			.block-btn.pink { border-left: 4px solid #ec4899; }
+			.block-btn.amber { border-left: 4px solid #f59e0b; }
+			.block-btn.cyan { border-left: 4px solid #06b6d4; }
+			.block-btn.purple { border-left: 4px solid #8b5cf6; }
+
+			/* 颜色选择器 */
+			.color-picker-box {
+				display: flex;
+				gap: 0.6rem;
+				align-items: center;
+				background: var(--search-bg);
+				padding: 0.5em 0.8em;
+				border-radius: 10px;
+				border: 1px solid var(--card-border);
+			}
+			.color-dot {
+				width: 22px;
+				height: 22px;
+				border-radius: 50%;
+				cursor: pointer;
+				border: 2px solid transparent;
+				transition: transform 0.2s;
+			}
+			.color-dot.active {
+				transform: scale(1.2);
+				border-color: #fff;
+			}
+
+			/* 指令积木堆叠区 */
+			.code-workspace {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem;
+				min-height: 180px;
+				max-height: 220px;
+				overflow-y: auto;
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+
+			.code-item {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				padding: 0.4em 0.7em;
+				font-size: 0.82rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.code-item .remove-btn {
+				color: #ef4444;
+				cursor: pointer;
+				font-weight: bold;
+			}
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.btn-run {
+				background: var(--accent);
+				color: #fff;
+				border: none;
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 800;
+				font-size: 0.92rem;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.btn-run:hover { opacity: 0.9; transform: scale(1.02); }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 700;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-reset:hover { border-color: var(--accent); }
+
+			.empty-hint {
+				color: var(--text-muted);
+				font-size: 0.8rem;
+				text-align: center;
+				margin: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🎨 儿童编程小游戏：机器人像素画师</h1>
+				<p>编排“前进画线”、“旋转”与“变色”积木，指挥小画家完成图案，体验算法艺术的魅力！</p>
+			</div>
+
+			<div class="game-container">
+				<!-- 左侧：画板区 -->
+				<div class="stage-box">
+					<div class="level-bar">
+						<span id="levelTitle">关卡 1: 画一条彩虹线</span>
+						<span>🎨 选定画笔: <span id="penStateText" style="color:#ef4444;">🔴 红色画笔</span></span>
+					</div>
+
+					<div class="canvas-grid" id="canvasGrid">
+						<!-- 动态生成 6x6 像素网格 -->
+					</div>
+				</div>
+
+				<!-- 右侧：指令积木面板 -->
+				<div class="editor-box">
+					<div class="panel-title">🖌️ 1. 选择画笔颜色</div>
+					<div class="color-picker-box">
+						<div class="color-dot active" data-color="#ef4444" style="background:#ef4444;"></div>
+						<div class="color-dot" data-color="#3b82f6" style="background:#3b82f6;"></div>
+						<div class="color-dot" data-color="#10b981" style="background:#10b981;"></div>
+						<div class="color-dot" data-color="#f59e0b" style="background:#f59e0b;"></div>
+						<div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;"></div>
+					</div>
+
+					<div class="panel-title">🧩 2. 添加绘画积木</div>
+					<div class="block-palette">
+						<button class="block-btn pink" data-action="PAINT_MOVE">🖌️ 前进并画线</button>
+						<button class="block-btn cyan" data-action="MOVE_ONLY">🚶 仅前进(不画)</button>
+						<button class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
+						<button class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
+						<button class="block-btn purple" data-action="REPEAT_2">🔁 重复上条 2 次</button>
+					</div>
+
+					<div class="panel-title">📜 3. 绘图代码算法</div>
+					<div class="code-workspace" id="codeWorkspace">
+						<div class="empty-hint" id="emptyHint">点击上方积木排列绘图算法...</div>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-run" id="btnRun">▶ 运行作画</button>
+						<button class="btn-reset" id="btnReset">🧹 清空画布</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			// 关卡目标点与预设
+			const LEVELS = [
+				{
+					title: "关卡 1: 横向彩色线段",
+					start: { x: 0, y: 2, dir: 1 }, // 0上, 1右, 2下, 3左
+					targets: [{ x: 1, y: 2 }, { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 }]
+				},
+				{
+					title: "关卡 2: 画出“L”型直角",
+					start: { x: 1, y: 1, dir: 1 },
+					targets: [{ x: 2, y: 1 }, { x: 3, y: 1 }, { x: 3, y: 2 }, { x: 3, y: 3 }]
+				},
+				{
+					title: "关卡 3: 绘制完整正方形框",
+					start: { x: 1, y: 1, dir: 1 },
+					targets: [
+						{ x: 2, y: 1 }, { x: 3, y: 1 },
+						{ x: 3, y: 2 }, { x: 3, y: 3 },
+						{ x: 2, y: 3 }, { x: 1, y: 3 },
+						{ x: 1, y: 2 }
+					]
+				}
+			];
+
+			let currentLevelIdx = 0;
+			let robotState = { x: 0, y: 0, dir: 1 };
+			let currentColor = '#ef4444';
+			let instructions = [];
+			let paintedCells = {}; // 记录涂色状态 { "x,y": "#color" }
+			let isRunning = false;
+
+			const canvasGrid = document.getElementById('canvasGrid');
+			const codeWorkspace = document.getElementById('codeWorkspace');
+			const emptyHint = document.getElementById('emptyHint');
+			const levelTitle = document.getElementById('levelTitle');
+			const penStateText = document.getElementById('penStateText');
+			const btnRun = document.getElementById('btnRun');
+			const btnReset = document.getElementById('btnReset');
+
+			// 初始化画板
+			function initBoard(levelIdx) {
+				const lvl = LEVELS[levelIdx];
+				levelTitle.textContent = lvl.title;
+				robotState = { ...lvl.start };
+				paintedCells = {};
+				renderGrid();
+			}
+
+			function renderGrid() {
+				canvasGrid.innerHTML = '';
+				const lvl = LEVELS[currentLevelIdx];
+
+				for (let r = 0; r < 6; r++) {
+					for (let c = 0; c < 6; c++) {
+						const cell = document.createElement('div');
+						cell.className = 'pixel-cell';
+						const key = `${c},${r}`;
+
+						// 已涂颜色
+						if (paintedCells[key]) {
+							cell.style.backgroundColor = paintedCells[key];
+						}
+
+						// 目标虚线提示点
+						if (!paintedCells[key] && lvl.targets.some(t => t.x === c && t.y === r)) {
+							const hint = document.createElement('div');
+							hint.className = 'target-hint';
+							cell.appendChild(hint);
+						}
+
+						// 渲染机器人画家
+						if (r === robotState.y && c === robotState.x) {
+							const robot = document.createElement('span');
+							robot.className = 'painter-robot';
+							robot.textContent = '🤖';
+							const rotations = [270, 0, 90, 180];
+							robot.style.transform = `rotate(${rotations[robotState.dir]}deg)`;
+							cell.appendChild(robot);
+						}
+
+						canvasGrid.appendChild(cell);
+					}
+				}
+			}
+
+			// 颜色切换
+			document.querySelectorAll('.color-dot').forEach(dot => {
+				dot.addEventListener('click', () => {
+					document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+					dot.classList.add('active');
+					currentColor = dot.dataset.color;
+					penStateText.textContent = `画笔调色中...`;
+					penStateText.style.color = currentColor;
+				});
+			});
+
+			// 点击添加积木
+			document.querySelectorAll('.block-palette .block-btn').forEach(btn => {
+				btn.addEventListener('click', () => {
+					if (isRunning) return;
+					const action = btn.dataset.action;
+					const label = btn.textContent;
+					instructions.push({ action, label, color: currentColor });
+					renderWorkspace();
+				});
+			});
+
+			function renderWorkspace() {
+				if (instructions.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.innerHTML = '';
+					codeWorkspace.appendChild(emptyHint);
+					return;
+				}
+				emptyHint.style.display = 'none';
+				codeWorkspace.innerHTML = '';
+
+				instructions.forEach((item, idx) => {
+					const el = document.createElement('div');
+					el.className = 'code-item';
+					el.innerHTML = `
+						<span>${idx + 1}. ${item.label} <small style="color:${item.color}">●</small></span>
+						<span class="remove-btn" onclick="removeInstruction(${idx})">✕</span>
+					`;
+					codeWorkspace.appendChild(el);
+				});
+			}
+
+			window.removeInstruction = function(idx) {
+				if (isRunning) return;
+				instructions.splice(idx, 1);
+				renderWorkspace();
+			};
+
+			// 执行绘图程序
+			btnRun.addEventListener('click', async () => {
+				if (isRunning || instructions.length === 0) return;
+				isRunning = true;
+				btnRun.disabled = true;
+
+				// 展开重复循环
+				let queue = [];
+				for (let i = 0; i < instructions.length; i++) {
+					if (instructions[i].action === 'REPEAT_2') {
+						if (i > 0) queue.push(instructions[i - 1]);
+					} else {
+						queue.push(instructions[i]);
+					}
+				}
+
+				for (let item of queue) {
+					await new Promise(r => setTimeout(r, 400));
+
+					if (item.action === 'PAINT_MOVE' || item.action === 'MOVE_ONLY') {
+						let nextX = robotState.x;
+						let nextY = robotState.y;
+
+						if (robotState.dir === 0) nextY--;
+						if (robotState.dir === 1) nextX++;
+						if (robotState.dir === 2) nextY++;
+						if (robotState.dir === 3) nextX--;
+
+						if (nextX >= 0 && nextX < 6 && nextY >= 0 && nextY < 6) {
+							robotState.x = nextX;
+							robotState.y = nextY;
+							if (item.action === 'PAINT_MOVE') {
+								paintedCells[`${nextX},${nextY}`] = item.color;
+							}
+						}
+					} else if (item.action === 'TURN_RIGHT') {
+						robotState.dir = (robotState.dir + 1) % 4;
+					} else if (item.action === 'TURN_LEFT') {
+						robotState.dir = (robotState.dir + 3) % 4;
+					}
+
+					renderGrid();
+				}
+
+				// 通关检测
+				const lvl = LEVELS[currentLevelIdx];
+				const isWin = lvl.targets.every(t => paintedCells[`${t.x},${t.y}`]);
+
+				if (isWin) {
+					setTimeout(() => {
+						alert('🎨 哇！太棒了！小画家完美完成了画作！解锁下一关！');
+						currentLevelIdx = (currentLevelIdx + 1) % LEVELS.length;
+						instructions = [];
+						renderWorkspace();
+						initBoard(currentLevelIdx);
+					}, 200);
+				}
+
+				isRunning = false;
+				btnRun.disabled = false;
+			});
+
+			btnReset.addEventListener('click', () => {
+				if (isRunning) return;
+				initBoard(currentLevelIdx);
+			});
+
+			initBoard(0);
+		</script>
+	</body>
+</html>
