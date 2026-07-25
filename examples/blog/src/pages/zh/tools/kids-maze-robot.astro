@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "儿童编程互动游戏：智能机器人迷宫大逃脱",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
+    title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (49关)",
+    description: "免安装！专为儿童设计的逻辑避障编程游戏。内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
     icon: "🧱",
     tag: "儿童编程",
-    keywords: "儿童编程游戏 迷宫算法 条件判断 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
+    keywords: "儿童编程游戏 迷宫算法 条件判断 49关迷宫 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
     pinned: true,
     priority: 85
 };
 
-const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 — ${SITE_TITLE}`;
-const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，通过条件判断指令指挥机器人走出迷宫。";
+const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 (49关) — ${SITE_TITLE}`;
+const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，内置 49 个由浅入深的避障关卡。";
 ---
 
 <!doctype html>
@@ -84,40 +84,65 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				font-size: 0.92rem;
 			}
 
+			.level-select {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.3em 0.6em;
+				border-radius: 8px;
+				font-weight: 700;
+				font-size: 0.88rem;
+				outline: none;
+				cursor: pointer;
+			}
+
+			/* 迷宫地图样式强化 */
 			.maze-grid {
 				display: grid;
 				grid-template-columns: repeat(6, 1fr);
 				grid-template-rows: repeat(6, 1fr);
-				gap: 4px;
+				gap: 3px;
 				width: 100%;
 				max-width: 380px;
 				aspect-ratio: 1 / 1;
-				background: #0f172a;
-				border: 2px solid var(--card-border);
+				background: #090d16;
+				border: 3px solid #334155;
 				border-radius: 16px;
-				padding: 10px;
+				padding: 8px;
 				box-sizing: border-box;
+				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
+			/* 地面走道格子：带明显地砖边框 */
 			.maze-cell {
-				background: rgba(255, 255, 255, 0.03);
+				background: #1e293b;
+				border: 1px solid rgba(255, 255, 255, 0.08);
 				border-radius: 6px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.6rem;
+				font-size: 1.5rem;
 				position: relative;
+				user-select: none;
 			}
 
+			/* 墙壁样式：显眼的砖墙元素 */
 			.maze-cell.wall {
 				background: #334155;
 				border: 1px solid #475569;
-				box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
+			}
+
+			/* 终点目标区域 */
+			.maze-cell.target-cell {
+				background: rgba(245, 158, 11, 0.2);
+				border: 1px dashed #f59e0b;
 			}
 
 			.robot-icon {
-				transition: transform 0.25s ease;
+				transition: transform 0.2s ease-out;
 				display: inline-block;
+				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 			}
 
 			/* 右侧编辑器 */
@@ -164,6 +189,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			.block-btn.blue { border-left: 4px solid #3b82f6; }
 			.block-btn.amber { border-left: 4px solid #f59e0b; }
 			.block-btn.purple { border-left: 4px solid #8b5cf6; }
+			.block-btn.emerald { border-left: 4px solid #10b981; }
 
 			.code-workspace {
 				background: var(--code-bg);
@@ -238,7 +264,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱</h1>
+				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱 (49关)</h1>
 				<p>组合“检测传感器”与“方向转弯”算法，帮助探险机器人冲出迷宫陷阱！</p>
 			</div>
 
@@ -246,7 +272,12 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				<!-- 左侧：迷宫地图 -->
 				<div class="stage-box">
 					<div class="level-bar">
-						<span id="levelTitle">关卡 1: 初识死胡同</span>
+						<div>
+							关卡: 
+							<select id="levelSelect" class="level-select">
+								<!-- JS 动态生成 1-49 关 -->
+							</select>
+						</div>
 						<span>电池状态: ⚡ 100%</span>
 					</div>
 
@@ -262,7 +293,8 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						<button class="block-btn blue" data-action="MOVE">🤖 前进 1 格</button>
 						<button class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
 						<button class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
-						<button class="block-btn purple" data-action="IF_WALL_RIGHT">⚠️ 若遇墙则右转</button>
+						<button class="block-btn purple" data-action="IF_WALL_RIGHT">⚠️ 若前方有墙则右转</button>
+						<button class="block-btn emerald" data-action="REPEAT_3">🔁 重复前进 3 次</button>
 					</div>
 
 					<div class="panel-title">📜 2. 探险逻辑代码</div>
@@ -281,27 +313,48 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			const LEVELS = [
-				{
-					title: "关卡 1: 初识死胡同",
-					start: { x: 0, y: 0, dir: 1 }, // 0上, 1右, 2下, 3左
-					target: { x: 5, y: 5 },
-					walls: [
-						{x: 2, y: 0}, {x: 2, y: 1}, {x: 2, y: 2},
-						{x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}
-					]
-				},
-				{
-					title: "关卡 2: 蛇形迷宫通道",
-					start: { x: 0, y: 0, dir: 1 },
-					target: { x: 0, y: 5 },
-					walls: [
-						{x: 1, y: 0}, {x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3},
-						{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 3, y: 5}
-					]
-				}
-			];
+			// 动态程序化生成 49 个递进关卡
+			function generate49MazeLevels() {
+				const levels = [];
+				for (let i = 1; i <= 49; i++) {
+					let start = { x: 0, y: 0, dir: 1 };
+					let target = { x: 5, y: 5 };
+					let walls = [];
 
+					// 根据关卡序号变化墙壁排布
+					if (i <= 15) {
+						// 1-15 关：基础通道折线
+						const wallX1 = 1 + (i % 3);
+						const wallX2 = 3 + (i % 2);
+						for (let r = 0; r < 4; r++) walls.push({ x: wallX1, y: r });
+						for (let r = 2; r < 6; r++) walls.push({ x: wallX2, y: r });
+					} else if (i <= 35) {
+						// 16-35 关：蛇形管道
+						walls = [
+							{x: 1, y: 0}, {x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3},
+							{x: 3, y: 2}, {x: 3, y: 3}, {x: 3, y: 4}, {x: 3, y: 5}
+						];
+						if (i % 2 === 0) walls.push({ x: 4, y: 1 });
+					} else {
+						// 36-49 关：死胡同障碍阵
+						walls = [
+							{x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2},
+							{x: 3, y: 4}, {x: 4, y: 4}, {x: 5, y: 4},
+							{x: 2, y: 0}, {x: 4, y: 1}
+						];
+					}
+
+					levels.push({
+						title: `第 ${i} 关 ${i <= 15 ? '🟢入门' : (i <= 35 ? '🟡进阶' : '🔴高难')}`,
+						start,
+						target,
+						walls
+					});
+				}
+				return levels;
+			}
+
+			const LEVELS = generate49MazeLevels();
 			let currentLevelIdx = 0;
 			let robot = { x: 0, y: 0, dir: 1 };
 			let instructions = [];
@@ -310,14 +363,25 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			const mazeGrid = document.getElementById('mazeGrid');
 			const codeWorkspace = document.getElementById('codeWorkspace');
 			const emptyHint = document.getElementById('emptyHint');
-			const levelTitle = document.getElementById('levelTitle');
+			const levelSelect = document.getElementById('levelSelect');
 			const btnRun = document.getElementById('btnRun');
 			const btnReset = document.getElementById('btnReset');
 
+			// 初始化 49 关下拉列表
+			LEVELS.forEach((lvl, idx) => {
+				const opt = document.createElement('option');
+				opt.value = idx;
+				opt.textContent = lvl.title;
+				levelSelect.appendChild(opt);
+			});
+
 			function initMaze(idx) {
+				currentLevelIdx = idx;
+				levelSelect.value = idx;
 				const lvl = LEVELS[idx];
-				levelTitle.textContent = lvl.title;
 				robot = { ...lvl.start };
+				instructions = [];
+				renderWorkspace();
 				renderGrid();
 			}
 
@@ -331,15 +395,24 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						cell.className = 'maze-cell';
 
 						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
+						const isTarget = c === lvl.target.x && r === lvl.target.y;
+						const isRobot = r === robot.y && c === robot.x;
+
+						// 1. 显式渲染砖墙
 						if (isWall) {
 							cell.classList.add('wall');
+							cell.textContent = '🧱';
+						} 
+						// 2. 渲染终点目标
+						else if (isTarget) {
+							cell.classList.add('target-cell');
+							if (!isRobot) {
+								cell.textContent = '🏆';
+							}
 						}
 
-						if (c === lvl.target.x && r === lvl.target.y) {
-							cell.textContent = '🏆';
-						}
-
-						if (r === robot.y && c === robot.x) {
+						// 3. 渲染机器人
+						if (isRobot) {
 							const rObj = document.createElement('span');
 							rObj.className = 'robot-icon';
 							rObj.textContent = '🤖';
@@ -397,11 +470,20 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 				const lvl = LEVELS[currentLevelIdx];
 
+				// 展开重复指令
+				let expandedQueue = [];
 				for (let item of instructions) {
+					if (item.action === 'REPEAT_3') {
+						expandedQueue.push({ action: 'MOVE' }, { action: 'MOVE' }, { action: 'MOVE' });
+					} else {
+						expandedQueue.push(item);
+					}
+				}
+
+				for (let item of expandedQueue) {
 					await new Promise(r => setTimeout(r, 450));
 
 					if (item.action === 'IF_WALL_RIGHT') {
-						// 预判前方是否有墙
 						let nextX = robot.x;
 						let nextY = robot.y;
 						if (robot.dir === 0) nextY--;
@@ -411,7 +493,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 						const hitWall = nextX < 0 || nextX >= 6 || nextY < 0 || nextY >= 6 || lvl.walls.some(w => w.x === nextX && w.y === nextY);
 						if (hitWall) {
-							robot.dir = (robot.dir + 1) % 4; // 检测到前面有墙，自动右转
+							robot.dir = (robot.dir + 1) % 4; // 遇墙自动右转
 						}
 					} else if (item.action === 'MOVE') {
 						let nextX = robot.x;
@@ -437,11 +519,12 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 					if (robot.x === lvl.target.x && robot.y === lvl.target.y) {
 						setTimeout(() => {
-							alert('🎉 恭喜！机器人成功走出迷宫，找到了终点奖杯！');
-							currentLevelIdx = (currentLevelIdx + 1) % LEVELS.length;
-							instructions = [];
-							renderWorkspace();
-							initMaze(currentLevelIdx);
+							if (currentLevelIdx < 48) {
+								alert(`🎉 恭喜通关第 ${currentLevelIdx + 1} 关！机器人成功走出迷宫，找到了奖杯！即将解锁第 ${currentLevelIdx + 2} 关！`);
+								initMaze(currentLevelIdx + 1);
+							} else {
+								alert('🏆 太厉害了！你成功帮助机器人冲破了全部 49 个迷宫关卡！');
+							}
 						}, 200);
 						break;
 					}
@@ -454,6 +537,11 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			btnReset.addEventListener('click', () => {
 				if (isRunning) return;
 				initMaze(currentLevelIdx);
+			});
+
+			levelSelect.addEventListener('change', (e) => {
+				if (isRunning) return;
+				initMaze(parseInt(e.target.value));
 			});
 
 			initMaze(0);
