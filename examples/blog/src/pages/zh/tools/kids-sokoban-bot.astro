@@ -6,16 +6,16 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：键盘推箱子大冒险 (49关)",
-    description: "免安装！专为儿童设计的逻辑推箱子编程游戏。通过组合“前进推箱”、“转向”与“状态回溯”指令，培养死锁预判与逆向推理能力！",
+    description: "免安装！支持键盘方向键(↑↓←→)即时控制的推箱子游戏，内置 49 个由浅入深的经典关卡！清晰墙壁纹理，锻炼空间认知、逆向思维与死锁预判能力！",
     icon: "📦",
     tag: "儿童编程",
-    keywords: "儿童推箱子 键盘推箱子 49关推箱子 移动端推箱子 少儿编程体验 逆向思维 逻辑训练 Sokoban",
+    keywords: "儿童推箱子 键盘推箱子 49关推箱子 少儿编程体验 逆向思维 逻辑训练 Sokoban",
     pinned: true,
     priority: 82
 };
 
 const pageTitle = `儿童编程互动游戏：键盘推箱子大冒险 (49关) — ${SITE_TITLE}`;
-const pageDescription = "支持键盘与手机触控操作的推箱子游戏，带清晰坐标网格与移动端适配手柄，内置 49 个逻辑关卡！";
+const pageDescription = "支持键盘方向键即时控制的推箱子游戏，内置 49 个由浅入深的逻辑关卡！";
 ---
 
 <!doctype html>
@@ -46,7 +46,6 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				font-size: 0.95rem;
 			}
 
-			/* 游戏大容器 */
 			.game-container {
 				display: grid;
 				grid-template-columns: 1fr 340px;
@@ -55,11 +54,11 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				border: 1px solid var(--card-border);
 				border-radius: 20px;
 				padding: 1.5rem;
-				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 				backdrop-filter: blur(12px);
 			}
 
-			/* 📱 手机端竖屏响应式核心布局：转换为单列上下结构 */
+			/* 📱 手机端竖屏：自适应为上下布局，按键居于地图下方 */
 			@media (max-width: 850px) {
 				main {
 					padding: 1em 0.5em 3em;
@@ -103,97 +102,65 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				cursor: pointer;
 			}
 
-			/* 🏁 带坐标标尺的地图包装盒 */
-			.board-wrapper {
-				display: grid;
-				grid-template-columns: 24px 1fr;
-				grid-template-rows: 24px 1fr;
-				gap: 6px;
-				width: 100%;
-				max-width: 440px;
-				margin: 0 auto;
-			}
-
-			.axis-empty { grid-area: 1 / 1; }
-			
-			/* X 轴数字标尺 (1~7) */
-			.axis-x {
-				grid-area: 1 / 2;
-				display: grid;
-				grid-template-columns: repeat(7, 1fr);
-				text-align: center;
-				font-weight: 800;
-				font-size: 0.85rem;
-				color: var(--accent);
-				align-items: center;
-			}
-
-			/* Y 轴数字标尺 (1~7) */
-			.axis-y {
-				grid-area: 2 / 1;
-				display: grid;
-				grid-template-rows: repeat(7, 1fr);
-				text-align: center;
-				font-weight: 800;
-				font-size: 0.85rem;
-				color: var(--accent);
-				align-items: center;
-			}
-
-			/* ☀️ 浅色高对比 7x7 推箱子网格 */
+			/* 地图面板：强化 7x7 深色迷宫网格线 */
 			.sokoban-grid {
-				grid-area: 2 / 2;
-				display: grid;
-				grid-template-columns: repeat(7, 1fr);
-				grid-template-rows: repeat(7, 1fr);
-				gap: 3px;
+				display: grid !important;
+				grid-template-columns: repeat(7, 1fr) !important;
+				grid-template-rows: repeat(7, 1fr) !important;
+				gap: 3px !important;
 				width: 100%;
+				max-width: 420px;
 				aspect-ratio: 1 / 1;
-				background: #94a3b8;
-				border: 3px solid #64748b;
-				border-radius: 12px;
-				padding: 4px;
-				box-sizing: border-box;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+				background: #090d16 !important;
+				border: 3px solid #334155;
+				border-radius: 16px;
+				padding: 8px;
+				box-sizing: border-box !important;
+				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
-			/* 基础格子 */
+			/* 格子基础结构：强制加上高对比内边框与交替底色 */
 			.sokoban-cell {
-				background: #ffffff;
-				border: 1px solid #cbd5e1;
-				border-radius: 4px;
-				display: flex;
+				background: #233148 !important;
+				border: 1.5px solid #475569 !important; /* 核心：高对比深灰色网格线！ */
+				border-radius: 6px;
+				display: flex !important;
 				align-items: center;
 				justify-content: center;
 				font-size: 1.5rem;
 				position: relative;
 				user-select: none;
+				box-sizing: border-box !important;
 			}
 
+			/* 交替棋盘格色调，让格子一目了然 */
 			.sokoban-cell.alt-tile {
-				background: #f1f5f9;
+				background: #1e293b !important;
 			}
 
+			/* 墙壁样式：显眼凸起的砖墙 */
 			.sokoban-cell.wall {
-				background: #334155;
-				border: 1px solid #0f172a;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+				background: #0f172a !important;
+				border: 1.5px solid #334155 !important;
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
 			}
 
+			/* 目标区域样式 */
 			.sokoban-cell.target-cell {
-				background: #fef3c7;
-				border: 2px dashed #f59e0b;
+				background: rgba(245, 158, 11, 0.25) !important;
+				border: 2px dashed #f59e0b !important;
 			}
 
+			/* 归位成功的样式 */
 			.sokoban-cell.target-placed {
-				background: #d1fae5;
-				border: 1.5px solid #10b981;
+				background: rgba(16, 185, 129, 0.25) !important;
+				border: 1.5px solid #10b981 !important;
 			}
 
 			.robot-avatar {
 				transition: transform 0.12s ease-out;
 				display: inline-block;
-				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 			}
 
 			.editor-box {
@@ -211,29 +178,29 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				gap: 0.4rem;
 			}
 
-			/* 📱 虚拟手柄按键布局 */
+			/* 虚拟摇杆与按键面板 */
 			.dpad-container {
 				display: grid;
 				grid-template-columns: repeat(3, 1fr);
-				gap: 0.6rem;
-				width: 240px;
+				gap: 0.5rem;
+				width: 210px;
 				margin: 0.5rem auto;
 			}
 
 			@media (max-width: 850px) {
 				.dpad-container {
-					width: 260px; /* 手机端放大方向键，大拇指极易按触 */
-					gap: 0.8rem;
+					width: 250px; /* 移动端放大方向键，方便单手按触 */
+					gap: 0.7rem;
 				}
 			}
 
 			.dpad-btn {
 				background: var(--search-bg);
-				border: 2px solid var(--card-border);
+				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				height: 65px;
-				border-radius: 16px;
-				font-size: 1.6rem;
+				height: 60px;
+				border-radius: 14px;
+				font-size: 1.4rem;
 				font-weight: 800;
 				cursor: pointer;
 				display: flex;
@@ -242,14 +209,11 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				transition: all 0.1s ease;
 				user-select: none;
 				touch-action: manipulation;
-				box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 			}
-
 			.dpad-btn:active {
-				transform: scale(0.90);
+				transform: scale(0.92);
 				background: var(--accent);
 				color: #fff;
-				border-color: var(--accent);
 			}
 			.dpad-btn.empty { visibility: hidden; }
 
@@ -275,12 +239,11 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				background: #f59e0b;
 				color: #fff;
 				border: none;
-				padding: 0.85em;
+				padding: 0.8em;
 				border-radius: 12px;
 				font-weight: 800;
 				font-size: 0.92rem;
 				cursor: pointer;
-				box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
 			}
 			.btn-undo:hover { opacity: 0.9; }
 
@@ -288,7 +251,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.85em;
+				padding: 0.8em;
 				border-radius: 12px;
 				font-weight: 700;
 				font-size: 0.92rem;
@@ -317,11 +280,11 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 		<main>
 			<div class="tool-header">
 				<h1>📦 儿童编程小游戏：键盘推箱子大冒险 (49关)</h1>
-				<p>看清坐标网格并规划路线，用最少的步数将所有箱子推到目标位置！</p>
+				<p>键盘按键控制方向，用最少的步数将所有箱子推到目标星号位置！</p>
 			</div>
 
 			<div class="game-container">
-				<!-- 左侧/手机上方：地图面板 -->
+				<!-- 左侧 / 移动端上方：地图面板 -->
 				<div class="stage-box">
 					<div class="level-bar">
 						<div>
@@ -333,42 +296,28 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 						<span>📦 归位目标: <span id="targetStatus">0/1</span></span>
 					</div>
 
-					<!-- 地图与 1-7 坐标轴包装容器 -->
-					<div class="board-wrapper">
-						<div class="axis-empty"></div>
-						<!-- 横向 X 坐标标尺 -->
-						<div class="axis-x">
-							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
-						</div>
-						<!-- 纵向 Y 坐标标尺 -->
-						<div class="axis-y">
-							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
-						</div>
-
-						<!-- 7x7 高清网格地图 -->
-						<div class="sokoban-grid" id="sokobanGrid">
-							<!-- 动态渲染 -->
-						</div>
+					<div class="sokoban-grid" id="sokobanGrid">
+						<!-- 动态渲染 7x7 地图 -->
 					</div>
 				</div>
 
-				<!-- 右侧/手机下方：控制与面板，手机端会自动排列在地图下方 -->
+				<!-- 右侧 / 移动端下方：控制与面板 -->
 				<div class="editor-box">
 					<div class="stat-card">
 						<span>👟 当前步数: <span id="stepCount" style="color:var(--accent);">0</span></span>
 						<span>🏆 历史最好: <span id="bestCount">--</span></span>
 					</div>
 
-					<div class="panel-title">🎮 方向键控制 (按键自动位于下方)</div>
+					<div class="panel-title">🎮 方向键控制 (键盘/触摸)</div>
 					
-					<!-- 手机端底部的十字触控方向键 -->
+					<!-- 十字按键手柄 -->
 					<div class="dpad-container">
 						<div class="dpad-btn empty"></div>
-						<button class="dpad-btn" id="btnUp" aria-label="向上移动">▲</button>
+						<button class="dpad-btn" id="btnUp" aria-label="向上">▲</button>
 						<div class="dpad-btn empty"></div>
-						<button class="dpad-btn" id="btnLeft" aria-label="向左移动">◄</button>
-						<button class="dpad-btn" id="btnDown" aria-label="向下移动">▼</button>
-						<button class="dpad-btn" id="btnRight" aria-label="向右移动">►</button>
+						<button class="dpad-btn" id="btnLeft" aria-label="向左">◄</button>
+						<button class="dpad-btn" id="btnDown" aria-label="向下">▼</button>
+						<button class="dpad-btn" id="btnRight" aria-label="向右">►</button>
 					</div>
 
 					<div class="action-bar">
@@ -377,7 +326,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 					</div>
 
 					<div class="key-tips">
-						💡 提示：电脑端可用 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 控制，<kbd>Z</kbd> 键快速撤销。
+						💡 提示：电脑端可直接使用键盘 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 控制，<kbd>Z</kbd> 键快速撤销。
 					</div>
 				</div>
 			</div>
@@ -386,7 +335,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 自动生成 49 个逻辑清晰关卡
+			// 自动生成 49 个逻辑清晰、无坐标冲突的关卡
 			function generate49Levels() {
 				const levels = [];
 				for (let i = 1; i <= 49; i++) {
@@ -406,7 +355,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 						walls.push({ x: 6, y });
 					}
 
-					// 2. 根据难度摆放内墙与箱子
+					// 2. 根据不同难度摆放内墙、箱子与目标点
 					if (numBoxes === 1) {
 						boxes.push({ x: 2, y: 2 + (i % 2) });
 						targets.push({ x: 5, y: 2 + (i % 2) });
@@ -432,7 +381,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 
 			const LEVELS = generate49Levels();
 			let currentLevelIdx = 0;
-			let robot = { x: 1, y: 1, dir: 1 };
+			let robot = { x: 1, y: 1, dir: 1 }; // 0上, 1右, 2下, 3左
 			let boxes = [];
 			let moveHistory = [];
 			let stepCount = 0;
@@ -486,7 +435,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 						const cell = document.createElement('div');
 						cell.className = 'sokoban-cell';
 
-						// 棋盘格交替色
+						// 棋盘格交替浅深色
 						if ((r + c) % 2 === 1) {
 							cell.classList.add('alt-tile');
 						}
@@ -496,7 +445,7 @@ const pageDescription = "支持键盘与手机触控操作的推箱子游戏，�
 						const hasBox = boxes.some(b => b.x === c && b.y === r);
 						const isRobot = r === robot.y && c === robot.x;
 
-						// 1. 渲染深色砖墙
+						// 1. 先渲染墙壁
 						if (isWall) {
 							cell.classList.add('wall');
 							cell.textContent = '🧱';
