@@ -103,7 +103,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				display: grid !important;
 				grid-template-columns: repeat(6, 1fr) !important;
 				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 3px !important;
+				gap: 2px !important;
 				width: 100%;
 				max-width: 380px;
 				aspect-ratio: 1 / 1;
@@ -115,11 +115,8 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 			}
 
-			/* 🏁 基础格子：深色底 + 极清灰蓝边框 */
+			/* 🏁 基础格子基础属性 */
 			.maze-cell {
-				background-color: #1e293b !important;
-				border: 1.5px solid #475569 !important; /* 强制绘制清晰边框 */
-				border-radius: 4px;
 				display: flex !important;
 				align-items: center;
 				justify-content: center;
@@ -127,19 +124,26 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				position: relative;
 				user-select: none;
 				box-sizing: border-box !important;
+				border-radius: 4px;
 			}
 
-			/* 🏁 交替棋盘格色 */
-			.maze-cell.alt-cell {
-				background-color: #2d3f5d !important;
-				border-color: #64748b !important;
+			/* 🏁 核心：利用 CSS 棋盘交替规则强行渲染“深浅色块交错” */
+			/* 偶数行奇数列 & 奇数行偶数列 -> 浅蓝灰块 */
+			.maze-cell:nth-child(2n) {
+				background-color: #2b3a52 !important;
+				border: 1px solid #475569 !important;
+			}
+			/* 奇数行奇数列 & 偶数行偶数列 -> 深蓝灰块 */
+			.maze-cell:nth-child(2n+1) {
+				background-color: #1a2436 !important;
+				border: 1px solid #334155 !important;
 			}
 
-			/* 🏁 墙壁样式 */
+			/* 🏁 墙壁样式：高优先级覆写 */
 			.maze-cell.wall-cell {
-				background-color: #0f172a !important;
-				border-color: #1e293b !important;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+				background-color: #0b1120 !important;
+				border: 1px solid #1e293b !important;
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 			}
 
 			/* 🏁 终点目标样式 */
@@ -325,17 +329,14 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			// 🧠 利用 DFS 深度优先算法生成绝对有解的 6x6 迷宫
 			function generateValidMaze(levelNum) {
 				const size = 6;
-				// 伪随机种子（确保相同的关卡序号永远生成相同的独一无二迷宫）
 				let seed = levelNum * 9301 + 49297;
 				function random() {
 					seed = (seed * 9301 + 49297) % 233280;
 					return seed / 233280;
 				}
 
-				// 1. 初始化全为墙
 				let maze = Array(size).fill(null).map(() => Array(size).fill(true));
 				
-				// 2. 递归雕刻通路
 				function carve(x, y) {
 					maze[y][x] = false;
 					const dirs = [
@@ -346,7 +347,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					for (let d of dirs) {
 						let nx = x + d.dx, ny = y + d.dy;
 						if (nx >= 0 && nx < size && ny >= 0 && ny < size && maze[ny][nx]) {
-							// 检查邻居数量，确保通畅
 							let neighbors = 0;
 							for (let check of [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}]) {
 								let cx = nx + check.dx, cy = ny + check.dy;
@@ -360,10 +360,9 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				}
 
 				carve(0, 0);
-				maze[0][0] = false; // 起点 (0,0)
-				maze[5][5] = false; // 终点 (5,5)
+				maze[0][0] = false;
+				maze[5][5] = false;
 
-				// 提取墙壁坐标列表
 				let walls = [];
 				for (let r = 0; r < size; r++) {
 					for (let c = 0; c < size; c++) {
@@ -381,7 +380,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				};
 			}
 
-			// 自动生成 100 关有解迷宫
 			const TOTAL_LEVELS = 100;
 			const LEVELS = [];
 			for (let i = 1; i <= TOTAL_LEVELS; i++) {
@@ -400,7 +398,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			const btnRun = document.getElementById('btnRun');
 			const btnReset = document.getElementById('btnReset');
 
-			// 初始化 100 关下拉列表
 			LEVELS.forEach((lvl, idx) => {
 				const opt = document.createElement('option');
 				opt.value = idx;
@@ -427,21 +424,16 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 
-						// 挂载棋盘深浅格子类名
-						if ((r + c) % 2 === 1) {
-							cell.classList.add('alt-cell');
-						}
-
 						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
 						const isTarget = c === lvl.target.x && r === lvl.target.y;
 						const isRobot = r === robot.y && c === robot.x;
 
-						// 1. 渲染墙壁
+						// 1. 墙壁类名
 						if (isWall) {
 							cell.classList.add('wall-cell');
 							cell.textContent = '🧱';
 						} 
-						// 2. 渲染终点
+						// 2. 终点类名
 						else if (isTarget) {
 							cell.classList.add('target-cell');
 							if (!isRobot) {
@@ -508,7 +500,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 				const lvl = LEVELS[currentLevelIdx];
 
-				// 展开重复指令
 				let expandedQueue = [];
 				for (let item of instructions) {
 					if (item.action === 'REPEAT_3') {
