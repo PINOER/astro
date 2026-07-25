@@ -6,7 +6,7 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (49关)",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。亮色高对比画面，内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
+    description: "免安装！专为儿童设计的逻辑避障编程游戏。高清棋盘网格+坐标标尺，内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
     icon: "🧱",
     tag: "儿童编程",
     keywords: "儿童编程游戏 迷宫算法 条件判断 49关迷宫 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
@@ -15,7 +15,7 @@ export const frontmatter = {
 };
 
 const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 (49关) — ${SITE_TITLE}`;
-const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，浅色高对比地图，内置 49 个由浅入深的避障关卡。";
+const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，带清晰坐标网格，内置 49 个由浅入深的避障关卡。";
 ---
 
 <!doctype html>
@@ -70,6 +70,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				flex-direction: column;
 				align-items: center;
 				gap: 1rem;
+				width: 100%;
 			}
 			.level-bar {
 				display: flex;
@@ -96,45 +97,85 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				cursor: pointer;
 			}
 
-			/* ☀️ 浅色迷宫舞台：清爽、高对比度 */
+			/* 🏁 带坐标标尺的地图包装盒 */
+			.board-wrapper {
+				display: grid;
+				grid-template-columns: 24px 1fr;
+				grid-template-rows: 24px 1fr;
+				gap: 6px;
+				width: 100%;
+				max-width: 410px;
+			}
+
+			.axis-empty { grid-area: 1 / 1; }
+			
+			/* X 轴数字标尺 (1~6) */
+			.axis-x {
+				grid-area: 1 / 2;
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				text-align: center;
+				font-weight: 800;
+				font-size: 0.85rem;
+				color: var(--accent);
+				align-items: center;
+			}
+
+			/* Y 轴数字标尺 (1~6) */
+			.axis-y {
+				grid-area: 2 / 1;
+				display: grid;
+				grid-template-rows: repeat(6, 1fr);
+				text-align: center;
+				font-weight: 800;
+				font-size: 0.85rem;
+				color: var(--accent);
+				align-items: center;
+			}
+
+			/* ☀️ 浅色高对比网格迷宫舞台 */
 			.maze-grid {
+				grid-area: 2 / 2;
 				display: grid;
 				grid-template-columns: repeat(6, 1fr);
 				grid-template-rows: repeat(6, 1fr);
-				gap: 4px;
+				gap: 3px;
 				width: 100%;
-				max-width: 380px;
 				aspect-ratio: 1 / 1;
-				background: #e2e8f0; /* 浅灰外框 */
-				border: 4px solid #cbd5e1;
-				border-radius: 16px;
-				padding: 8px;
+				background: #94a3b8; /* 灰蓝色高亮暗分割线 */
+				border: 3px solid #64748b;
+				border-radius: 12px;
+				padding: 4px;
 				box-sizing: border-box;
-				box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+				box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 			}
 
-			/* ☀️ 地面走道格子：纯白底 + 浅灰边框，线条极其清晰 */
+			/* ☀️ 普通走道格子：交替深浅网格纹，并带有 1px 实线边框 */
 			.maze-cell {
 				background: #ffffff;
-				border: 1.5px solid #cbd5e1;
-				border-radius: 8px;
+				border: 1px solid #cbd5e1;
+				border-radius: 4px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.6rem;
+				font-size: 1.5rem;
 				position: relative;
 				user-select: none;
-				box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 			}
 
-			/* ☀️ 墙壁样式：高对比深灰蓝 + 立体阴影 */
+			/* 棋盘格交替色：让走道网格一眼就能数出来有多少格 */
+			.maze-cell.alt-tile {
+				background: #f1f5f9;
+			}
+
+			/* ☀️ 墙壁样式：高对比深灰蓝砖墙 */
 			.maze-cell.wall {
 				background: #334155;
-				border: 1.5px solid #1e293b;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.15);
+				border: 1px solid #0f172a;
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
 			}
 
-			/* ☀️ 终点目标区域：暖黄高亮 */
+			/* ☀️ 终点目标区域：金黄高亮 */
 			.maze-cell.target-cell {
 				background: #fef3c7;
 				border: 2px dashed #f59e0b;
@@ -143,7 +184,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			.robot-icon {
 				transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 				display: inline-block;
-				filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+				filter: drop-shadow(0 3px 5px rgba(0,0,0,0.25));
 			}
 
 			/* 右侧编辑器 */
@@ -266,11 +307,11 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<main>
 			<div class="tool-header">
 				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱 (49关)</h1>
-				<p>组合“检测传感器”与“方向转弯”算法，帮助探险机器人冲出迷宫陷阱！</p>
+				<p>看清坐标网格并数清步数，组合“前进”与“方向”指令帮机器人逃离迷宫！</p>
 			</div>
 
 			<div class="game-container">
-				<!-- 左侧：迷宫地图 -->
+				<!-- 左侧：迷宫地图与坐标轴 -->
 				<div class="stage-box">
 					<div class="level-bar">
 						<div>
@@ -282,8 +323,22 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						<span>电池状态: ⚡ 100%</span>
 					</div>
 
-					<div class="maze-grid" id="mazeGrid">
-						<!-- 动态生成 6x6 迷宫 -->
+					<!-- 地图与 1-6 坐标轴包装容器 -->
+					<div class="board-wrapper">
+						<div class="axis-empty"></div>
+						<!-- 横向 X 坐标标尺 -->
+						<div class="axis-x">
+							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+						</div>
+						<!-- 纵向 Y 坐标标尺 -->
+						<div class="axis-y">
+							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+						</div>
+
+						<!-- 6x6 高清网格迷宫 -->
+						<div class="maze-grid" id="mazeGrid">
+							<!-- 动态渲染 -->
+						</div>
 					</div>
 				</div>
 
@@ -300,7 +355,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 					<div class="panel-title">📜 2. 探险逻辑代码</div>
 					<div class="code-workspace" id="codeWorkspace">
-						<div class="empty-hint" id="emptyHint">点击上方积木组装避障代码...</div>
+						<div class="empty-hint" id="emptyHint">根据网格数点击积木组装代码...</div>
 					</div>
 
 					<div class="action-bar">
@@ -314,7 +369,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 动态程序化生成 49 个递进关卡
+			// 程序化生成 49 个递进关卡
 			function generate49MazeLevels() {
 				const levels = [];
 				for (let i = 1; i <= 49; i++) {
@@ -323,7 +378,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					let walls = [];
 
 					if (i <= 15) {
-						// 1-15 关：基础通道折线
+						// 1-15 关：基础折线
 						const wallX1 = 1 + (i % 3);
 						const wallX2 = 3 + (i % 2);
 						for (let r = 0; r < 4; r++) walls.push({ x: wallX1, y: r });
@@ -393,6 +448,11 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					for (let c = 0; c < 6; c++) {
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
+
+						// 棋盘格交替色渲染（让网格更加明显）
+						if ((r + c) % 2 === 1) {
+							cell.classList.add('alt-tile');
+						}
 
 						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
 						const isTarget = c === lvl.target.x && r === lvl.target.y;
