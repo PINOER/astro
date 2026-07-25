@@ -6,7 +6,7 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (49关)",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
+    description: "免安装！专为儿童设计的逻辑避障编程游戏。亮色高对比画面，内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
     icon: "🧱",
     tag: "儿童编程",
     keywords: "儿童编程游戏 迷宫算法 条件判断 49关迷宫 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
@@ -15,7 +15,7 @@ export const frontmatter = {
 };
 
 const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 (49关) — ${SITE_TITLE}`;
-const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，内置 49 个由浅入深的避障关卡。";
+const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，浅色高对比地图，内置 49 个由浅入深的避障关卡。";
 ---
 
 <!doctype html>
@@ -55,7 +55,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				border: 1px solid var(--card-border);
 				border-radius: 20px;
 				padding: 1.5rem;
-				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
 				backdrop-filter: blur(12px);
 			}
 
@@ -96,53 +96,54 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				cursor: pointer;
 			}
 
-			/* 迷宫地图样式强化 */
+			/* ☀️ 浅色迷宫舞台：清爽、高对比度 */
 			.maze-grid {
 				display: grid;
 				grid-template-columns: repeat(6, 1fr);
 				grid-template-rows: repeat(6, 1fr);
-				gap: 3px;
+				gap: 4px;
 				width: 100%;
 				max-width: 380px;
 				aspect-ratio: 1 / 1;
-				background: #090d16;
-				border: 3px solid #334155;
+				background: #e2e8f0; /* 浅灰外框 */
+				border: 4px solid #cbd5e1;
 				border-radius: 16px;
 				padding: 8px;
 				box-sizing: border-box;
-				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+				box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
 			}
 
-			/* 地面走道格子：带明显地砖边框 */
+			/* ☀️ 地面走道格子：纯白底 + 浅灰边框，线条极其清晰 */
 			.maze-cell {
-				background: #1e293b;
-				border: 1px solid rgba(255, 255, 255, 0.08);
-				border-radius: 6px;
+				background: #ffffff;
+				border: 1.5px solid #cbd5e1;
+				border-radius: 8px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.5rem;
+				font-size: 1.6rem;
 				position: relative;
 				user-select: none;
+				box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 			}
 
-			/* 墙壁样式：显眼的砖墙元素 */
+			/* ☀️ 墙壁样式：高对比深灰蓝 + 立体阴影 */
 			.maze-cell.wall {
 				background: #334155;
-				border: 1px solid #475569;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
+				border: 1.5px solid #1e293b;
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.15);
 			}
 
-			/* 终点目标区域 */
+			/* ☀️ 终点目标区域：暖黄高亮 */
 			.maze-cell.target-cell {
-				background: rgba(245, 158, 11, 0.2);
-				border: 1px dashed #f59e0b;
+				background: #fef3c7;
+				border: 2px dashed #f59e0b;
 			}
 
 			.robot-icon {
-				transition: transform 0.2s ease-out;
+				transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 				display: inline-block;
-				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+				filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
 			}
 
 			/* 右侧编辑器 */
@@ -171,7 +172,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.5em 0.6em;
+				padding: 0.6em 0.6em;
 				border-radius: 10px;
 				font-size: 0.82rem;
 				font-weight: 700;
@@ -179,7 +180,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				display: flex;
 				align-items: center;
 				gap: 0.3rem;
-				transition: all 0.2s ease;
+				transition: all 0.15s ease;
 			}
 			.block-btn:hover {
 				transform: translateY(-2px);
@@ -321,7 +322,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					let target = { x: 5, y: 5 };
 					let walls = [];
 
-					// 根据关卡序号变化墙壁排布
 					if (i <= 15) {
 						// 1-15 关：基础通道折线
 						const wallX1 = 1 + (i % 3);
@@ -398,7 +398,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const isTarget = c === lvl.target.x && r === lvl.target.y;
 						const isRobot = r === robot.y && c === robot.x;
 
-						// 1. 显式渲染砖墙
+						// 1. 显式渲染深色砖墙
 						if (isWall) {
 							cell.classList.add('wall');
 							cell.textContent = '🧱';
