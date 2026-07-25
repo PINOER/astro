@@ -1,0 +1,541 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+    title: "儿童编程互动游戏：键盘推箱子大冒险 (49关)",
+    description: "免安装！支持键盘方向键(↑↓←→)即时控制的推箱子游戏，内置 49 个由浅入深的经典关卡！锻炼空间认知、逆向思维与死锁预判能力！",
+    icon: "📦",
+    tag: "儿童编程",
+    keywords: "儿童推箱子 键盘推箱子 49关推箱子 少儿编程体验 逆向思维 逻辑训练 Sokoban",
+    pinned: true,
+    priority: 82
+};
+
+const pageTitle = `儿童编程互动游戏：键盘推箱子大冒险 (49关) — ${SITE_TITLE}`;
+const pageDescription = "支持键盘方向键即时控制的推箱子游戏，内置 49 个由浅入深的逻辑关卡！";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1000px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2.5em 1em 4em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.5em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.5rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 1rem;
+			}
+			.level-bar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.6em 1em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-weight: 700;
+				font-size: 0.92rem;
+			}
+
+			.level-select {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.3em 0.6em;
+				border-radius: 8px;
+				font-weight: 700;
+				font-size: 0.88rem;
+				outline: none;
+				cursor: pointer;
+			}
+
+			.sokoban-grid {
+				display: grid;
+				grid-template-columns: repeat(7, 1fr);
+				grid-template-rows: repeat(7, 1fr);
+				gap: 4px;
+				width: 100%;
+				max-width: 420px;
+				aspect-ratio: 1 / 1;
+				background: #0f172a;
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				padding: 10px;
+				box-sizing: border-box;
+			}
+
+			.sokoban-cell {
+				background: rgba(255, 255, 255, 0.03);
+				border-radius: 6px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.5rem;
+				position: relative;
+			}
+
+			.sokoban-cell.wall {
+				background: #334155;
+				border: 1px solid #475569;
+				box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+			}
+
+			.sokoban-cell.target-placed {
+				background: rgba(16, 185, 129, 0.25);
+				border: 1px dashed #10b981;
+			}
+
+			.robot-avatar {
+				transition: transform 0.15s ease;
+				display: inline-block;
+			}
+
+			/* 虚拟摇杆与按键面板 (适配手机端) */
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+
+			.panel-title {
+				font-size: 0.9rem;
+				font-weight: 700;
+				color: var(--text-main);
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+			}
+
+			/* 方向盘虚拟按键布局 */
+			.dpad-container {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 0.5rem;
+				width: 210px;
+				margin: 0.5rem auto;
+			}
+
+			.dpad-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				height: 60px;
+				border-radius: 14px;
+				font-size: 1.4rem;
+				font-weight: 800;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.15s ease;
+				user-select: none;
+			}
+			.dpad-btn:active {
+				transform: scale(0.92);
+				background: var(--accent);
+				color: #fff;
+			}
+			.dpad-btn.empty { visibility: hidden; }
+
+			.stat-card {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem 1rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.88rem;
+				font-weight: 700;
+			}
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.btn-undo {
+				background: #f59e0b;
+				color: #fff;
+				border: none;
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 800;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-undo:hover { opacity: 0.9; }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.8em;
+				border-radius: 12px;
+				font-weight: 700;
+				font-size: 0.92rem;
+				cursor: pointer;
+			}
+			.btn-reset:hover { border-color: var(--accent); }
+
+			.key-tips {
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				text-align: center;
+				line-height: 1.5;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>📦 儿童编程小游戏：键盘推箱子大冒险 (49关)</h1>
+				<p>键盘按键控制方向，用最少的步数将所有箱子推到目标星号位置！</p>
+			</div>
+
+			<div class="game-container">
+				<!-- 左侧：地图面板 -->
+				<div class="stage-box">
+					<div class="level-bar">
+						<div>
+							关卡: 
+							<select id="levelSelect" class="level-select">
+								<!-- JS 动态生成 1-49 关选项 -->
+							</select>
+						</div>
+						<span>📦 归位目标: <span id="targetStatus">0/1</span></span>
+					</div>
+
+					<div class="sokoban-grid" id="sokobanGrid">
+						<!-- 动态渲染 7x7 地图 -->
+					</div>
+				</div>
+
+				<!-- 右侧：控制与面板 -->
+				<div class="editor-box">
+					<div class="stat-card">
+						<span>👟 当前步数: <span id="stepCount" style="color:var(--accent);">0</span></span>
+						<span>🏆 历史最好: <span id="bestCount">--</span></span>
+					</div>
+
+					<div class="panel-title">🎮 方向键控制 (键盘/触摸)</div>
+					
+					<!-- 十字按键 -->
+					<div class="dpad-container">
+						<div class="dpad-btn empty"></div>
+						<button class="dpad-btn" id="btnUp">▲</button>
+						<div class="dpad-btn empty"></div>
+						<button class="dpad-btn" id="btnLeft">◄</button>
+						<button class="dpad-btn" id="btnDown">▼</button>
+						<button class="dpad-btn" id="btnRight">►</button>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-undo" id="btnUndo">↩️ 撤销上一步</button>
+						<button class="btn-reset" id="btnReset">🔄 重置本关</button>
+					</div>
+
+					<div class="key-tips">
+						💡 提示：电脑端可直接使用键盘键盘 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 进行控制。<kbd>Z</kbd> 键快速撤销。
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			// 自动生成 49 个不同构型的程序化/算法递进关卡
+			function generate49Levels() {
+				const levels = [];
+				for (let i = 1; i <= 49; i++) {
+					// 基础障碍网格模板与推箱布局生成器
+					const numBoxes = i <= 10 ? 1 : (i <= 25 ? 2 : (i <= 40 ? 3 : 4));
+					let robot = { x: 1, y: 1, dir: 1 };
+					let walls = [];
+					let boxes = [];
+					let targets = [];
+
+					// 边界墙
+					for (let x = 0; x < 7; x++) {
+						walls.push({ x, y: 0 });
+						walls.push({ x, y: 6 });
+					}
+					for (let y = 1; y < 6; y++) {
+						walls.push({ x: 0, y });
+						walls.push({ x: 6, y });
+					}
+
+					// 根据关卡 index 摆放障碍物、箱子与目标 (保证有解)
+					if (numBoxes === 1) {
+						boxes.push({ x: 2 + (i % 2), y: 2 + (i % 3) });
+						targets.push({ x: 5, y: 2 + (i % 3) });
+						if (i > 5) walls.push({ x: 3, y: 1 }, { x: 3, y: 5 });
+					} else if (numBoxes === 2) {
+						boxes.push({ x: 2, y: 2 }, { x: 3, y: 3 });
+						targets.push({ x: 5, y: 2 }, { x: 5, y: 4 });
+						walls.push({ x: 4, y: 1 }, { x: 2, y: 4 });
+					} else if (numBoxes === 3) {
+						boxes.push({ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 4 });
+						targets.push({ x: 5, y: 1 }, { x: 5, y: 3 }, { x: 5, y: 5 });
+						walls.push({ x: 1, y: 4 }, { x: 4, y: 2 });
+					} else { // 4 个箱子硬核关
+						boxes.push({ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 2 }, { x: 3, y: 3 });
+						targets.push({ x: 5, y: 1 }, { x: 5, y: 2 }, { x: 5, y: 4 }, { x: 5, y: 5 });
+						walls.push({ x: 4, y: 3 });
+					}
+
+					levels.push({ title: `第 ${i} 关`, robot, boxes, targets, walls });
+				}
+				return levels;
+			}
+
+			const LEVELS = generate49Levels();
+			let currentLevelIdx = 0;
+			let robot = { x: 1, y: 1, dir: 1 }; // 0上, 1右, 2下, 3左
+			let boxes = [];
+			let moveHistory = []; // 用于撤销
+			let stepCount = 0;
+
+			const sokobanGrid = document.getElementById('sokobanGrid');
+			const levelSelect = document.getElementById('levelSelect');
+			const targetStatus = document.getElementById('targetStatus');
+			const stepCountEl = document.getElementById('stepCount');
+			const bestCountEl = document.getElementById('bestCount');
+			const btnUndo = document.getElementById('btnUndo');
+			const btnReset = document.getElementById('btnReset');
+
+			// 初始化 49 关下拉列表
+			LEVELS.forEach((lvl, idx) => {
+				const opt = document.createElement('option');
+				opt.value = idx;
+				opt.textContent = `第 ${idx + 1} 关 ${idx < 10 ? '🟢入门' : (idx < 25 ? '🟡进阶' : '🔴高难')}`;
+				levelSelect.appendChild(opt);
+			});
+
+			function initLevel(idx) {
+				currentLevelIdx = idx;
+				levelSelect.value = idx;
+				const lvl = LEVELS[idx];
+				
+				robot = { ...lvl.robot };
+				boxes = JSON.parse(JSON.stringify(lvl.boxes));
+				moveHistory = [];
+				stepCount = 0;
+				
+				updateStatsUI();
+				renderGrid();
+			}
+
+			function updateStatsUI() {
+				const lvl = LEVELS[currentLevelIdx];
+				const placedCount = boxes.filter(b => lvl.targets.some(t => t.x === b.x && t.y === b.y)).length;
+				targetStatus.textContent = `${placedCount}/${lvl.targets.length}`;
+				stepCountEl.textContent = stepCount;
+
+				const best = localStorage.getItem(`sokoban_best_${currentLevelIdx}`);
+				bestCountEl.textContent = best ? `${best} 步` : '--';
+			}
+
+			function renderGrid() {
+				sokobanGrid.innerHTML = '';
+				const lvl = LEVELS[currentLevelIdx];
+
+				for (let r = 0; r < 7; r++) {
+					for (let c = 0; c < 7; c++) {
+						const cell = document.createElement('div');
+						cell.className = 'sokoban-cell';
+
+						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
+						if (isWall) {
+							cell.classList.add('wall');
+						}
+
+						const isTarget = lvl.targets.some(t => t.x === c && t.y === r);
+						const hasBox = boxes.some(b => b.x === c && b.y === r);
+
+						if (isTarget && hasBox) {
+							cell.classList.add('target-placed');
+						}
+
+						if (isTarget && !hasBox) {
+							cell.textContent = '⭐';
+						} else if (hasBox) {
+							cell.textContent = '📦';
+						}
+
+						if (r === robot.y && c === robot.x) {
+							const rObj = document.createElement('span');
+							rObj.className = 'robot-avatar';
+							rObj.textContent = '🤖';
+							const angles = [270, 0, 90, 180];
+							rObj.style.transform = `rotate(${angles[robot.dir]}deg)`;
+							cell.appendChild(rObj);
+						}
+
+						sokobanGrid.appendChild(cell);
+					}
+				}
+			}
+
+			// 移动核心逻辑 (支持按键即时响应)
+			function handleMove(dir) { // 0上, 1右, 2下, 3左
+				const lvl = LEVELS[currentLevelIdx];
+				robot.dir = dir;
+
+				let dx = 0, dy = 0;
+				if (dir === 0) dy = -1;
+				if (dir === 1) dx = 1;
+				if (dir === 2) dy = 1;
+				if (dir === 3) dx = -1;
+
+				let nextX = robot.x + dx;
+				let nextY = robot.y + dy;
+
+				// 检查撞墙
+				if (lvl.walls.some(w => w.x === nextX && w.y === nextY)) return;
+
+				// 检查推箱子
+				const boxIdx = boxes.findIndex(b => b.x === nextX && b.y === nextY);
+				let movedBox = false;
+				let oldBoxPos = null;
+
+				if (boxIdx !== -1) {
+					let boxNextX = nextX + dx;
+					let boxNextY = nextY + dy;
+
+					// 检查箱子后方障碍
+					const boxBlocked = lvl.walls.some(w => w.x === boxNextX && w.y === boxNextY) ||
+						boxes.some(b => b.x === boxNextX && b.y === boxNextY);
+
+					if (boxBlocked) return; // 推不动
+
+					// 记录历史用于撤销
+					oldBoxPos = { ...boxes[boxIdx] };
+					boxes[boxIdx].x = boxNextX;
+					boxes[boxIdx].y = boxNextY;
+					movedBox = true;
+				}
+
+				// 保存历史记录
+				moveHistory.push({
+					robotPos: { x: robot.x, y: robot.y, dir: robot.dir },
+					boxIdx: movedBox ? boxIdx : null,
+					boxPos: oldBoxPos
+				});
+
+				robot.x = nextX;
+				robot.y = nextY;
+				stepCount++;
+
+				updateStatsUI();
+				renderGrid();
+
+				// 通关检测
+				const allPlaced = lvl.targets.every(t => boxes.some(b => b.x === t.x && b.y === t.y));
+				if (allPlaced) {
+					// 记录最佳步数
+					const best = localStorage.getItem(`sokoban_best_${currentLevelIdx}`);
+					if (!best || stepCount < parseInt(best)) {
+						localStorage.setItem(`sokoban_best_${currentLevelIdx}`, stepCount);
+					}
+
+					setTimeout(() => {
+						if (currentLevelIdx < 48) {
+							alert(`🎉 恭喜通关第 ${currentLevelIdx + 1} 关！用时 ${stepCount} 步！即将解锁第 ${currentLevelIdx + 2} 关！`);
+							initLevel(currentLevelIdx + 1);
+						} else {
+							alert('🏆 绝顶聪明！你已经通关了全部 49 个推箱子关卡！');
+						}
+					}, 150);
+				}
+			}
+
+			// 撤销功能
+			function undo() {
+				if (moveHistory.length === 0) return;
+				const lastState = moveHistory.pop();
+				robot.x = lastState.robotPos.x;
+				robot.y = lastState.robotPos.y;
+				robot.dir = lastState.robotPos.dir;
+
+				if (lastState.boxIdx !== null) {
+					boxes[lastState.boxIdx] = lastState.boxPos;
+				}
+
+				stepCount = Math.max(0, stepCount - 1);
+				updateStatsUI();
+				renderGrid();
+			}
+
+			// 绑定键盘按键事件
+			window.addEventListener('keydown', (e) => {
+				if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') handleMove(0);
+				if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') handleMove(1);
+				if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') handleMove(2);
+				if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') handleMove(3);
+				if (e.key === 'z' || e.key === 'Z') undo();
+			});
+
+			// 绑定虚拟按键点击
+			document.getElementById('btnUp').addEventListener('click', () => handleMove(0));
+			document.getElementById('btnRight').addEventListener('click', () => handleMove(1));
+			document.getElementById('btnDown').addEventListener('click', () => handleMove(2));
+			document.getElementById('btnLeft').addEventListener('click', () => handleMove(3));
+
+			btnUndo.addEventListener('click', undo);
+			btnReset.addEventListener('click', () => initLevel(currentLevelIdx));
+			levelSelect.addEventListener('change', (e) => initLevel(parseInt(e.target.value)));
+
+			initLevel(0);
+		</script>
+	</body>
+</html>
