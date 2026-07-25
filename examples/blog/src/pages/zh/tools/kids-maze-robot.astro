@@ -98,52 +98,16 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				cursor: pointer;
 			}
 
-			/* 🏁 带坐标标尺的地图包装盒 */
-			.board-wrapper {
-				display: grid;
-				grid-template-columns: 24px 1fr;
-				grid-template-rows: 24px 1fr;
-				gap: 6px;
-				width: 100%;
-				max-width: 410px;
-			}
-
-			.axis-empty { grid-area: 1 / 1; }
-			
-			/* X 轴数字标尺 (1~6) */
-			.axis-x {
-				grid-area: 1 / 2;
-				display: grid;
-				grid-template-columns: repeat(6, 1fr);
-				text-align: center;
-				font-weight: 800;
-				font-size: 0.9rem;
-				color: #60a5fa; /* 亮蓝护眼数字 */
-				align-items: center;
-			}
-
-			/* Y 轴数字标尺 (1~6) */
-			.axis-y {
-				grid-area: 2 / 1;
-				display: grid;
-				grid-template-rows: repeat(6, 1fr);
-				text-align: center;
-				font-weight: 800;
-				font-size: 0.9rem;
-				color: #60a5fa;
-				align-items: center;
-			}
-
-			/* 🌌 迷宫地图舞台 (保持深色主基调) */
+			/* 迷宫地图外框 */
 			.maze-grid {
-				grid-area: 2 / 2;
 				display: grid !important;
 				grid-template-columns: repeat(6, 1fr) !important;
 				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 3px !important;
+				gap: 4px !important; /* 格子之间的间隙 */
 				width: 100%;
+				max-width: 380px;
 				aspect-ratio: 1 / 1;
-				background: #0f172a !important; /* 经典深色舞台底色 */
+				background: #0f172a !important; /* 最底层暗背景 */
 				border: 2px solid var(--card-border);
 				border-radius: 16px;
 				padding: 8px;
@@ -151,10 +115,10 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
-			/* 🌌 高清晰度网格格子：明亮深蓝内边框 + 棋盘格 */
+			/* 核心修复：清晰独立的小方格（含极清边框与棋盘深浅格子） */
 			.maze-cell {
-				background: #1e293b !important;
-				border: 1.5px solid #334155 !important; /* 强制显示清晰网格线条 */
+				background: #233148 !important; /* 比背景更亮一点的灰蓝色通道 */
+				border: 1.5px solid #475569 !important; /* 强制画上高对比度边框线条！ */
 				border-radius: 6px;
 				display: flex !important;
 				align-items: center;
@@ -165,20 +129,19 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				box-sizing: border-box !important;
 			}
 
-			/* 棋盘格微光，让网格一目了然 */
+			/* 交替深浅棋盘格，保证每个格子绝不粘连 */
 			.maze-cell.alt-tile {
-				background: #141f33 !important;
-				border-color: #2e3e56 !important;
+				background: #1e293b !important;
 			}
 
-			/* 🌌 墙壁样式：显眼的砖墙元素 */
+			/* 墙壁样式：砖墙与凸起 */
 			.maze-cell.wall {
-				background: #334155 !important;
-				border: 1.5px solid #475569 !important;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
+				background: #0f172a !important;
+				border: 1.5px solid #334155 !important;
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
 			}
 
-			/* 🌌 终点目标区域 */
+			/* 终点目标区域 */
 			.maze-cell.target-cell {
 				background: rgba(245, 158, 11, 0.25) !important;
 				border: 2px dashed #f59e0b !important;
@@ -326,22 +289,8 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						<span>电池状态: ⚡ 100%</span>
 					</div>
 
-					<!-- 地图与 1-6 坐标轴包装容器 -->
-					<div class="board-wrapper">
-						<div class="axis-empty"></div>
-						<!-- 横向 X 坐标标尺 -->
-						<div class="axis-x">
-							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
-						</div>
-						<!-- 纵向 Y 坐标标尺 -->
-						<div class="axis-y">
-							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
-						</div>
-
-						<!-- 6x6 动态迷宫 -->
-						<div class="maze-grid" id="mazeGrid">
-							<!-- 动态渲染 -->
-						</div>
+					<div class="maze-grid" id="mazeGrid">
+						<!-- 动态生成 6x6 迷宫 -->
 					</div>
 				</div>
 
@@ -380,7 +329,6 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					let target = { x: 5, y: 5 };
 					let walls = [];
 
-					// 根据关卡序号变化墙壁排布
 					if (i <= 15) {
 						// 1-15 关：基础通道折线
 						const wallX1 = 1 + (i % 3);
@@ -453,7 +401,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 
-						// 棋盘格交替色（让格子线清晰分明）
+						// 棋盘格浅灰色交替
 						if ((r + c) % 2 === 1) {
 							cell.classList.add('alt-tile');
 						}
