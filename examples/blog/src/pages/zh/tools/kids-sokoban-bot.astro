@@ -6,7 +6,7 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：键盘推箱子大冒险 (49关)",
-    description: "免安装！支持键盘方向键(↑↓←→)即时控制的推箱子游戏，内置 49 个由浅入深的经典关卡！锻炼空间认知、逆向思维与死锁预判能力！",
+    description: "免安装！支持键盘方向键(↑↓←→)即时控制的推箱子游戏，内置 49 个由浅入深的经典关卡！清晰墙壁纹理，锻炼空间认知、逆向思维与死锁预判能力！",
     icon: "📦",
     tag: "儿童编程",
     keywords: "儿童推箱子 键盘推箱子 49关推箱子 少儿编程体验 逆向思维 逻辑训练 Sokoban",
@@ -95,48 +95,60 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				cursor: pointer;
 			}
 
+			/* 地图面板优化 */
 			.sokoban-grid {
 				display: grid;
 				grid-template-columns: repeat(7, 1fr);
 				grid-template-rows: repeat(7, 1fr);
-				gap: 4px;
+				gap: 3px;
 				width: 100%;
 				max-width: 420px;
 				aspect-ratio: 1 / 1;
-				background: #0f172a;
-				border: 2px solid var(--card-border);
+				background: #090d16;
+				border: 3px solid #334155;
 				border-radius: 16px;
-				padding: 10px;
+				padding: 8px;
 				box-sizing: border-box;
+				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
+			/* 格子基础结构 */
 			.sokoban-cell {
-				background: rgba(255, 255, 255, 0.03);
+				background: #1e293b;
 				border-radius: 6px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
 				font-size: 1.5rem;
 				position: relative;
+				user-select: none;
 			}
 
+			/* 墙壁样式：显眼凸起的砖墙 */
 			.sokoban-cell.wall {
 				background: #334155;
 				border: 1px solid #475569;
-				box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
 			}
 
+			/* 目标区域样式 */
+			.sokoban-cell.target-cell {
+				background: rgba(245, 158, 11, 0.15);
+				border: 1px dashed #f59e0b;
+			}
+
+			/* 归位成功的样式 */
 			.sokoban-cell.target-placed {
 				background: rgba(16, 185, 129, 0.25);
-				border: 1px dashed #10b981;
+				border: 1px solid #10b981;
 			}
 
 			.robot-avatar {
-				transition: transform 0.15s ease;
+				transition: transform 0.12s ease-out;
 				display: inline-block;
+				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 			}
 
-			/* 虚拟摇杆与按键面板 (适配手机端) */
 			.editor-box {
 				display: flex;
 				flex-direction: column;
@@ -152,7 +164,7 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				gap: 0.4rem;
 			}
 
-			/* 方向盘虚拟按键布局 */
+			/* 虚拟摇杆与按键面板 */
 			.dpad-container {
 				display: grid;
 				grid-template-columns: repeat(3, 1fr);
@@ -173,8 +185,9 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				transition: all 0.15s ease;
+				transition: all 0.1s ease;
 				user-select: none;
+				touch-action: manipulation;
 			}
 			.dpad-btn:active {
 				transform: scale(0.92);
@@ -231,6 +244,14 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				text-align: center;
 				line-height: 1.5;
 			}
+
+			kbd {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 4px;
+				padding: 1px 5px;
+				font-size: 0.75rem;
+			}
 		</style>
 	</head>
 	<body>
@@ -284,7 +305,7 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 					</div>
 
 					<div class="key-tips">
-						💡 提示：电脑端可直接使用键盘键盘 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 进行控制。<kbd>Z</kbd> 键快速撤销。
+						💡 提示：电脑端可直接使用键盘 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 控制，<kbd>Z</kbd> 键快速撤销。
 					</div>
 				</div>
 			</div>
@@ -293,18 +314,17 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 自动生成 49 个不同构型的程序化/算法递进关卡
+			// 自动生成 49 个逻辑清晰、无坐标冲突的关卡
 			function generate49Levels() {
 				const levels = [];
 				for (let i = 1; i <= 49; i++) {
-					// 基础障碍网格模板与推箱布局生成器
 					const numBoxes = i <= 10 ? 1 : (i <= 25 ? 2 : (i <= 40 ? 3 : 4));
 					let robot = { x: 1, y: 1, dir: 1 };
 					let walls = [];
 					let boxes = [];
 					let targets = [];
 
-					// 边界墙
+					// 1. 铺设 7x7 围墙
 					for (let x = 0; x < 7; x++) {
 						walls.push({ x, y: 0 });
 						walls.push({ x, y: 6 });
@@ -314,11 +334,11 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 						walls.push({ x: 6, y });
 					}
 
-					// 根据关卡 index 摆放障碍物、箱子与目标 (保证有解)
+					// 2. 根据不同难度摆放内墙、箱子与目标点（确保无重复坐标）
 					if (numBoxes === 1) {
-						boxes.push({ x: 2 + (i % 2), y: 2 + (i % 3) });
-						targets.push({ x: 5, y: 2 + (i % 3) });
-						if (i > 5) walls.push({ x: 3, y: 1 }, { x: 3, y: 5 });
+						boxes.push({ x: 2, y: 2 + (i % 2) });
+						targets.push({ x: 5, y: 2 + (i % 2) });
+						if (i > 3) walls.push({ x: 3, y: 1 }, { x: 3, y: 5 });
 					} else if (numBoxes === 2) {
 						boxes.push({ x: 2, y: 2 }, { x: 3, y: 3 });
 						targets.push({ x: 5, y: 2 }, { x: 5, y: 4 });
@@ -327,7 +347,7 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 						boxes.push({ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 4 });
 						targets.push({ x: 5, y: 1 }, { x: 5, y: 3 }, { x: 5, y: 5 });
 						walls.push({ x: 1, y: 4 }, { x: 4, y: 2 });
-					} else { // 4 个箱子硬核关
+					} else { // 4 个箱子关卡
 						boxes.push({ x: 2, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 2 }, { x: 3, y: 3 });
 						targets.push({ x: 5, y: 1 }, { x: 5, y: 2 }, { x: 5, y: 4 }, { x: 5, y: 5 });
 						walls.push({ x: 4, y: 3 });
@@ -342,7 +362,7 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 			let currentLevelIdx = 0;
 			let robot = { x: 1, y: 1, dir: 1 }; // 0上, 1右, 2下, 3左
 			let boxes = [];
-			let moveHistory = []; // 用于撤销
+			let moveHistory = [];
 			let stepCount = 0;
 
 			const sokobanGrid = document.getElementById('sokobanGrid');
@@ -395,24 +415,34 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 						cell.className = 'sokoban-cell';
 
 						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
-						if (isWall) {
-							cell.classList.add('wall');
-						}
-
 						const isTarget = lvl.targets.some(t => t.x === c && t.y === r);
 						const hasBox = boxes.some(b => b.x === c && b.y === r);
+						const isRobot = r === robot.y && c === robot.x;
 
-						if (isTarget && hasBox) {
-							cell.classList.add('target-placed');
+						// 1. 先渲染墙壁 (最优先，显式渲染 🧱 Emoji)
+						if (isWall) {
+							cell.classList.add('wall');
+							cell.textContent = '🧱';
+						} 
+						// 2. 渲染目标点/箱子
+						else {
+							if (isTarget && hasBox) {
+								cell.classList.add('target-placed');
+							} else if (isTarget) {
+								cell.classList.add('target-cell');
+							}
+
+							if (isTarget && !hasBox && !isRobot) {
+								cell.textContent = '⭐';
+							} else if (hasBox && !isRobot) {
+								cell.textContent = '📦';
+							} else if (hasBox && isRobot) {
+								cell.textContent = '📦'; // 容错处理
+							}
 						}
 
-						if (isTarget && !hasBox) {
-							cell.textContent = '⭐';
-						} else if (hasBox) {
-							cell.textContent = '📦';
-						}
-
-						if (r === robot.y && c === robot.x) {
+						// 3. 渲染机器人
+						if (isRobot) {
 							const rObj = document.createElement('span');
 							rObj.className = 'robot-avatar';
 							rObj.textContent = '🤖';
@@ -426,7 +456,6 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				}
 			}
 
-			// 移动核心逻辑 (支持按键即时响应)
 			function handleMove(dir) { // 0上, 1右, 2下, 3左
 				const lvl = LEVELS[currentLevelIdx];
 				robot.dir = dir;
@@ -452,11 +481,11 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 					let boxNextX = nextX + dx;
 					let boxNextY = nextY + dy;
 
-					// 检查箱子后方障碍
+					// 检查箱子后方障碍（墙或另一个箱子）
 					const boxBlocked = lvl.walls.some(w => w.x === boxNextX && w.y === boxNextY) ||
 						boxes.some(b => b.x === boxNextX && b.y === boxNextY);
 
-					if (boxBlocked) return; // 推不动
+					if (boxBlocked) return; // 推不动，直接返回
 
 					// 记录历史用于撤销
 					oldBoxPos = { ...boxes[boxIdx] };
@@ -465,7 +494,7 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 					movedBox = true;
 				}
 
-				// 保存历史记录
+				// 保存动作记录
 				moveHistory.push({
 					robotPos: { x: robot.x, y: robot.y, dir: robot.dir },
 					boxIdx: movedBox ? boxIdx : null,
@@ -479,10 +508,9 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				updateStatsUI();
 				renderGrid();
 
-				// 通关检测
+				// 检查通关
 				const allPlaced = lvl.targets.every(t => boxes.some(b => b.x === t.x && b.y === t.y));
 				if (allPlaced) {
-					// 记录最佳步数
 					const best = localStorage.getItem(`sokoban_best_${currentLevelIdx}`);
 					if (!best || stepCount < parseInt(best)) {
 						localStorage.setItem(`sokoban_best_${currentLevelIdx}`, stepCount);
@@ -499,7 +527,6 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				}
 			}
 
-			// 撤销功能
 			function undo() {
 				if (moveHistory.length === 0) return;
 				const lastState = moveHistory.pop();
@@ -516,16 +543,16 @@ const pageDescription = "支持键盘方向键即时控制的推箱子游戏，�
 				renderGrid();
 			}
 
-			// 绑定键盘按键事件
+			// 键盘控制绑定
 			window.addEventListener('keydown', (e) => {
-				if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') handleMove(0);
-				if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') handleMove(1);
-				if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') handleMove(2);
-				if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') handleMove(3);
-				if (e.key === 'z' || e.key === 'Z') undo();
+				if (['ArrowUp', 'w', 'W'].includes(e.key)) { e.preventDefault(); handleMove(0); }
+				if (['ArrowRight', 'd', 'D'].includes(e.key)) { e.preventDefault(); handleMove(1); }
+				if (['ArrowDown', 's', 'S'].includes(e.key)) { e.preventDefault(); handleMove(2); }
+				if (['ArrowLeft', 'a', 'A'].includes(e.key)) { e.preventDefault(); handleMove(3); }
+				if (['z', 'Z'].includes(e.key)) { e.preventDefault(); undo(); }
 			});
 
-			// 绑定虚拟按键点击
+			// 虚拟按键绑定
 			document.getElementById('btnUp').addEventListener('click', () => handleMove(0));
 			document.getElementById('btnRight').addEventListener('click', () => handleMove(1));
 			document.getElementById('btnDown').addEventListener('click', () => handleMove(2));
