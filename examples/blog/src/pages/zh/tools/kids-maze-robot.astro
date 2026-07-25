@@ -6,7 +6,7 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (49关)",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。高清清晰棋盘网格+坐标标尺，内置 49 个递进迷宫关卡！通过组合指令指挥机器人自主避开死胡同走出迷宫！",
+    description: "免安装！专为儿童设计的逻辑避障编程游戏。内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
     icon: "🧱",
     tag: "儿童编程",
     keywords: "儿童编程游戏 迷宫算法 条件判断 49关迷宫 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
@@ -15,7 +15,7 @@ export const frontmatter = {
 };
 
 const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 (49关) — ${SITE_TITLE}`;
-const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，带清晰坐标网格，内置 49 个由浅入深的避障关卡。";
+const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，内置 49 个由浅入深的避障关卡。";
 ---
 
 <!doctype html>
@@ -55,7 +55,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				border: 1px solid var(--card-border);
 				border-radius: 20px;
 				padding: 1.5rem;
-				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 				backdrop-filter: blur(12px);
 			}
 
@@ -118,7 +118,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				text-align: center;
 				font-weight: 800;
 				font-size: 0.9rem;
-				color: #3b82f6;
+				color: #60a5fa; /* 亮蓝护眼数字 */
 				align-items: center;
 			}
 
@@ -130,32 +130,32 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				text-align: center;
 				font-weight: 800;
 				font-size: 0.9rem;
-				color: #3b82f6;
+				color: #60a5fa;
 				align-items: center;
 			}
 
-			/* ☀️ 6x6 迷宫舞台外框 */
+			/* 🌌 迷宫地图舞台 (保持深色主基调) */
 			.maze-grid {
 				grid-area: 2 / 2;
 				display: grid !important;
 				grid-template-columns: repeat(6, 1fr) !important;
 				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 2px !important;
+				gap: 3px !important;
 				width: 100%;
 				aspect-ratio: 1 / 1;
-				background: #475569 !important; /* 强制网格缝隙深色边框 */
-				border: 3px solid #334155;
-				border-radius: 12px;
-				padding: 2px;
+				background: #0f172a !important; /* 经典深色舞台底色 */
+				border: 2px solid var(--card-border);
+				border-radius: 16px;
+				padding: 8px;
 				box-sizing: border-box !important;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
-			/* ☀️ 强制每一个单元格显示独立高对比网格 */
+			/* 🌌 高清晰度网格格子：明亮深蓝内边框 + 棋盘格 */
 			.maze-cell {
-				background: #ffffff !important;
-				border: 1px solid #94a3b8 !important; /* 强制明亮的灰色网格实线！ */
-				border-radius: 4px;
+				background: #1e293b !important;
+				border: 1.5px solid #334155 !important; /* 强制显示清晰网格线条 */
+				border-radius: 6px;
 				display: flex !important;
 				align-items: center;
 				justify-content: center;
@@ -165,28 +165,29 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				box-sizing: border-box !important;
 			}
 
-			/* 交替棋盘格深浅色，让网格线双重清晰 */
+			/* 棋盘格微光，让网格一目了然 */
 			.maze-cell.alt-tile {
-				background: #f1f5f9 !important;
+				background: #141f33 !important;
+				border-color: #2e3e56 !important;
 			}
 
-			/* ☀️ 墙壁样式：凸起的深色砖墙 */
+			/* 🌌 墙壁样式：显眼的砖墙元素 */
 			.maze-cell.wall {
 				background: #334155 !important;
-				border: 1px solid #0f172a !important;
-				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+				border: 1.5px solid #475569 !important;
+				box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.4);
 			}
 
-			/* ☀️ 终点目标区域：暖黄高亮 */
+			/* 🌌 终点目标区域 */
 			.maze-cell.target-cell {
-				background: #fef3c7 !important;
+				background: rgba(245, 158, 11, 0.25) !important;
 				border: 2px dashed #f59e0b !important;
 			}
 
 			.robot-icon {
-				transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+				transition: transform 0.2s ease-out;
 				display: inline-block;
-				filter: drop-shadow(0 3px 5px rgba(0,0,0,0.25));
+				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 			}
 
 			/* 右侧编辑器 */
@@ -215,7 +216,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.6em 0.6em;
+				padding: 0.5em 0.6em;
 				border-radius: 10px;
 				font-size: 0.82rem;
 				font-weight: 700;
@@ -223,7 +224,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				display: flex;
 				align-items: center;
 				gap: 0.3rem;
-				transition: all 0.15s ease;
+				transition: all 0.2s ease;
 			}
 			.block-btn:hover {
 				transform: translateY(-2px);
@@ -309,11 +310,11 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<main>
 			<div class="tool-header">
 				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱 (49关)</h1>
-				<p>数清格子看准路线，组合“前进”与“条件”指令帮机器人逃离迷宫！</p>
+				<p>组合“检测传感器”与“方向转弯”算法，帮助探险机器人冲出迷宫陷阱！</p>
 			</div>
 
 			<div class="game-container">
-				<!-- 左侧：迷宫地图与坐标轴 -->
+				<!-- 左侧：迷宫地图 -->
 				<div class="stage-box">
 					<div class="level-bar">
 						<div>
@@ -337,7 +338,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 							<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
 						</div>
 
-						<!-- 6x6 高清网格迷宫 -->
+						<!-- 6x6 动态迷宫 -->
 						<div class="maze-grid" id="mazeGrid">
 							<!-- 动态渲染 -->
 						</div>
@@ -357,7 +358,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 					<div class="panel-title">📜 2. 探险逻辑代码</div>
 					<div class="code-workspace" id="codeWorkspace">
-						<div class="empty-hint" id="emptyHint">根据网格数点击积木组装代码...</div>
+						<div class="empty-hint" id="emptyHint">点击上方积木组装避障代码...</div>
 					</div>
 
 					<div class="action-bar">
@@ -371,7 +372,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 程序化生成 49 个递进关卡
+			// 动态程序化生成 49 个递进关卡
 			function generate49MazeLevels() {
 				const levels = [];
 				for (let i = 1; i <= 49; i++) {
@@ -379,8 +380,9 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 					let target = { x: 5, y: 5 };
 					let walls = [];
 
+					// 根据关卡序号变化墙壁排布
 					if (i <= 15) {
-						// 1-15 关：基础折线
+						// 1-15 关：基础通道折线
 						const wallX1 = 1 + (i % 3);
 						const wallX2 = 3 + (i % 2);
 						for (let r = 0; r < 4; r++) walls.push({ x: wallX1, y: r });
@@ -451,7 +453,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 
-						// 强制加上棋盘格深浅色交替
+						// 棋盘格交替色（让格子线清晰分明）
 						if ((r + c) % 2 === 1) {
 							cell.classList.add('alt-tile');
 						}
@@ -460,7 +462,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const isTarget = c === lvl.target.x && r === lvl.target.y;
 						const isRobot = r === robot.y && c === robot.x;
 
-						// 1. 显式渲染深色砖墙
+						// 1. 显式渲染砖墙
 						if (isWall) {
 							cell.classList.add('wall');
 							cell.textContent = '🧱';
