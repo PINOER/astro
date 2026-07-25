@@ -6,7 +6,7 @@ import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
     title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (49关)",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。高清棋盘网格+坐标标尺，内置 49 个递进迷宫关卡！通过组合“前进”、“检测墙壁”与“条件判断”积木，指挥机器人自主避开死胡同走出迷宫！",
+    description: "免安装！专为儿童设计的逻辑避障编程游戏。高清清晰棋盘网格+坐标标尺，内置 49 个递进迷宫关卡！通过组合指令指挥机器人自主避开死胡同走出迷宫！",
     icon: "🧱",
     tag: "儿童编程",
     keywords: "儿童编程游戏 迷宫算法 条件判断 49关迷宫 if-else 少儿编程 Scratch逻辑 STEM 互动教学",
@@ -62,6 +62,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			@media (max-width: 850px) {
 				.game-container {
 					grid-template-columns: 1fr;
+					padding: 1rem;
 				}
 			}
 
@@ -116,8 +117,8 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				grid-template-columns: repeat(6, 1fr);
 				text-align: center;
 				font-weight: 800;
-				font-size: 0.85rem;
-				color: var(--accent);
+				font-size: 0.9rem;
+				color: #3b82f6;
 				align-items: center;
 			}
 
@@ -128,57 +129,58 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				grid-template-rows: repeat(6, 1fr);
 				text-align: center;
 				font-weight: 800;
-				font-size: 0.85rem;
-				color: var(--accent);
+				font-size: 0.9rem;
+				color: #3b82f6;
 				align-items: center;
 			}
 
-			/* ☀️ 浅色高对比网格迷宫舞台 */
+			/* ☀️ 6x6 迷宫舞台外框 */
 			.maze-grid {
 				grid-area: 2 / 2;
-				display: grid;
-				grid-template-columns: repeat(6, 1fr);
-				grid-template-rows: repeat(6, 1fr);
-				gap: 3px;
+				display: grid !important;
+				grid-template-columns: repeat(6, 1fr) !important;
+				grid-template-rows: repeat(6, 1fr) !important;
+				gap: 2px !important;
 				width: 100%;
 				aspect-ratio: 1 / 1;
-				background: #94a3b8; /* 灰蓝色高亮暗分割线 */
-				border: 3px solid #64748b;
+				background: #475569 !important; /* 强制网格缝隙深色边框 */
+				border: 3px solid #334155;
 				border-radius: 12px;
-				padding: 4px;
-				box-sizing: border-box;
-				box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+				padding: 2px;
+				box-sizing: border-box !important;
+				box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 			}
 
-			/* ☀️ 普通走道格子：交替深浅网格纹，并带有 1px 实线边框 */
+			/* ☀️ 强制每一个单元格显示独立高对比网格 */
 			.maze-cell {
-				background: #ffffff;
-				border: 1px solid #cbd5e1;
+				background: #ffffff !important;
+				border: 1px solid #94a3b8 !important; /* 强制明亮的灰色网格实线！ */
 				border-radius: 4px;
-				display: flex;
+				display: flex !important;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.5rem;
+				font-size: 1.6rem;
 				position: relative;
 				user-select: none;
+				box-sizing: border-box !important;
 			}
 
-			/* 棋盘格交替色：让走道网格一眼就能数出来有多少格 */
+			/* 交替棋盘格深浅色，让网格线双重清晰 */
 			.maze-cell.alt-tile {
-				background: #f1f5f9;
+				background: #f1f5f9 !important;
 			}
 
-			/* ☀️ 墙壁样式：高对比深灰蓝砖墙 */
+			/* ☀️ 墙壁样式：凸起的深色砖墙 */
 			.maze-cell.wall {
-				background: #334155;
-				border: 1px solid #0f172a;
+				background: #334155 !important;
+				border: 1px solid #0f172a !important;
 				box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
 			}
 
-			/* ☀️ 终点目标区域：金黄高亮 */
+			/* ☀️ 终点目标区域：暖黄高亮 */
 			.maze-cell.target-cell {
-				background: #fef3c7;
-				border: 2px dashed #f59e0b;
+				background: #fef3c7 !important;
+				border: 2px dashed #f59e0b !important;
 			}
 
 			.robot-icon {
@@ -307,7 +309,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<main>
 			<div class="tool-header">
 				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱 (49关)</h1>
-				<p>看清坐标网格并数清步数，组合“前进”与“方向”指令帮机器人逃离迷宫！</p>
+				<p>数清格子看准路线，组合“前进”与“条件”指令帮机器人逃离迷宫！</p>
 			</div>
 
 			<div class="game-container">
@@ -449,7 +451,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 
-						// 棋盘格交替色渲染（让网格更加明显）
+						// 强制加上棋盘格深浅色交替
 						if ((r + c) % 2 === 1) {
 							cell.classList.add('alt-tile');
 						}
