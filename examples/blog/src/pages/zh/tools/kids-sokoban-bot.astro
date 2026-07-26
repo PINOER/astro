@@ -140,14 +140,11 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				pointer-events: none;
 			}
 
+			/* 🏁 修复墙壁样式：使用明确的深色实体背景，确保完美对比度 */
 			.sokoban-cell.wall {
-				background:
-					linear-gradient(90deg, transparent 47%, rgba(15, 23, 42, 0.7) 48% 52%, transparent 53%),
-					linear-gradient(rgba(255, 255, 255, 0.07) 47%, rgba(15, 23, 42, 0.8) 48% 54%, rgba(255, 255, 255, 0.04) 55%),
-					#475569;
-				background-size: 18px 12px;
-				border: 1px solid #64748b;
-				box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.35);
+				background: #0f172a !important;
+				border: 1px solid #334155 !important;
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 			}
 
 			.sokoban-cell.target-cell {
@@ -162,7 +159,8 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 			.robot-avatar,
 			.box-avatar,
-			.target-avatar {
+			.target-avatar,
+			.wall-avatar {
 				display: inline-block;
 				filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
 			}
@@ -386,7 +384,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 						<div class="dpad-btn empty" aria-hidden="true"></div>
 						<button class="dpad-btn" id="btnLeft" type="button" aria-label="向左">◄</button>
 						<button class="dpad-btn" id="btnDown" type="button" aria-label="向下">▼</button>
-						<button class="dpad-btn" id="btnRight" type="button" aria-label="向右">►</button>
+						<button class="dpad-btn" id="btnRight" aria-label="向右">►</button>
 					</div>
 
 					<div class="action-bar">
@@ -427,7 +425,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 ######
 
 ; 2
-  ####
+ ####
 ###  ####
 #     $ #
 # #  #$ #
@@ -470,10 +468,10 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 #######
 
 ; 7
-  ######
-  # ..@#
-  # $$ #
-  ## ###
+ ######
+ # ..@#
+ # $$ #
+ ## ###
    # #
    # #
 #### #
@@ -481,7 +479,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 # #   #
 #   # #
 ###   #
-  #####
+ #####
 
 ; 8
 #####
@@ -499,22 +497,22 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 #######.# #
 # @ $ $ $ #
 # # # # ###
-#       #
+#        #
 #########
 
 ; 10
-  ######
-  #    #
-  # ##@##
+ ######
+ #    #
+ # ##@##
 ### # $ #
 # ..# $ #
-#       #
+#        #
 #  ######
 ####
 
 ; 11
 #####
-#   ##
+#    ##
 # $  #
 ## $ ####
  ###@.  #
@@ -542,7 +540,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 #####
 
 ; 14
-     ###
+   ###
 ######@##
 #    .* #
 #   #   #
@@ -582,7 +580,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 ; 18
 ########
-#   .. #
+#    .. #
 #  @$$ #
 ##### ##
    #  #
@@ -610,7 +608,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 ; 21
 #####
-#   ###
+#    ###
 #. .  #
 #   # #
 ## #  #
@@ -654,11 +652,11 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 # ...#
 # $$ #
 ###  #
-  ####
+ ####
 
 ; 26
 ######
-#   .#
+#    .#
 # ## ##
 #  $$@#
 # #   #
@@ -691,17 +689,17 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 # $$ #
 #... #
 # @$ #
-#   ##
+#    ##
 #####
 
 ; 30
-  ####
+ ####
  ##  #
 ##@$.##
 # $$  #
 # . . #
 ###   #
-  #####
+ #####
 
 ; 31
  ####
@@ -722,7 +720,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 #######
 
 ; 33
-  ####
+ ####
 ###  ####
 #       #
 #@$***. #
@@ -795,9 +793,9 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
  ######
 
 ; 41
-   ####
-   #  #
-   #@ #
+    ####
+    #  #
+    #@ #
 ####$.#
 #   $.#
 # # $.#
@@ -813,7 +811,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 #  $$# .#
 #    ####
 ###  #
-  ####
+ ####
 
 ; 43
 #####
@@ -840,7 +838,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
  #####
 
 ; 46
-  #######
+ #######
 ###     #
 # $ $   #
 # ### #####
@@ -856,7 +854,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 # .$$$ #
 # .#   #
 ####   #
-   #####
+    #####
 
 ; 48
 ######
@@ -871,7 +869,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
  #######
 
 ; 49
-  ####
+ ####
 ###  #####
 #  $  @..#
 # $    # #
@@ -1148,8 +1146,13 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 							continue;
 						}
 
+						// 🏁 修复重点：为墙壁显式添加砖块符号元素，保障 100% 可见
 						if (cellType === CELL.WALL) {
 							cell.classList.add('wall');
+							const wallAvatar = document.createElement('span');
+							wallAvatar.className = 'wall-avatar';
+							wallAvatar.textContent = '🧱';
+							cell.appendChild(wallAvatar);
 							fragment.appendChild(cell);
 							continue;
 						}
