@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-	title: '儿童编程互动游戏：智能机器人迷宫大逃脱（100关）',
-	description: '免安装的儿童逻辑编程游戏。100个确定性迷宫关卡均经过BFS可达性验证，通过前进、转向和条件判断积木指挥机器人到达终点。',
+	title: '儿童编程互动游戏：智能机器人迷宫大逃脱（60关进阶版）',
+	description: '免安装的儿童逻辑编程游戏。通过顺序执行、条件判断、循环指令与机关解谜，挑战60个分章节机器人迷宫关卡。',
 	icon: '🤖',
 	tag: '儿童编程',
-	keywords: '儿童编程游戏 机器人迷宫 逻辑训练 条件判断 BFS迷宫 少儿编程 Scratch逻辑 STEM',
+	keywords: '儿童编程游戏 机器人迷宫 顺序执行 条件判断 循环指令 算法思维 少儿编程 Scratch逻辑 STEM',
 	pinned: true,
 	priority: 85
 };
 
-const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱（100关）— ${SITE_TITLE}`;
-const pageDescription = '组合前进、转向和条件判断积木，挑战100个经过可达性验证、难度逐步提升的机器人迷宫关卡。';
+const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱（60关进阶版）— ${SITE_TITLE}`;
+const pageDescription = '组合前进、转向、条件判断与循环积木，挑战60个分章节机器人迷宫，学习顺序、判断、循环与算法优化。';
 ---
 
 <!doctype html>
@@ -24,7 +24,7 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
 			main {
-				width: 1000px;
+				width: 1120px;
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 2.5em 1em 4em;
@@ -32,13 +32,13 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 
 			.tool-header {
 				text-align: center;
-				margin-bottom: 1.5em;
+				margin-bottom: 1.25rem;
 			}
 
 			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
+				font-size: clamp(1.8rem, 4vw, 2.35rem);
+				font-weight: 850;
+				margin: 0 0 0.35em;
 				background: var(--hero-title-gradient);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
@@ -46,134 +46,297 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 
 			.tool-header p {
 				color: var(--text-muted);
-				font-size: 0.95rem;
+				font-size: 0.96rem;
+				margin: 0;
+			}
+
+			.progress-shell {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 18px;
+				padding: 1rem;
+				margin-bottom: 1rem;
+				box-shadow: 0 7px 24px rgba(0, 0, 0, 0.08);
+			}
+
+			.progress-top {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				margin-bottom: 0.8rem;
+			}
+
+			.progress-title {
+				font-weight: 800;
+				color: var(--text-main);
+			}
+
+			.progress-summary {
+				font-size: 0.86rem;
+				font-weight: 750;
+				color: var(--text-muted);
+			}
+
+			.progress-track {
+				height: 9px;
+				border-radius: 99px;
+				background: var(--search-bg);
+				overflow: hidden;
+				margin-bottom: 1rem;
+			}
+
+			.progress-fill {
+				height: 100%;
+				width: 0;
+				border-radius: inherit;
+				background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+				transition: width 0.3s ease;
+			}
+
+			.chapter-tabs {
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 0.65rem;
+			}
+
+			.chapter-btn {
+				border: 1px solid var(--card-border);
+				background: var(--search-bg);
+				color: var(--text-main);
+				border-radius: 12px;
+				padding: 0.75rem;
+				cursor: pointer;
+				text-align: left;
+				transition: transform 0.18s ease, border-color 0.18s ease;
+			}
+
+			.chapter-btn:hover:not(:disabled) {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+			}
+
+			.chapter-btn.active {
+				border-color: #3b82f6;
+				box-shadow: inset 0 0 0 1px #3b82f6;
+			}
+
+			.chapter-btn:disabled {
+				cursor: not-allowed;
+				opacity: 0.48;
+			}
+
+			.chapter-name {
+				display: block;
+				font-size: 0.84rem;
+				font-weight: 850;
+				margin-bottom: 0.25rem;
+			}
+
+			.chapter-stat {
+				display: block;
+				font-size: 0.74rem;
+				color: var(--text-muted);
+			}
+
+			.level-picker {
+				display: grid;
+				grid-template-columns: repeat(15, minmax(0, 1fr));
+				gap: 0.35rem;
+				margin-top: 0.8rem;
+			}
+
+			.level-btn {
+				aspect-ratio: 1 / 1;
+				min-width: 0;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				background: var(--search-bg);
+				color: var(--text-main);
+				font-size: 0.73rem;
+				font-weight: 800;
+				cursor: pointer;
+				position: relative;
+			}
+
+			.level-btn.active {
+				background: #2563eb;
+				border-color: #2563eb;
+				color: #fff;
+			}
+
+			.level-btn.locked {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+
+			.level-stars {
+				position: absolute;
+				left: 50%;
+				bottom: -0.18rem;
+				transform: translateX(-50%);
+				font-size: 0.46rem;
+				white-space: nowrap;
+				color: #f59e0b;
 			}
 
 			.game-container {
 				display: grid;
-				grid-template-columns: 1fr 340px;
-				gap: 1.5rem;
+				grid-template-columns: minmax(0, 1fr) 370px;
+				gap: 1.25rem;
 				background: var(--bg-card);
 				border: 1px solid var(--card-border);
 				border-radius: 20px;
-				padding: 1.5rem;
+				padding: 1.25rem;
 				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 				backdrop-filter: blur(12px);
+			}
+
+			.stage-box,
+			.editor-box {
+				min-width: 0;
 			}
 
 			.stage-box {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
-				gap: 1rem;
-				width: 100%;
-				min-width: 0;
+				gap: 0.85rem;
 			}
 
 			.level-bar {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				gap: 0.8rem;
+				gap: 0.75rem;
 				width: 100%;
 				background: var(--search-bg);
-				padding: 0.6em 1em;
+				padding: 0.7rem 0.85rem;
 				border-radius: 12px;
 				border: 1px solid var(--card-border);
-				font-weight: 700;
-				font-size: 0.88rem;
 				box-sizing: border-box;
+			}
+
+			.level-heading {
+				font-size: 0.9rem;
+				font-weight: 850;
+				color: var(--text-main);
 			}
 
 			.level-meta {
 				display: flex;
-				gap: 0.8rem;
+				gap: 0.65rem;
 				flex-wrap: wrap;
 				justify-content: flex-end;
+				font-size: 0.76rem;
+				font-weight: 750;
 				color: var(--text-muted);
 			}
 
-			.level-select {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-				padding: 0.35em 0.6em;
-				border-radius: 8px;
-				font-weight: 700;
-				font-size: 0.88rem;
-				outline: none;
-				cursor: pointer;
-			}
-
-			/* 🏁 网格容器：极度明确的强约束 CSS Grid */
 			.maze-grid {
-				display: grid !important;
-				grid-template-columns: repeat(6, 1fr) !important;
-				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 2px !important;
-				width: min(100%, 420px) !important;
-				aspect-ratio: 1 / 1 !important;
-				background: #090d16 !important;
-				border: 4px solid #3b82f6 !important;
-				border-radius: 16px !important;
-				padding: 8px !important;
-				box-sizing: border-box !important;
-				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-				overflow: hidden !important;
+				display: grid;
+				gap: 2px;
+				width: min(100%, 500px);
+				aspect-ratio: 1 / 1;
+				background: #090d16;
+				border: 4px solid #3b82f6;
+				border-radius: 16px;
+				padding: 8px;
+				box-sizing: border-box;
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+				overflow: hidden;
 			}
 
 			.maze-cell {
-				display: flex !important;
-				align-items: center !important;
-				justify-content: center !important;
-				font-size: clamp(1.2rem, 4.5vw, 1.85rem) !important;
-				position: relative !important;
-				user-select: none !important;
-				box-sizing: border-box !important;
-				border-radius: 4px !important;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+				user-select: none;
+				box-sizing: border-box;
+				border-radius: 4px;
+				font-size: clamp(0.82rem, 4vw, 1.7rem);
+				line-height: 1;
 			}
 
 			.robot-icon {
-				transition: transform 0.18s ease-out;
+				transition: transform 0.16s ease-out;
 				display: inline-block;
-				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.65));
+				z-index: 3;
+			}
+
+			.tile-badge {
+				position: absolute;
+				right: 2px;
+				bottom: 1px;
+				font-size: 0.55em;
+				font-weight: 900;
+				color: #fff;
+				text-shadow: 0 1px 2px #000;
+			}
+
+			.mission-card {
+				width: 100%;
+				box-sizing: border-box;
+				border: 1px solid var(--card-border);
+				background: var(--search-bg);
+				border-radius: 12px;
+				padding: 0.75rem 0.85rem;
+				display: grid;
+				grid-template-columns: 1fr auto;
+				gap: 0.5rem 1rem;
+				font-size: 0.79rem;
+			}
+
+			.mission-title {
+				font-weight: 850;
+				color: var(--text-main);
+			}
+
+			.inventory {
+				font-weight: 800;
+				color: var(--text-muted);
+				text-align: right;
+			}
+
+			.mission-description {
+				grid-column: 1 / -1;
+				color: var(--text-muted);
+				line-height: 1.5;
 			}
 
 			.editor-box {
 				display: flex;
 				flex-direction: column;
-				gap: 0.9rem;
-				min-width: 0;
+				gap: 0.75rem;
 			}
 
 			.panel-title {
-				font-size: 0.9rem;
-				font-weight: 700;
+				font-size: 0.88rem;
+				font-weight: 800;
 				color: var(--text-main);
-				display: flex;
-				align-items: center;
-				gap: 0.4rem;
 			}
 
 			.block-palette {
 				display: grid;
 				grid-template-columns: repeat(2, minmax(0, 1fr));
-				gap: 0.5rem;
+				gap: 0.45rem;
 			}
 
 			.block-btn {
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.55em 0.6em;
+				padding: 0.56rem 0.6rem;
 				border-radius: 10px;
-				font-size: 0.8rem;
-				font-weight: 700;
+				font-size: 0.76rem;
+				font-weight: 750;
 				cursor: pointer;
 				display: flex;
 				align-items: center;
 				gap: 0.3rem;
-				transition: transform 0.2s ease, border-color 0.2s ease;
+				transition: transform 0.18s ease, border-color 0.18s ease;
 				text-align: left;
 			}
 
@@ -182,18 +345,24 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				border-color: var(--accent);
 			}
 
-			.block-btn.blue { border-left: 4px solid #3b82f6; }
-			.block-btn.amber { border-left: 4px solid #f59e0b; }
-			.block-btn.purple { border-left: 4px solid #8b5cf6; }
-			.block-btn.emerald { border-left: 4px solid #10b981; }
+			.block-btn[data-group="move"] { border-left: 4px solid #3b82f6; }
+			.block-btn[data-group="turn"] { border-left: 4px solid #f59e0b; }
+			.block-btn[data-group="condition"] { border-left: 4px solid #8b5cf6; }
+			.block-btn[data-group="loop"] { border-left: 4px solid #10b981; }
+
+			.palette-note {
+				font-size: 0.72rem;
+				color: var(--text-muted);
+				line-height: 1.45;
+			}
 
 			.code-workspace {
 				background: var(--code-bg);
 				border: 1px solid var(--card-border);
 				border-radius: 12px;
-				padding: 0.8rem;
-				min-height: 180px;
-				max-height: 235px;
+				padding: 0.7rem;
+				min-height: 190px;
+				max-height: 255px;
 				overflow-y: auto;
 				display: flex;
 				flex-direction: column;
@@ -204,89 +373,186 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				background: var(--bg-card);
 				border: 1px solid var(--card-border);
 				border-radius: 8px;
-				padding: 0.4em 0.55em 0.4em 0.7em;
-				font-size: 0.82rem;
-				font-weight: 600;
+				padding: 0.42rem 0.5rem 0.42rem 0.65rem;
+				font-size: 0.79rem;
+				font-weight: 650;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				gap: 0.5rem;
+				gap: 0.45rem;
 			}
 
-			.remove-btn {
+			.code-label {
+				min-width: 0;
+				overflow-wrap: anywhere;
+			}
+
+			.code-actions {
+				display: flex;
+				gap: 0.15rem;
+				flex: 0 0 auto;
+			}
+
+			.icon-btn {
 				border: none;
 				background: transparent;
-				color: #ef4444;
+				color: var(--text-muted);
 				cursor: pointer;
+				font-size: 0.86rem;
 				font-weight: 900;
-				font-size: 1rem;
 				line-height: 1;
-				padding: 0.25rem;
+				padding: 0.22rem;
 			}
+
+			.icon-btn.remove {
+				color: #ef4444;
+			}
+
+			.empty-hint {
+				color: var(--text-muted);
+				font-size: 0.78rem;
+				text-align: center;
+				margin: auto;
+				line-height: 1.55;
+			}
+
+			.budget-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.75rem;
+				font-size: 0.76rem;
+				font-weight: 750;
+				color: var(--text-muted);
+			}
+
+			.budget-number.good { color: #10b981; }
+			.budget-number.warn { color: #f59e0b; }
+			.budget-number.over { color: #ef4444; }
 
 			.action-bar {
 				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 0.8rem;
+				grid-template-columns: 1.3fr 1fr 1fr;
+				gap: 0.5rem;
 			}
 
-			.btn-run,
-			.btn-reset {
-				padding: 0.8em;
-				border-radius: 12px;
+			.btn {
+				padding: 0.72rem 0.55rem;
+				border-radius: 11px;
 				font-weight: 800;
-				font-size: 0.92rem;
+				font-size: 0.82rem;
 				cursor: pointer;
+				border: 1px solid var(--card-border);
 			}
 
 			.btn-run {
-				background: #3b82f6;
+				background: #2563eb;
+				border-color: #2563eb;
 				color: #fff;
-				border: none;
 			}
 
-			.btn-run:hover:not(:disabled) {
-				opacity: 0.9;
-				transform: scale(1.02);
-			}
-
-			.btn-reset {
+			.btn-secondary {
 				background: var(--search-bg);
-				border: 1px solid var(--card-border);
 				color: var(--text-main);
 			}
 
-			.btn-reset:hover:not(:disabled) {
-				border-color: var(--accent);
+			.btn-hint {
+				background: #7c3aed;
+				border-color: #7c3aed;
+				color: #fff;
 			}
 
 			button:disabled,
 			select:disabled {
 				cursor: not-allowed;
-				opacity: 0.55;
+				opacity: 0.5;
 			}
 
-			.empty-hint {
+			.utility-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.7rem;
+				font-size: 0.75rem;
 				color: var(--text-muted);
-				font-size: 0.8rem;
-				text-align: center;
-				margin: auto;
 			}
 
-			.code-tip {
-				font-size: 0.78rem;
+			.speed-select {
+				background: var(--search-bg);
+				color: var(--text-main);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				padding: 0.25rem 0.4rem;
+			}
+
+			.message-box {
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				background: var(--search-bg);
+				padding: 0.75rem;
+				font-size: 0.79rem;
 				line-height: 1.55;
 				color: var(--text-muted);
-				text-align: center;
+				min-height: 2.7rem;
 			}
 
-			@media (max-width: 850px) {
+			.message-box.success {
+				border-color: #10b981;
+				background: rgba(16, 185, 129, 0.1);
+				color: var(--text-main);
+			}
+
+			.message-box.error {
+				border-color: #ef4444;
+				background: rgba(239, 68, 68, 0.08);
+				color: var(--text-main);
+			}
+
+			.message-box.hint {
+				border-color: #8b5cf6;
+				background: rgba(139, 92, 246, 0.09);
+				color: var(--text-main);
+			}
+
+			.footer-tools {
+				display: flex;
+				justify-content: center;
+				margin-top: 0.85rem;
+			}
+
+			.reset-progress {
+				border: none;
+				background: transparent;
+				color: var(--text-muted);
+				font-size: 0.72rem;
+				text-decoration: underline;
+				cursor: pointer;
+			}
+
+			@media (max-width: 920px) {
 				.game-container {
 					grid-template-columns: 1fr;
-					padding: 1rem;
 				}
 
-				.level-bar {
+				.chapter-tabs {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+
+				.level-picker {
+					grid-template-columns: repeat(8, minmax(0, 1fr));
+				}
+			}
+
+			@media (max-width: 520px) {
+				main {
+					max-width: calc(100% - 1em);
+					padding-left: 0.5em;
+					padding-right: 0.5em;
+				}
+
+				.progress-top,
+				.level-bar,
+				.utility-row {
 					align-items: flex-start;
 					flex-direction: column;
 				}
@@ -294,21 +560,21 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				.level-meta {
 					justify-content: flex-start;
 				}
-			}
 
-			@media (max-width: 460px) {
-				main {
-					max-width: calc(100% - 1em);
-					padding-left: 0.5em;
-					padding-right: 0.5em;
-				}
-
-				.tool-header h1 {
-					font-size: 1.65rem;
+				.level-picker {
+					grid-template-columns: repeat(5, minmax(0, 1fr));
 				}
 
 				.block-palette {
 					grid-template-columns: 1fr;
+				}
+
+				.action-bar {
+					grid-template-columns: 1fr 1fr;
+				}
+
+				.btn-run {
+					grid-column: 1 / -1;
 				}
 			}
 		</style>
@@ -317,65 +583,150 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>🤖 儿童编程小游戏：智能机器人迷宫大逃脱（100关）</h1>
-				<p>组合前进、转向与条件判断积木，编写程序帮助机器人安全抵达终点。</p>
+				<h1>🤖 智能机器人迷宫大逃脱</h1>
+				<p>60个精品主线关卡，从顺序执行到条件判断、循环压缩与机关算法。</p>
 			</div>
 
-			<div class="game-container">
+			<section class="progress-shell" aria-label="游戏进度">
+				<div class="progress-top">
+					<div class="progress-title">🗺️ 编程冒险进度</div>
+					<div class="progress-summary" id="progressSummary">已解锁 1/60 · 星星 0/180</div>
+				</div>
+				<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+				<div class="chapter-tabs" id="chapterTabs"></div>
+				<div class="level-picker" id="levelPicker" aria-label="选择章节关卡"></div>
+			</section>
+
+			<section class="game-container">
 				<div class="stage-box">
 					<div class="level-bar">
-						<label>
-							关卡：
-							<select id="levelSelect" class="level-select" aria-label="选择迷宫关卡"></select>
-						</label>
+						<div class="level-heading" id="levelHeading">第1关</div>
 						<div class="level-meta">
-							<span id="routeStatus">最短路线：--</span>
-							<span id="bestStatus">最佳积木：--</span>
+							<span id="difficultyStatus">难度：★☆☆☆☆</span>
+							<span id="budgetStatus">推荐积木：--</span>
+							<span id="bestStatus">最佳：--</span>
 						</div>
 					</div>
 
-					<div class="maze-grid" id="mazeGrid" aria-label="6乘6机器人迷宫"></div>
+					<div class="maze-grid" id="mazeGrid" aria-label="机器人迷宫地图"></div>
+
+					<div class="mission-card">
+						<div class="mission-title" id="missionTitle">任务：抵达终点</div>
+						<div class="inventory" id="inventoryStatus">🎒 空</div>
+						<div class="mission-description" id="missionDescription">编写程序，让机器人安全到达奖杯。</div>
+					</div>
 				</div>
 
 				<div class="editor-box">
-					<div class="panel-title">🧩 1. 点击添加编程积木</div>
-					<div class="block-palette">
-						<button type="button" class="block-btn blue" data-action="MOVE">🤖 前进 1 格</button>
-						<button type="button" class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
-						<button type="button" class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
-						<button type="button" class="block-btn purple" data-action="IF_WALL_RIGHT">⚠️ 前方有墙则右转</button>
-						<button type="button" class="block-btn emerald" data-action="REPEAT_3">⏩ 连续前进 3 格</button>
-					</div>
+					<div class="panel-title">🧩 可用编程积木</div>
+					<div class="block-palette" id="blockPalette"></div>
+					<div class="palette-note" id="paletteNote">本章重点：理解程序会按照从上到下的顺序执行。</div>
 
-					<div class="panel-title">📜 2. 探险逻辑代码</div>
+					<div class="panel-title">📜 机器人程序</div>
+					<div class="budget-row">
+						<span>积木使用量</span>
+						<span class="budget-number good" id="blockCounter">0 / --</span>
+					</div>
 					<div class="code-workspace" id="codeWorkspace" aria-live="polite">
-						<div class="empty-hint" id="emptyHint">点击上方积木组装机器人程序……</div>
+						<div class="empty-hint" id="emptyHint">点击上方积木添加程序。<br />可使用 ↑ ↓ 调整顺序，点击 ✕ 删除。</div>
 					</div>
 
 					<div class="action-bar">
-						<button type="button" class="btn-run" id="btnRun">▶ 从起点运行</button>
-						<button type="button" class="btn-reset" id="btnReset">🗑️ 清空并复位</button>
+						<button type="button" class="btn btn-run" id="btnRun">▶ 从起点运行</button>
+						<button type="button" class="btn btn-secondary" id="btnReset">🗑️ 清空复位</button>
+						<button type="button" class="btn btn-hint" id="btnHint">💡 获取提示</button>
 					</div>
 
-					<div class="code-tip">
-						每次运行都会从起点开始。程序最多可放置60个积木，撞墙后可修改代码再次尝试。
+					<div class="utility-row">
+						<label>运行速度：
+							<select id="speedSelect" class="speed-select">
+								<option value="650">慢速</option>
+								<option value="360" selected>标准</option>
+								<option value="180">快速</option>
+							</select>
+						</label>
+						<span id="attemptStatus">尝试 0 次 · 提示 0 次</span>
+					</div>
+
+					<div class="message-box" id="messageBox" role="status">
+						先观察机器人的朝向，再从第一条积木开始编写程序。
 					</div>
 				</div>
+			</section>
+
+			<div class="footer-tools">
+				<button type="button" class="reset-progress" id="btnResetProgress">重置全部游戏进度</button>
 			</div>
 		</main>
 
 		<Footer lang="zh" />
 
 		<script is:inline>
-			const GRID_SIZE = 6;
-			const TOTAL_LEVELS = 100;
-			const MAX_INSTRUCTIONS = 60;
-			const STEP_DELAY = 360;
+			const TOTAL_LEVELS = 60;
+			const LEVELS_PER_CHAPTER = 15;
+			const MAX_INSTRUCTIONS = 80;
+			const STORAGE_KEY = 'robot_maze_deluxe_v1';
 			const DIRECTIONS = [
-				{ dx: 0, dy: -1 },
-				{ dx: 1, dy: 0 },
-				{ dx: 0, dy: 1 },
-				{ dx: -1, dy: 0 }
+				{ dx: 0, dy: -1, name: '上' },
+				{ dx: 1, dy: 0, name: '右' },
+				{ dx: 0, dy: 1, name: '下' },
+				{ dx: -1, dy: 0, name: '左' }
+			];
+
+			const CHAPTERS = [
+				{
+					id: 1,
+					name: '第一章 · 机器人启动',
+					shortName: '机器人启动',
+					icon: '🚀',
+					range: [1, 15],
+					size: 5,
+					note: '学习顺序执行：前进、左转和右转。',
+					mission: '按照正确顺序排列基础指令，让机器人抵达终点。'
+				},
+				{
+					id: 2,
+					name: '第二章 · 智能避障',
+					shortName: '智能避障',
+					icon: '🧠',
+					range: [16, 30],
+					size: 7,
+					note: '学习条件判断：检测墙壁后再决定是否转向。',
+					mission: '使用条件积木判断障碍，编写更可靠的避障程序。'
+				},
+				{
+					id: 3,
+					name: '第三章 · 循环实验室',
+					shortName: '循环实验室',
+					icon: '🔁',
+					range: [31, 45],
+					size: 9,
+					note: '学习循环与代码压缩：用一个积木代替重复动作。',
+					mission: '在更复杂的迷宫中，用重复和循环积木缩短程序。'
+				},
+				{
+					id: 4,
+					name: '第四章 · 算法基地',
+					shortName: '算法基地',
+					icon: '🏭',
+					range: [46, 60],
+					size: 9,
+					note: '综合运用顺序、判断和循环，并完成钥匙、电池与门禁任务。',
+					mission: '收集任务物品、开启门禁，并用尽量简洁的算法抵达终点。'
+				}
+			];
+
+			const BLOCK_DEFINITIONS = [
+				{ action: 'MOVE', label: '🤖 前进 1 格', group: 'move', unlockLevel: 1 },
+				{ action: 'TURN_RIGHT', label: '↻ 右转 90°', group: 'turn', unlockLevel: 1 },
+				{ action: 'TURN_LEFT', label: '↺ 左转 90°', group: 'turn', unlockLevel: 1 },
+				{ action: 'IF_WALL_RIGHT', label: '⚠️ 前方有墙则右转', group: 'condition', unlockLevel: 16 },
+				{ action: 'IF_WALL_LEFT', label: '⚠️ 前方有墙则左转', group: 'condition', unlockLevel: 21 },
+				{ action: 'TURN_AROUND', label: '↩ 原地掉头', group: 'turn', unlockLevel: 26 },
+				{ action: 'REPEAT_MOVE_2', label: '🔁 重复前进 2 次', group: 'loop', unlockLevel: 31 },
+				{ action: 'REPEAT_MOVE_3', label: '🔁 重复前进 3 次', group: 'loop', unlockLevel: 36 },
+				{ action: 'REPEAT_MOVE_4', label: '🔁 重复前进 4 次', group: 'loop', unlockLevel: 41 },
+				{ action: 'MOVE_UNTIL_WALL', label: '⏩ 前进直到墙前', group: 'loop', unlockLevel: 46 }
 			];
 
 			function createRandom(seed) {
@@ -402,74 +753,48 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				return `${x},${y}`;
 			}
 
-			function getDifficultyConfig(levelNum) {
-				if (levelNum <= 30) {
-					return {
-						label: '🟢 入门',
-						minWalls: 5,
-						maxWalls: 8,
-						minPathLength: 10,
-						minTurns: 1
-					};
-				}
-
-				if (levelNum <= 70) {
-					return {
-						label: '🟡 进阶',
-						minWalls: 8,
-						maxWalls: 12,
-						minPathLength: 12,
-						minTurns: 3
-					};
-				}
-
-				return {
-					label: '🔴 高难',
-					minWalls: 11,
-					maxWalls: 15,
-					minPathLength: 14,
-					minTurns: 4
-				};
+			function getChapterByLevel(levelNum) {
+				return CHAPTERS[Math.min(CHAPTERS.length - 1, Math.floor((levelNum - 1) / LEVELS_PER_CHAPTER))];
 			}
 
-			function findShortestPath(walls) {
-				const wallSet = new Set(walls.map((wall) => positionKey(wall.x, wall.y)));
-				const targetX = GRID_SIZE - 1;
-				const targetY = GRID_SIZE - 1;
-				const queue = [{ x: 0, y: 0, path: [] }];
-				const visited = new Set([positionKey(0, 0)]);
+			function reconstructPath(parent, targetKey) {
+				const directions = [];
+				let currentKey = targetKey;
+				while (parent.has(currentKey)) {
+					const node = parent.get(currentKey);
+					directions.push(node.direction);
+					currentKey = node.previous;
+				}
+				return directions.reverse();
+			}
+
+			function findShortestPath(size, walls, start, target) {
+				const wallSet = walls instanceof Set ? walls : new Set(walls.map((wall) => positionKey(wall.x, wall.y)));
+				const startKey = positionKey(start.x, start.y);
+				const targetKey = positionKey(target.x, target.y);
+				const queue = [{ x: start.x, y: start.y }];
+				const visited = new Set([startKey]);
+				const parent = new Map();
 				let queueIndex = 0;
 
 				while (queueIndex < queue.length) {
 					const current = queue[queueIndex++];
-
-					if (current.x === targetX && current.y === targetY) {
-						return current.path;
-					}
+					const currentKey = positionKey(current.x, current.y);
+					if (currentKey === targetKey) return reconstructPath(parent, targetKey);
 
 					for (let direction = 0; direction < DIRECTIONS.length; direction++) {
 						const nextX = current.x + DIRECTIONS[direction].dx;
 						const nextY = current.y + DIRECTIONS[direction].dy;
-						const key = positionKey(nextX, nextY);
-
+						const nextKey = positionKey(nextX, nextY);
 						if (
-							nextX < 0 || nextX >= GRID_SIZE ||
-							nextY < 0 || nextY >= GRID_SIZE ||
-							wallSet.has(key) ||
-							visited.has(key)
-						) {
-							continue;
-						}
-
-						visited.add(key);
-						queue.push({
-							x: nextX,
-							y: nextY,
-							path: [...current.path, direction]
-						});
+							nextX < 0 || nextX >= size || nextY < 0 || nextY >= size ||
+							wallSet.has(nextKey) || visited.has(nextKey)
+						) continue;
+						visited.add(nextKey);
+						parent.set(nextKey, { previous: currentKey, direction });
+						queue.push({ x: nextX, y: nextY });
 					}
 				}
-
 				return null;
 			}
 
@@ -481,169 +806,515 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				return turns;
 			}
 
-			function generateValidMaze(levelNum, usedSignatures) {
-				const config = getDifficultyConfig(levelNum);
+			function pathPositions(start, directions) {
+				const positions = [{ x: start.x, y: start.y }];
+				let x = start.x;
+				let y = start.y;
+				for (const direction of directions) {
+					x += DIRECTIONS[direction].dx;
+					y += DIRECTIONS[direction].dy;
+					positions.push({ x, y });
+				}
+				return positions;
+			}
+
+			function generateOpenMaze(levelNum, chapter, usedSignatures) {
+				const size = chapter.size;
+				const start = { x: 0, y: 0, dir: 1 };
+				const target = { x: size - 1, y: size - 1 };
+				const localLevel = levelNum - chapter.range[0] + 1;
+				const isChapterOne = chapter.id === 1;
+				const minWalls = isChapterOne ? Math.min(1 + Math.floor(localLevel / 3), 5) : 7 + Math.floor(localLevel / 4);
+				const maxWalls = isChapterOne ? minWalls + 2 : minWalls + 4;
+				const minPath = (size - 1) * 2 + (isChapterOne ? Math.floor(localLevel / 6) * 2 : 2 + Math.floor(localLevel / 5) * 2);
+				const minTurns = isChapterOne ? 1 + Math.floor(localLevel / 6) : 3 + Math.floor(localLevel / 5);
 				const availableCells = [];
 
-				for (let y = 0; y < GRID_SIZE; y++) {
-					for (let x = 0; x < GRID_SIZE; x++) {
-						const isStart = x === 0 && y === 0;
-						const isTarget = x === GRID_SIZE - 1 && y === GRID_SIZE - 1;
-						if (!isStart && !isTarget) availableCells.push({ x, y });
+				for (let y = 0; y < size; y++) {
+					for (let x = 0; x < size; x++) {
+						if ((x === start.x && y === start.y) || (x === target.x && y === target.y)) continue;
+						availableCells.push({ x, y });
 					}
 				}
 
-				for (let attempt = 0; attempt < 5000; attempt++) {
-					const random = createRandom(levelNum * 1000003 + attempt * 9176 + 12345);
-					const wallRange = config.maxWalls - config.minWalls + 1;
-					const wallCount = config.minWalls + Math.floor(random() * wallRange);
-					const walls = shuffle(availableCells, random).slice(0, wallCount);
-					const signature = walls
-						.map((wall) => positionKey(wall.x, wall.y))
-						.sort()
-						.join('|');
-
+				for (let attempt = 0; attempt < 7000; attempt++) {
+					const random = createRandom(levelNum * 500009 + attempt * 8191 + 777);
+					const count = minWalls + Math.floor(random() * (maxWalls - minWalls + 1));
+					const walls = shuffle(availableCells, random).slice(0, count);
+					const signature = `${size}:` + walls.map((wall) => positionKey(wall.x, wall.y)).sort().join('|');
 					if (usedSignatures.has(signature)) continue;
-
-					const shortestPath = findShortestPath(walls);
-					if (!shortestPath) continue;
-					if (shortestPath.length < config.minPathLength) continue;
-					if (countTurns(shortestPath) < config.minTurns) continue;
-
+					const path = findShortestPath(size, walls, start, target);
+					if (!path || path.length < minPath || countTurns(path) < minTurns) continue;
 					usedSignatures.add(signature);
-					return {
-						title: `第 ${levelNum} 关 ${config.label}`,
-						start: { x: 0, y: 0, dir: 1 },
-						target: { x: GRID_SIZE - 1, y: GRID_SIZE - 1 },
-						walls,
-						wallSet: new Set(walls.map((wall) => positionKey(wall.x, wall.y))),
-						shortestPathLength: shortestPath.length,
-						turnCount: countTurns(shortestPath)
-					};
+					return { size, start, target, walls, path };
 				}
+				throw new Error(`无法生成第 ${levelNum} 关开放迷宫`);
+			}
 
-				throw new Error(`无法生成第 ${levelNum} 关迷宫`);
+			function generatePerfectMaze(levelNum, chapter, usedSignatures) {
+				const size = chapter.size;
+				const start = { x: 1, y: 1, dir: 1 };
+				const target = { x: size - 2, y: size - 2 };
+				const localLevel = levelNum - chapter.range[0] + 1;
+				const minPath = chapter.id === 3
+					? 16 + Math.floor(localLevel / 5) * 2
+					: 18 + Math.floor(localLevel / 5) * 2;
+				const minTurns = chapter.id === 3
+					? 4 + Math.floor(localLevel / 6)
+					: 5 + Math.floor(localLevel / 6);
+
+				for (let attempt = 0; attempt < 4000; attempt++) {
+					const random = createRandom(levelNum * 1000003 + attempt * 3571 + 2027);
+					const open = new Set([positionKey(start.x, start.y)]);
+					const visited = new Set([positionKey(start.x, start.y)]);
+					const stack = [{ x: start.x, y: start.y }];
+
+					while (stack.length > 0) {
+						const current = stack[stack.length - 1];
+						const candidates = shuffle([
+							{ dx: 0, dy: -2 }, { dx: 2, dy: 0 },
+							{ dx: 0, dy: 2 }, { dx: -2, dy: 0 }
+						], random).filter((direction) => {
+							const nx = current.x + direction.dx;
+							const ny = current.y + direction.dy;
+							return nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && !visited.has(positionKey(nx, ny));
+						});
+
+						if (candidates.length === 0) {
+							stack.pop();
+							continue;
+						}
+
+						const chosen = candidates[0];
+						const nx = current.x + chosen.dx;
+						const ny = current.y + chosen.dy;
+						open.add(positionKey(current.x + chosen.dx / 2, current.y + chosen.dy / 2));
+						open.add(positionKey(nx, ny));
+						visited.add(positionKey(nx, ny));
+						stack.push({ x: nx, y: ny });
+					}
+
+					const walls = [];
+					for (let y = 0; y < size; y++) {
+						for (let x = 0; x < size; x++) {
+							if (!open.has(positionKey(x, y))) walls.push({ x, y });
+						}
+					}
+
+					const signature = `${size}:` + walls.map((wall) => positionKey(wall.x, wall.y)).join('|');
+					if (usedSignatures.has(signature)) continue;
+					const path = findShortestPath(size, walls, start, target);
+					if (!path || path.length < minPath || countTurns(path) < minTurns) continue;
+					usedSignatures.add(signature);
+					return { size, start, target, walls, path };
+				}
+				throw new Error(`无法生成第 ${levelNum} 关完美迷宫`);
+			}
+
+			function turnActions(fromDirection, toDirection) {
+				const delta = (toDirection - fromDirection + 4) % 4;
+				if (delta === 0) return [];
+				if (delta === 1) return ['TURN_RIGHT'];
+				if (delta === 3) return ['TURN_LEFT'];
+				return ['TURN_RIGHT', 'TURN_RIGHT'];
+			}
+
+			function buildSuggestedProgram(level) {
+				const actions = [];
+				let direction = level.start.dir;
+				let currentX = level.start.x;
+				let currentY = level.start.y;
+				let index = 0;
+
+				while (index < level.path.length) {
+					const nextDirection = level.path[index];
+					const turns = turnActions(direction, nextDirection);
+
+					if (turns.length === 1 && level.chapter.id >= 2) {
+						const frontX = currentX + DIRECTIONS[direction].dx;
+						const frontY = currentY + DIRECTIONS[direction].dy;
+						const frontBlocked =
+							frontX < 0 || frontX >= level.size || frontY < 0 || frontY >= level.size ||
+							level.wallSet.has(positionKey(frontX, frontY));
+						if (frontBlocked) {
+							actions.push(turns[0] === 'TURN_RIGHT' ? 'IF_WALL_RIGHT' : 'IF_WALL_LEFT');
+						} else {
+							actions.push(...turns);
+						}
+					} else {
+						actions.push(...turns);
+					}
+
+					direction = nextDirection;
+					let runLength = 0;
+					while (index < level.path.length && level.path[index] === nextDirection) {
+						runLength++;
+						index++;
+					}
+
+					const originalRunLength = runLength;
+					if (level.chapter.id >= 4 && runLength >= 2) {
+						actions.push('MOVE_UNTIL_WALL');
+					} else if (level.chapter.id >= 3) {
+						while (runLength >= 4) {
+							actions.push('REPEAT_MOVE_4');
+							runLength -= 4;
+						}
+						if (runLength === 3) actions.push('REPEAT_MOVE_3');
+						else if (runLength === 2) actions.push('REPEAT_MOVE_2');
+						else if (runLength === 1) actions.push('MOVE');
+					} else {
+						for (let count = 0; count < runLength; count++) actions.push('MOVE');
+					}
+
+					currentX += DIRECTIONS[nextDirection].dx * originalRunLength;
+					currentY += DIRECTIONS[nextDirection].dy * originalRunLength;
+				}
+				return actions;
+			}
+
+			function actionLabel(action) {
+				return BLOCK_DEFINITIONS.find((block) => block.action === action)?.label ?? action;
+			}
+
+			function decorateSpecialMission(level) {
+				level.key = null;
+				level.door = null;
+				level.batteries = [];
+				if (level.chapter.id !== 4) return;
+
+				const positions = pathPositions(level.start, level.path);
+				const safeIndex = (ratio) => Math.max(1, Math.min(positions.length - 2, Math.floor((positions.length - 1) * ratio)));
+				level.key = { ...positions[safeIndex(0.22)] };
+				level.door = { ...positions[safeIndex(0.58)] };
+
+				const localLevel = level.number - level.chapter.range[0] + 1;
+				const batteryCount = localLevel <= 5 ? 1 : localLevel <= 10 ? 2 : 3;
+				const ratios = batteryCount === 1 ? [0.4] : batteryCount === 2 ? [0.36, 0.76] : [0.32, 0.5, 0.78];
+				const reserved = new Set([
+					positionKey(level.key.x, level.key.y),
+					positionKey(level.door.x, level.door.y),
+					positionKey(level.target.x, level.target.y)
+				]);
+				for (const ratio of ratios) {
+					let index = safeIndex(ratio);
+					while (index < positions.length - 1 && reserved.has(positionKey(positions[index].x, positions[index].y))) index++;
+					if (index >= positions.length - 1) index = Math.max(1, index - 2);
+					const battery = { ...positions[index] };
+					reserved.add(positionKey(battery.x, battery.y));
+					level.batteries.push(battery);
+				}
+			}
+
+			function generateLevel(levelNum, usedSignatures) {
+				const chapter = getChapterByLevel(levelNum);
+				const base = chapter.id <= 2
+					? generateOpenMaze(levelNum, chapter, usedSignatures)
+					: generatePerfectMaze(levelNum, chapter, usedSignatures);
+				const level = {
+					number: levelNum,
+					chapter,
+					...base,
+					wallSet: new Set(base.walls.map((wall) => positionKey(wall.x, wall.y))),
+					turnCount: countTurns(base.path)
+				};
+				level.suggestedProgram = buildSuggestedProgram(level);
+				level.blockBudget = Math.max(3, level.suggestedProgram.length + (chapter.id === 1 ? 2 : 1));
+				level.parSteps = level.path.length + level.turnCount;
+				level.difficulty = Math.min(5, chapter.id + Math.floor(((levelNum - chapter.range[0]) / LEVELS_PER_CHAPTER) * 2));
+				decorateSpecialMission(level);
+				return level;
 			}
 
 			const usedSignatures = new Set();
-			const LEVELS = Array.from(
-				{ length: TOTAL_LEVELS },
-				(_, index) => generateValidMaze(index + 1, usedSignatures)
-			);
+			const LEVELS = Array.from({ length: TOTAL_LEVELS }, (_, index) => generateLevel(index + 1, usedSignatures));
 
-			let currentLevelIdx = 0;
-			let robot = { x: 0, y: 0, dir: 1 };
+			function defaultProgress() {
+				return {
+					unlockedLevel: 0,
+					levels: {},
+					lastLevel: 0
+				};
+			}
+
+			function loadProgress() {
+				try {
+					const raw = localStorage.getItem(STORAGE_KEY);
+					if (!raw) return defaultProgress();
+					const parsed = JSON.parse(raw);
+					return {
+						unlockedLevel: Math.max(0, Math.min(TOTAL_LEVELS - 1, Number(parsed.unlockedLevel) || 0)),
+						levels: parsed.levels && typeof parsed.levels === 'object' ? parsed.levels : {},
+						lastLevel: Math.max(0, Math.min(TOTAL_LEVELS - 1, Number(parsed.lastLevel) || 0))
+					};
+				} catch {
+					return defaultProgress();
+				}
+			}
+
+			function saveProgress() {
+				try {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+				} catch {
+					// 本地存储不可用时不阻止游戏运行。
+				}
+			}
+
+			let progress = loadProgress();
+			let currentLevelIdx = Math.min(progress.lastLevel, progress.unlockedLevel);
+			let currentChapterId = LEVELS[currentLevelIdx].chapter.id;
+			let robot = { ...LEVELS[currentLevelIdx].start };
 			let instructions = [];
 			let isRunning = false;
+			let runCancelled = false;
+			let inventory = { hasKey: false, batteries: new Set() };
+			let attemptCount = 0;
+			let sessionCrashCount = 0;
+			let hintsUsed = 0;
 
+			const chapterTabs = document.getElementById('chapterTabs');
+			const levelPicker = document.getElementById('levelPicker');
+			const progressSummary = document.getElementById('progressSummary');
+			const progressFill = document.getElementById('progressFill');
+			const levelHeading = document.getElementById('levelHeading');
+			const difficultyStatus = document.getElementById('difficultyStatus');
+			const budgetStatus = document.getElementById('budgetStatus');
+			const bestStatus = document.getElementById('bestStatus');
 			const mazeGrid = document.getElementById('mazeGrid');
+			const missionTitle = document.getElementById('missionTitle');
+			const missionDescription = document.getElementById('missionDescription');
+			const inventoryStatus = document.getElementById('inventoryStatus');
+			const blockPalette = document.getElementById('blockPalette');
+			const paletteNote = document.getElementById('paletteNote');
+			const blockCounter = document.getElementById('blockCounter');
 			const codeWorkspace = document.getElementById('codeWorkspace');
 			const emptyHint = document.getElementById('emptyHint');
-			const levelSelect = document.getElementById('levelSelect');
-			const routeStatus = document.getElementById('routeStatus');
-			const bestStatus = document.getElementById('bestStatus');
 			const btnRun = document.getElementById('btnRun');
 			const btnReset = document.getElementById('btnReset');
-			const blockButtons = [...document.querySelectorAll('.block-btn')];
+			const btnHint = document.getElementById('btnHint');
+			const btnResetProgress = document.getElementById('btnResetProgress');
+			const speedSelect = document.getElementById('speedSelect');
+			const attemptStatus = document.getElementById('attemptStatus');
+			const messageBox = document.getElementById('messageBox');
 
-			function readBest(levelIdx) {
-				try {
-					const value = localStorage.getItem(`robot_maze_best_v2_${levelIdx}`);
-					if (value === null) return null;
-					const parsed = Number.parseInt(value, 10);
-					return Number.isFinite(parsed) ? parsed : null;
-				} catch {
-					return null;
+			function getLevelRecord(index) {
+				return progress.levels[String(index)] ?? null;
+			}
+
+			function totalStars() {
+				return Object.values(progress.levels).reduce((sum, record) => sum + (Number(record?.stars) || 0), 0);
+			}
+
+			function chapterStars(chapter) {
+				let stars = 0;
+				for (let number = chapter.range[0]; number <= chapter.range[1]; number++) {
+					stars += Number(getLevelRecord(number - 1)?.stars) || 0;
+				}
+				return stars;
+			}
+
+			function chapterCompleted(chapter) {
+				let completed = 0;
+				for (let number = chapter.range[0]; number <= chapter.range[1]; number++) {
+					if ((Number(getLevelRecord(number - 1)?.stars) || 0) > 0) completed++;
+				}
+				return completed;
+			}
+
+			function setMessage(text, type = '') {
+				messageBox.className = `message-box${type ? ` ${type}` : ''}`;
+				messageBox.textContent = text;
+			}
+
+			function renderProgress() {
+				const stars = totalStars();
+				progressSummary.textContent = `已解锁 ${progress.unlockedLevel + 1}/${TOTAL_LEVELS} · 星星 ${stars}/${TOTAL_LEVELS * 3}`;
+				progressFill.style.width = `${Math.round(((progress.unlockedLevel + 1) / TOTAL_LEVELS) * 100)}%`;
+
+				chapterTabs.replaceChildren();
+				for (const chapter of CHAPTERS) {
+					const firstIndex = chapter.range[0] - 1;
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.className = `chapter-btn${chapter.id === currentChapterId ? ' active' : ''}`;
+					button.disabled = firstIndex > progress.unlockedLevel || isRunning;
+					button.dataset.chapter = String(chapter.id);
+					button.innerHTML = `
+						<span class="chapter-name">${chapter.icon} ${chapter.shortName}</span>
+						<span class="chapter-stat">${chapterCompleted(chapter)}/15 关 · ${chapterStars(chapter)}/45 ⭐</span>
+					`;
+					chapterTabs.appendChild(button);
+				}
+
+				levelPicker.replaceChildren();
+				const chapter = CHAPTERS[currentChapterId - 1];
+				for (let number = chapter.range[0]; number <= chapter.range[1]; number++) {
+					const index = number - 1;
+					const record = getLevelRecord(index);
+					const locked = index > progress.unlockedLevel;
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.className = `level-btn${index === currentLevelIdx ? ' active' : ''}${locked ? ' locked' : ''}`;
+					button.disabled = locked || isRunning;
+					button.dataset.level = String(index);
+					button.textContent = String(number);
+					if (record?.stars) {
+						const starLabel = document.createElement('span');
+						starLabel.className = 'level-stars';
+						starLabel.textContent = '★'.repeat(record.stars);
+						button.appendChild(starLabel);
+					}
+					levelPicker.appendChild(button);
 				}
 			}
 
-			function saveBest(levelIdx, count) {
-				try {
-					localStorage.setItem(`robot_maze_best_v2_${levelIdx}`, String(count));
-				} catch {
-					// 本地存储不可用时，不影响游戏继续运行。
+			function renderPalette() {
+				const levelNum = currentLevelIdx + 1;
+				blockPalette.replaceChildren();
+				for (const definition of BLOCK_DEFINITIONS) {
+					if (definition.unlockLevel > levelNum) continue;
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.className = 'block-btn';
+					button.dataset.action = definition.action;
+					button.dataset.group = definition.group;
+					button.disabled = isRunning;
+					button.textContent = definition.label;
+					blockPalette.appendChild(button);
 				}
+				paletteNote.textContent = LEVELS[currentLevelIdx].chapter.note;
 			}
 
-			function updateLevelStatus() {
+			function renderWorkspace() {
+				codeWorkspace.replaceChildren();
+				if (instructions.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.appendChild(emptyHint);
+				} else {
+					emptyHint.style.display = 'none';
+					instructions.forEach((instruction, index) => {
+						const item = document.createElement('div');
+						item.className = 'code-item';
+
+						const label = document.createElement('span');
+						label.className = 'code-label';
+						label.textContent = `${index + 1}. ${instruction.label}`;
+
+						const actions = document.createElement('span');
+						actions.className = 'code-actions';
+						const up = document.createElement('button');
+						up.type = 'button';
+						up.className = 'icon-btn';
+						up.dataset.command = 'up';
+						up.dataset.index = String(index);
+						up.disabled = isRunning || index === 0;
+						up.setAttribute('aria-label', '上移');
+						up.textContent = '↑';
+
+						const down = document.createElement('button');
+						down.type = 'button';
+						down.className = 'icon-btn';
+						down.dataset.command = 'down';
+						down.dataset.index = String(index);
+						down.disabled = isRunning || index === instructions.length - 1;
+						down.setAttribute('aria-label', '下移');
+						down.textContent = '↓';
+
+						const remove = document.createElement('button');
+						remove.type = 'button';
+						remove.className = 'icon-btn remove';
+						remove.dataset.command = 'remove';
+						remove.dataset.index = String(index);
+						remove.disabled = isRunning;
+						remove.setAttribute('aria-label', '删除');
+						remove.textContent = '✕';
+
+						actions.append(up, down, remove);
+						item.append(label, actions);
+						codeWorkspace.appendChild(item);
+					});
+				}
+				updateBudgetUI();
+			}
+
+			function updateBudgetUI() {
+				const budget = LEVELS[currentLevelIdx].blockBudget;
+				blockCounter.textContent = `${instructions.length} / ${budget}`;
+				blockCounter.className = 'budget-number';
+				if (instructions.length <= budget) blockCounter.classList.add('good');
+				else if (instructions.length <= budget + 3) blockCounter.classList.add('warn');
+				else blockCounter.classList.add('over');
+			}
+
+			function collectAtCurrentPosition(level) {
+				if (level.key && robot.x === level.key.x && robot.y === level.key.y) {
+					inventory.hasKey = true;
+				}
+				level.batteries.forEach((battery, index) => {
+					if (robot.x === battery.x && robot.y === battery.y) inventory.batteries.add(index);
+				});
+			}
+
+			function requirementsMet(level) {
+				return (!level.key || inventory.hasKey) && inventory.batteries.size === level.batteries.length;
+			}
+
+			function renderMission() {
 				const level = LEVELS[currentLevelIdx];
-				const best = readBest(currentLevelIdx);
-				routeStatus.textContent = `最短路线：${level.shortestPathLength} 格`;
-				bestStatus.textContent = best === null ? '最佳积木：--' : `最佳积木：${best} 个`;
-			}
-
-			function setControlsDisabled(disabled) {
-				btnRun.disabled = disabled;
-				btnReset.disabled = disabled;
-				levelSelect.disabled = disabled;
-				blockButtons.forEach((button) => {
-					button.disabled = disabled;
-				});
-				codeWorkspace.querySelectorAll('.remove-btn').forEach((button) => {
-					button.disabled = disabled;
-				});
-			}
-
-			LEVELS.forEach((level, index) => {
-				const option = document.createElement('option');
-				option.value = String(index);
-				option.textContent = level.title;
-				levelSelect.appendChild(option);
-			});
-
-			function initMaze(index, clearProgram = true) {
-				const safeIndex = Math.max(0, Math.min(index, TOTAL_LEVELS - 1));
-				currentLevelIdx = safeIndex;
-				levelSelect.value = String(safeIndex);
-				robot = { ...LEVELS[safeIndex].start };
-
-				if (clearProgram) {
-					instructions = [];
-					renderWorkspace();
+				if (level.chapter.id < 4) {
+					missionTitle.textContent = '任务：安全抵达终点';
+					missionDescription.textContent = level.chapter.mission;
+					inventoryStatus.textContent = '🎒 无任务物品';
+					return;
 				}
-
-				updateLevelStatus();
-				renderGrid();
+				missionTitle.textContent = '任务：收集物品并通过门禁';
+				missionDescription.textContent = `先找到钥匙，再收集 ${level.batteries.length} 枚电池，最后抵达奖杯。门在获得钥匙后才会开启。`;
+				inventoryStatus.textContent = `🔑 ${inventory.hasKey ? '已获得' : '未获得'} · 🔋 ${inventory.batteries.size}/${level.batteries.length}`;
 			}
 
-			/* 🏁 【终极解决方案】：使用最高强度的 Dynamic Inline Style 动态渲染地砖！ */
 			function renderGrid() {
-				mazeGrid.replaceChildren();
 				const level = LEVELS[currentLevelIdx];
+				mazeGrid.replaceChildren();
+				mazeGrid.style.gridTemplateColumns = `repeat(${level.size}, 1fr)`;
+				mazeGrid.style.gridTemplateRows = `repeat(${level.size}, 1fr)`;
+				mazeGrid.setAttribute('aria-label', `${level.size}乘${level.size}机器人迷宫`);
 
-				for (let row = 0; row < GRID_SIZE; row++) {
-					for (let column = 0; column < GRID_SIZE; column++) {
+				for (let row = 0; row < level.size; row++) {
+					for (let column = 0; column < level.size; column++) {
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
-						
-						// 1. 奇偶交错底色 (浅亮蓝灰 vs 深暗蓝灰)
-						const isEven = (row + column) % 2 === 0;
-						if (isEven) {
-							cell.style.backgroundColor = '#1d2a3e';
-							cell.style.border = '1px solid #283954';
-						} else {
-							cell.style.backgroundColor = '#384b6c';
-							cell.style.border = '1px solid #4a6188';
-						}
+						const even = (row + column) % 2 === 0;
+						cell.style.backgroundColor = even ? '#1d2a3e' : '#354866';
+						cell.style.border = even ? '1px solid #283954' : '1px solid #496083';
 
 						const key = positionKey(column, row);
 						const isWall = level.wallSet.has(key);
 						const isTarget = column === level.target.x && row === level.target.y;
 						const isRobot = column === robot.x && row === robot.y;
+						const isKey = level.key && column === level.key.x && row === level.key.y && !inventory.hasKey;
+						const isDoor = level.door && column === level.door.x && row === level.door.y;
+						const batteryIndex = level.batteries.findIndex((battery) => battery.x === column && battery.y === row);
+						const isBattery = batteryIndex >= 0 && !inventory.batteries.has(batteryIndex);
 
-						// 2. 墙壁与目标的高优先覆盖色
 						if (isWall) {
 							cell.style.backgroundColor = '#0c121e';
 							cell.style.border = '1px solid #1a273b';
 							cell.style.boxShadow = 'inset 0 0 8px rgba(0,0,0,0.8)';
 							cell.textContent = '🧱';
+						} else if (isDoor) {
+							cell.style.backgroundColor = inventory.hasKey ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.24)';
+							cell.style.border = inventory.hasKey ? '2px solid #10b981' : '2px solid #ef4444';
+							cell.textContent = inventory.hasKey ? '🚪' : '🔒';
 						} else if (isTarget) {
-							cell.style.backgroundColor = 'rgba(245, 158, 11, 0.35)';
-							cell.style.border = '2px dashed #f59e0b';
-							if (!isRobot) cell.textContent = '🏆';
+							cell.style.backgroundColor = requirementsMet(level) ? 'rgba(245,158,11,0.35)' : 'rgba(100,116,139,0.35)';
+							cell.style.border = requirementsMet(level) ? '2px dashed #f59e0b' : '2px dashed #64748b';
+							if (!isRobot) cell.textContent = requirementsMet(level) ? '🏆' : '🔐';
+						} else if (isKey) {
+							cell.textContent = '🔑';
+						} else if (isBattery) {
+							cell.textContent = '🔋';
 						}
 
-						// 3. 渲染机器人
 						if (isRobot) {
 							const robotIcon = document.createElement('span');
 							robotIcon.className = 'robot-icon';
@@ -652,41 +1323,59 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 							robotIcon.style.transform = `rotate(${angles[robot.dir]}deg)`;
 							cell.appendChild(robotIcon);
 						}
-
 						mazeGrid.appendChild(cell);
 					}
 				}
+				renderMission();
 			}
 
-			function renderWorkspace() {
-				codeWorkspace.replaceChildren();
+			function updateAttemptUI() {
+				attemptStatus.textContent = `尝试 ${attemptCount} 次 · 提示 ${hintsUsed} 次`;
+			}
 
-				if (instructions.length === 0) {
-					emptyHint.style.display = 'block';
-					codeWorkspace.appendChild(emptyHint);
-					return;
-				}
+			function renderLevelHeader() {
+				const level = LEVELS[currentLevelIdx];
+				const record = getLevelRecord(currentLevelIdx);
+				levelHeading.textContent = `${level.chapter.icon} 第 ${level.number} 关 · ${level.chapter.shortName}`;
+				difficultyStatus.textContent = `难度：${'★'.repeat(level.difficulty)}${'☆'.repeat(5 - level.difficulty)}`;
+				budgetStatus.textContent = `推荐积木：≤ ${level.blockBudget}`;
+				bestStatus.textContent = record?.bestBlocks
+					? `最佳：${record.bestBlocks}积木 / ${record.bestSteps}步 / ${'★'.repeat(record.stars)}`
+					: '最佳：--';
+			}
 
-				emptyHint.style.display = 'none';
+			function resetRobotState() {
+				const level = LEVELS[currentLevelIdx];
+				robot = { ...level.start };
+				inventory = { hasKey: false, batteries: new Set() };
+				collectAtCurrentPosition(level);
+				renderGrid();
+			}
 
-				instructions.forEach((instruction, index) => {
-					const item = document.createElement('div');
-					item.className = 'code-item';
+			function initLevel(index, clearProgram = true) {
+				const safeIndex = Math.max(0, Math.min(index, progress.unlockedLevel));
+				currentLevelIdx = safeIndex;
+				currentChapterId = LEVELS[safeIndex].chapter.id;
+				progress.lastLevel = safeIndex;
+				saveProgress();
+				attemptCount = 0;
+				sessionCrashCount = 0;
+				hintsUsed = 0;
+				if (clearProgram) instructions = [];
+				resetRobotState();
+				renderPalette();
+				renderWorkspace();
+				renderLevelHeader();
+				renderProgress();
+				updateAttemptUI();
+				setMessage('先观察机器人的朝向和墙壁，再从第一条积木开始编写程序。');
+			}
 
-					const label = document.createElement('span');
-					label.textContent = `${index + 1}. ${instruction.label}`;
-
-					const removeButton = document.createElement('button');
-					removeButton.type = 'button';
-					removeButton.className = 'remove-btn';
-					removeButton.dataset.index = String(index);
-					removeButton.setAttribute('aria-label', `删除第 ${index + 1} 个积木`);
-					removeButton.textContent = '✕';
-					removeButton.disabled = isRunning;
-
-					item.append(label, removeButton);
-					codeWorkspace.appendChild(item);
-				});
+			function isBlocked(level, x, y) {
+				if (x < 0 || x >= level.size || y < 0 || y >= level.size) return true;
+				if (level.wallSet.has(positionKey(x, y))) return true;
+				if (level.door && x === level.door.x && y === level.door.y && !inventory.hasKey) return true;
+				return false;
 			}
 
 			function getNextPosition(direction) {
@@ -696,155 +1385,294 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				};
 			}
 
-			function isBlocked(level, x, y) {
-				return (
-					x < 0 || x >= GRID_SIZE ||
-					y < 0 || y >= GRID_SIZE ||
-					level.wallSet.has(positionKey(x, y))
-				);
-			}
-
-			function expandInstructions(program) {
-				const queue = [];
-				for (const instruction of program) {
-					if (instruction.action === 'REPEAT_3') {
-						queue.push(
-							{ action: 'MOVE' },
-							{ action: 'MOVE' },
-							{ action: 'MOVE' }
-						);
-					} else {
-						queue.push({ action: instruction.action });
-					}
-				}
-				return queue;
-			}
-
 			function sleep(milliseconds) {
 				return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 			}
 
-			blockButtons.forEach((button) => {
-				button.addEventListener('click', () => {
-					if (isRunning) return;
+			async function primitiveMove(level, delay, runStats) {
+				const next = getNextPosition(robot.dir);
+				if (isBlocked(level, next.x, next.y)) return false;
+				robot.x = next.x;
+				robot.y = next.y;
+				runStats.executionSteps++;
+				collectAtCurrentPosition(level);
+				renderGrid();
+				await sleep(delay);
+				return true;
+			}
 
-					if (instructions.length >= MAX_INSTRUCTIONS) {
-						alert(`最多可以添加 ${MAX_INSTRUCTIONS} 个积木。`);
-						return;
+			function reachedCompletedTarget(level) {
+				return robot.x === level.target.x && robot.y === level.target.y && requirementsMet(level);
+			}
+
+			async function executeInstruction(instruction, level, delay, runStats) {
+				if (instruction.action === 'MOVE') {
+					const moved = await primitiveMove(level, delay, runStats);
+					if (!moved) return 'crash';
+					return reachedCompletedTarget(level) ? 'success' : 'continue';
+				}
+
+				if (instruction.action === 'TURN_RIGHT') {
+					robot.dir = (robot.dir + 1) % 4;
+					runStats.executionSteps++;
+					renderGrid();
+					await sleep(delay);
+					return 'continue';
+				}
+
+				if (instruction.action === 'TURN_LEFT') {
+					robot.dir = (robot.dir + 3) % 4;
+					runStats.executionSteps++;
+					renderGrid();
+					await sleep(delay);
+					return 'continue';
+				}
+
+				if (instruction.action === 'TURN_AROUND') {
+					robot.dir = (robot.dir + 2) % 4;
+					runStats.executionSteps++;
+					renderGrid();
+					await sleep(delay);
+					return 'continue';
+				}
+
+				if (instruction.action === 'IF_WALL_RIGHT' || instruction.action === 'IF_WALL_LEFT') {
+					const next = getNextPosition(robot.dir);
+					if (isBlocked(level, next.x, next.y)) {
+						robot.dir = instruction.action === 'IF_WALL_RIGHT' ? (robot.dir + 1) % 4 : (robot.dir + 3) % 4;
 					}
+					runStats.executionSteps++;
+					renderGrid();
+					await sleep(delay);
+					return 'continue';
+				}
 
-					const action = button.dataset.action;
-					if (!action) return;
+				if (instruction.action.startsWith('REPEAT_MOVE_')) {
+					const count = Number.parseInt(instruction.action.split('_').pop(), 10);
+					for (let step = 0; step < count; step++) {
+						if (runCancelled) return 'cancelled';
+						const moved = await primitiveMove(level, delay, runStats);
+						if (!moved) return 'crash';
+						if (reachedCompletedTarget(level)) return 'success';
+					}
+					return 'continue';
+				}
 
-					instructions.push({
-						action,
-						label: button.textContent.trim()
-					});
-					renderWorkspace();
-				});
+				if (instruction.action === 'MOVE_UNTIL_WALL') {
+					let safety = level.size * level.size;
+					while (safety-- > 0) {
+						if (runCancelled) return 'cancelled';
+						const next = getNextPosition(robot.dir);
+						if (isBlocked(level, next.x, next.y)) break;
+						await primitiveMove(level, delay, runStats);
+						if (reachedCompletedTarget(level)) return 'success';
+					}
+					return 'continue';
+				}
+
+				return 'continue';
+			}
+
+			function chapterSkillMet(level, program) {
+				const actions = new Set(program.map((instruction) => instruction.action));
+				const hasCondition = actions.has('IF_WALL_RIGHT') || actions.has('IF_WALL_LEFT');
+				const hasLoop = [...actions].some((action) => action.startsWith('REPEAT_MOVE_')) || actions.has('MOVE_UNTIL_WALL');
+				if (level.chapter.id === 2) return hasCondition;
+				if (level.chapter.id === 3) return hasLoop;
+				if (level.chapter.id === 4) return hasCondition && hasLoop;
+				return true;
+			}
+
+			function calculateStars(level, program, executionSteps) {
+				const blockCount = program.length;
+				const skillMet = chapterSkillMet(level, program);
+				let stars = 1;
+				if (blockCount <= level.blockBudget && skillMet) stars = 2;
+				if (
+					blockCount <= level.blockBudget &&
+					skillMet &&
+					executionSteps <= level.parSteps + 2 &&
+					hintsUsed === 0 &&
+					sessionCrashCount === 0
+				) stars = 3;
+				return { stars, skillMet };
+			}
+
+			function saveLevelResult(index, stars, blockCount, executionSteps) {
+				const previous = getLevelRecord(index);
+				progress.levels[String(index)] = {
+					stars: Math.max(stars, Number(previous?.stars) || 0),
+					bestBlocks: previous?.bestBlocks ? Math.min(previous.bestBlocks, blockCount) : blockCount,
+					bestSteps: previous?.bestSteps ? Math.min(previous.bestSteps, executionSteps) : executionSteps
+				};
+				if (index < TOTAL_LEVELS - 1) progress.unlockedLevel = Math.max(progress.unlockedLevel, index + 1);
+				saveProgress();
+			}
+
+			function setRunningState(running) {
+				isRunning = running;
+				btnRun.textContent = running ? '⏹ 停止运行' : '▶ 从起点运行';
+				btnReset.disabled = running;
+				btnHint.disabled = running;
+				speedSelect.disabled = running;
+				blockPalette.querySelectorAll('button').forEach((button) => { button.disabled = running; });
+				renderWorkspace();
+				renderProgress();
+			}
+
+			function suggestedProgramText(level, limit = null) {
+				const actions = limit === null ? level.suggestedProgram : level.suggestedProgram.slice(0, limit);
+				return actions.map((action, index) => `${index + 1}. ${actionLabel(action)}`).join(' → ');
+			}
+
+			function showNextHint() {
+				const level = LEVELS[currentLevelIdx];
+				hintsUsed++;
+				updateAttemptUI();
+				if (hintsUsed === 1) {
+					const firstDirection = DIRECTIONS[level.path[0]]?.name ?? '前方';
+					setMessage(`提示1：机器人第一段路线朝“${firstDirection}”方向。先处理起点朝向，再考虑连续前进。`, 'hint');
+				} else if (hintsUsed === 2) {
+					setMessage(`提示2：参考程序的前三个积木是：${suggestedProgramText(level, 3)}`, 'hint');
+				} else {
+					setMessage(`完整参考程序：${suggestedProgramText(level)}。使用完整提示仍可通关，但本次最高只能获得2星。`, 'hint');
+				}
+			}
+
+			chapterTabs.addEventListener('click', (event) => {
+				const button = event.target.closest('.chapter-btn');
+				if (!button || button.disabled || isRunning) return;
+				const chapterId = Number.parseInt(button.dataset.chapter ?? '', 10);
+				if (!Number.isInteger(chapterId)) return;
+				currentChapterId = chapterId;
+				renderProgress();
+			});
+
+			levelPicker.addEventListener('click', (event) => {
+				const button = event.target.closest('.level-btn');
+				if (!button || button.disabled || isRunning) return;
+				const index = Number.parseInt(button.dataset.level ?? '', 10);
+				if (!Number.isInteger(index)) return;
+				initLevel(index, true);
+			});
+
+			blockPalette.addEventListener('click', (event) => {
+				const button = event.target.closest('.block-btn');
+				if (!button || button.disabled || isRunning) return;
+				if (instructions.length >= MAX_INSTRUCTIONS) {
+					setMessage(`最多可以添加 ${MAX_INSTRUCTIONS} 个积木。请删除或压缩重复指令。`, 'error');
+					return;
+				}
+				const action = button.dataset.action;
+				if (!action) return;
+				instructions.push({ action, label: button.textContent.trim() });
+				renderWorkspace();
 			});
 
 			codeWorkspace.addEventListener('click', (event) => {
 				if (isRunning) return;
-				const button = event.target.closest('.remove-btn');
+				const button = event.target.closest('.icon-btn');
 				if (!button) return;
-
 				const index = Number.parseInt(button.dataset.index ?? '', 10);
 				if (!Number.isInteger(index) || index < 0 || index >= instructions.length) return;
-
-				instructions.splice(index, 1);
+				const command = button.dataset.command;
+				if (command === 'remove') instructions.splice(index, 1);
+				else if (command === 'up' && index > 0) [instructions[index - 1], instructions[index]] = [instructions[index], instructions[index - 1]];
+				else if (command === 'down' && index < instructions.length - 1) [instructions[index], instructions[index + 1]] = [instructions[index + 1], instructions[index]];
 				renderWorkspace();
 			});
 
 			btnRun.addEventListener('click', async () => {
-				if (isRunning || instructions.length === 0) return;
+				if (isRunning) {
+					runCancelled = true;
+					return;
+				}
+				if (instructions.length === 0) {
+					setMessage('请先添加至少一个编程积木。', 'error');
+					return;
+				}
 
 				const runLevelIdx = currentLevelIdx;
 				const level = LEVELS[runLevelIdx];
-				const programLength = instructions.length;
-				const executionQueue = expandInstructions(instructions);
-				let reachedTarget = false;
-				let crashed = false;
-
-				robot = { ...level.start };
-				renderGrid();
-				isRunning = true;
-				setControlsDisabled(true);
+				const program = instructions.map((instruction) => ({ ...instruction }));
+				const delay = Number.parseInt(speedSelect.value, 10) || 360;
+				const runStats = { executionSteps: 0 };
+				let outcome = 'incomplete';
+				attemptCount++;
+				updateAttemptUI();
+				runCancelled = false;
+				resetRobotState();
+				setRunningState(true);
+				setMessage('机器人正在从起点执行程序……');
 
 				try {
-					for (const instruction of executionQueue) {
-						await sleep(STEP_DELAY);
-
-						if (currentLevelIdx !== runLevelIdx) break;
-
-						if (instruction.action === 'IF_WALL_RIGHT') {
-							const next = getNextPosition(robot.dir);
-							if (isBlocked(level, next.x, next.y)) {
-								robot.dir = (robot.dir + 1) % 4;
-							}
-						} else if (instruction.action === 'MOVE') {
-							const next = getNextPosition(robot.dir);
-							if (isBlocked(level, next.x, next.y)) {
-								crashed = true;
-								break;
-							}
-							robot.x = next.x;
-							robot.y = next.y;
-						} else if (instruction.action === 'TURN_RIGHT') {
-							robot.dir = (robot.dir + 1) % 4;
-						} else if (instruction.action === 'TURN_LEFT') {
-							robot.dir = (robot.dir + 3) % 4;
-						}
-
-						renderGrid();
-
-						if (robot.x === level.target.x && robot.y === level.target.y) {
-							reachedTarget = true;
+					await sleep(Math.min(delay, 250));
+					for (const instruction of program) {
+						if (runCancelled || currentLevelIdx !== runLevelIdx) {
+							outcome = 'cancelled';
 							break;
 						}
+						outcome = await executeInstruction(instruction, level, delay, runStats);
+						if (outcome !== 'continue') break;
 					}
+					if (outcome === 'continue') outcome = reachedCompletedTarget(level) ? 'success' : 'incomplete';
 				} finally {
-					isRunning = false;
-					setControlsDisabled(false);
+					setRunningState(false);
 				}
 
-				if (reachedTarget) {
-					const previousBest = readBest(runLevelIdx);
-					if (previousBest === null || programLength < previousBest) {
-						saveBest(runLevelIdx, programLength);
-					}
-					updateLevelStatus();
-
-					if (runLevelIdx < TOTAL_LEVELS - 1) {
-						alert(`🎉 恭喜通关第 ${runLevelIdx + 1} 关！即将进入第 ${runLevelIdx + 2} 关。`);
-						initMaze(runLevelIdx + 1, true);
-					} else {
-						alert('🏆 太厉害了！你已经通关全部100个机器人迷宫！');
-					}
-				} else if (crashed) {
-					alert('💥 机器人撞墙了！修改积木顺序后再试一次。');
+				if (outcome === 'success') {
+					const rating = calculateStars(level, program, runStats.executionSteps);
+					const stars = rating.stars;
+					saveLevelResult(runLevelIdx, stars, program.length, runStats.executionSteps);
+					renderLevelHeader();
+					renderProgress();
+					setMessage(
+						`🎉 通关成功！获得 ${'⭐'.repeat(stars)}。使用 ${program.length} 个积木，执行 ${runStats.executionSteps} 步。` +
+						(!rating.skillMet
+							? ` 本章高星要求：${level.chapter.id === 2 ? '使用条件判断积木' : level.chapter.id === 3 ? '使用循环积木' : '同时使用条件判断与循环积木'}。`
+							: stars < 3 ? ' 重新挑战并减少积木、提示或失败尝试，可以获得更高评价。' : ' 完美算法！'),
+						'success'
+					);
+				} else if (outcome === 'crash') {
+					sessionCrashCount++;
+					setMessage('💥 机器人撞到了墙壁或未开启的门。调整积木顺序后再试一次。', 'error');
+				} else if (outcome === 'cancelled') {
+					setMessage('运行已停止。你可以修改程序后重新运行。');
+				} else if (robot.x === level.target.x && robot.y === level.target.y && !requirementsMet(level)) {
+					setMessage('🔐 机器人到达了终点，但任务物品尚未收集完整。请先获得钥匙和全部电池。', 'error');
 				} else {
-					alert('🤔 程序执行完了，但机器人还没有到达终点。继续完善代码吧！');
+					setMessage('🤔 程序执行结束，但机器人还没有完成任务。继续补充或调整代码。');
 				}
 			});
 
 			btnReset.addEventListener('click', () => {
 				if (isRunning) return;
-				initMaze(currentLevelIdx, true);
+				instructions = [];
+				attemptCount = 0;
+				sessionCrashCount = 0;
+				hintsUsed = 0;
+				resetRobotState();
+				renderWorkspace();
+				updateAttemptUI();
+				setMessage('已清空程序并把机器人放回起点。');
 			});
 
-			levelSelect.addEventListener('change', (event) => {
-				if (isRunning) {
-					levelSelect.value = String(currentLevelIdx);
-					return;
-				}
-
-				const index = Number.parseInt(event.target.value, 10);
-				if (!Number.isInteger(index)) return;
-				initMaze(index, true);
+			btnHint.addEventListener('click', () => {
+				if (isRunning) return;
+				showNextHint();
 			});
 
-			initMaze(0, true);
+			btnResetProgress.addEventListener('click', () => {
+				if (isRunning) return;
+				const confirmed = window.confirm('确定要清除全部关卡、星星和最佳成绩吗？此操作无法撤销。');
+				if (!confirmed) return;
+				progress = defaultProgress();
+				saveProgress();
+				currentChapterId = 1;
+				initLevel(0, true);
+			});
+
+			initLevel(currentLevelIdx, true);
 		</script>
 	</body>
 </html>
