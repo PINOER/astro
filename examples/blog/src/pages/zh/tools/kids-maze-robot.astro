@@ -105,51 +105,51 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				cursor: pointer;
 			}
 
+			/* 🏁 修复重点 1：重构网格布局，确保 6x6 方格 100% 绝对正方形且边框分明 */
 			.maze-grid {
-				display: grid;
-				grid-template-columns: repeat(6, 1fr);
-				grid-template-rows: repeat(6, 1fr);
-				gap: 3px;
+				display: grid !important;
+				grid-template-columns: repeat(6, 1fr) !important;
+				grid-template-rows: repeat(6, 1fr) !important;
+				gap: 1px !important;
 				width: min(100%, 410px);
 				aspect-ratio: 1 / 1;
-				background: #090d16;
+				background: #090d16 !important;
 				border: 3px solid #3b82f6;
 				border-radius: 16px;
-				padding: 7px;
+				padding: 6px;
 				box-sizing: border-box;
 				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+				overflow: hidden;
 			}
 
+			/* 🏁 修复重点 2：清晰可辨的深浅棋盘格交错样式 */
 			.maze-cell {
-				display: flex;
+				display: flex !important;
 				align-items: center;
 				justify-content: center;
 				font-size: clamp(1.15rem, 4vw, 1.75rem);
 				position: relative;
 				user-select: none;
 				box-sizing: border-box;
-				border-radius: 5px;
+				border-radius: 3px;
 			}
 
 			.maze-cell.cell-light {
-				background-color: #2b3a52;
-				border: 1px solid #475569;
+				background-color: #28364d !important;
 			}
 
 			.maze-cell.cell-dark {
-				background-color: #1a2436;
-				border: 1px solid #334155;
+				background-color: #162032 !important;
 			}
 
 			.maze-cell.wall-cell {
-				background-color: #0b1120;
-				border: 1px solid #1e293b;
-				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+				background-color: #0b1120 !important;
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
 			}
 
 			.maze-cell.target-cell {
-				background-color: rgba(245, 158, 11, 0.3);
-				border: 2px dashed #f59e0b;
+				background-color: rgba(245, 158, 11, 0.25) !important;
+				border: 2px dashed #f59e0b !important;
 			}
 
 			.robot-icon {
@@ -633,6 +633,8 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 					for (let column = 0; column < GRID_SIZE; column++) {
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
+						
+						// 🏁 挂载交错的棋盘颜色
 						cell.classList.add((row + column) % 2 === 0 ? 'cell-dark' : 'cell-light');
 
 						const key = positionKey(column, row);
