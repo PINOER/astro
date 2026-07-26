@@ -105,20 +105,20 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				cursor: pointer;
 			}
 
-			/* 🏁 1. 棋盘容器：定义细边框分隔线 */
+			/* 🏁 1. 网格容器：增加明显的缝隙 gap 和内边距 */
 			.maze-grid {
 				display: grid !important;
 				grid-template-columns: repeat(6, 1fr) !important;
 				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 1px !important;
-				width: min(100%, 410px);
+				gap: 2px !important; /* 强制网格间距，形成天然边界线 */
+				width: min(100%, 420px);
 				aspect-ratio: 1 / 1;
-				background: #0f172a !important;
-				border: 3px solid #3b82f6;
+				background: #090d16 !important;
+				border: 4px solid #3b82f6;
 				border-radius: 16px;
-				padding: 6px;
+				padding: 8px;
 				box-sizing: border-box;
-				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 				overflow: hidden;
 			}
 
@@ -126,39 +126,41 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				display: flex !important;
 				align-items: center;
 				justify-content: center;
-				font-size: clamp(1.15rem, 4vw, 1.75rem);
+				font-size: clamp(1.2rem, 4.5vw, 1.85rem);
 				position: relative;
 				user-select: none;
 				box-sizing: border-box;
 				border-radius: 4px;
 			}
 
-			/* 🏁 2. 核心深浅交错高对比颜色 */
-			.maze-cell.cell-light {
-				background-color: #2b3a52 !important; /* 浅色格子：明亮蓝灰色 */
-				border: 1px solid #3a4b66 !important;
+			/* 🏁 2. 超高对比度的棋盘交错颜色 (极清晰，方便数步数) */
+			.maze-cell.tile-light {
+				background-color: #3b4d6b !important; /* 浅色格子：明亮的蓝灰色 */
+				border: 1px solid #4a5e80 !important;
 			}
 
-			.maze-cell.cell-dark {
-				background-color: #162032 !important; /* 深色格子：深沉墨蓝色 */
-				border: 1px solid #233047 !important;
+			.maze-cell.tile-dark {
+				background-color: #182232 !important; /* 深色格子：深沉墨蓝色 */
+				border: 1px solid #243248 !important;
 			}
 
+			/* 🏁 3. 墙壁与目标：半透明或凸起覆盖，绝不盖住地砖颜色！ */
 			.maze-cell.wall-cell {
-				background-color: #0b1120 !important; /* 墙壁：深黑色凹陷 */
-				border: 1px solid #1e293b !important;
-				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+				background-color: #0d1522 !important;
+				border: 1px solid #1e2d42 !important;
+				box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
 			}
 
 			.maze-cell.target-cell {
-				background-color: rgba(245, 158, 11, 0.35) !important; /* 终点：金黄光芒 */
+				background-color: rgba(245, 158, 11, 0.35) !important;
 				border: 2px dashed #f59e0b !important;
+				box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.3);
 			}
 
 			.robot-icon {
 				transition: transform 0.18s ease-out;
 				display: inline-block;
-				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
 			}
 
 			.editor-box {
@@ -637,15 +639,16 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 						
-						// 🏁 3. 根据 (行 + 列) 的奇偶绑定交错的样式类
+						// 🏁 【核心修复】：无论是什么单元格，强制加上偶数/奇数的交错棋盘样式类！
 						const isEven = (row + column) % 2 === 0;
-						cell.classList.add(isEven ? 'cell-dark' : 'cell-light');
+						cell.classList.add(isEven ? 'tile-dark' : 'tile-light');
 
 						const key = positionKey(column, row);
 						const isWall = level.wallSet.has(key);
 						const isTarget = column === level.target.x && row === level.target.y;
 						const isRobot = column === robot.x && row === robot.y;
 
+						// 追加墙壁和目标的叠加效果
 						if (isWall) {
 							cell.classList.add('wall-cell');
 							cell.textContent = '🧱';
