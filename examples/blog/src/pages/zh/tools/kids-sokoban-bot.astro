@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "儿童编程互动游戏：键盘推箱子大冒险 (全新重构版)",
-    description: "免安装！基于严格二维矩阵引擎重构的推箱子游戏，支持智能区块解析与 Flood-fill 内部空间检测，100% 杜绝错位死局！",
-    icon: "📦",
-    tag: "儿童编程",
-    keywords: "儿童推箱子 键盘推箱子 Sokoban 矩阵逻辑 空间渲染 少儿编程 逆向思维",
+    title: "AI逻辑构建：智能核心大挑战",
+    description: "专为训练算法思维打造的互动逻辑游戏。通过精准的矩阵引擎重构，将经典逻辑谜题化为培育计算思维的绝佳工具。",
+    icon: "🧩",
+    tag: "少儿编程",
+    keywords: "逻辑推导 计算思维 推箱子重构 二维矩阵 AI逻辑 算法入门",
     pinned: true,
-    priority: 82
+    priority: 85
 };
 
-const pageTitle = `儿童编程互动游戏：键盘推箱子大冒险 (全新重构版) — ${SITE_TITLE}`;
-const pageDescription = "基于严格二维矩阵引擎重构的推箱子游戏，杜绝任何地图解析错误，完美呈现逻辑关卡！";
+const pageTitle = `AI逻辑构建：智能核心大挑战 — ${SITE_TITLE}`;
+const pageDescription = "通过组合逻辑积木，激活数据节点。这款游戏以严格的二维矩阵引擎重构，旨在锻炼面向未来的计算思维。";
 ---
 
 <!doctype html>
@@ -31,304 +31,272 @@ const pageDescription = "基于严格二维矩阵引擎重构的推箱子游戏�
 			}
 			.tool-header {
 				text-align: center;
-				margin-bottom: 1.5em;
+				margin-bottom: 2em;
 			}
 			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
+				font-size: 2.4rem;
+				font-weight: 900;
 				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
+				background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
 			.tool-header p {
 				color: var(--text-muted);
-				font-size: 0.95rem;
+				font-size: 1rem;
+				line-height: 1.6;
 			}
 
-			.game-container {
+			.game-layout {
 				display: grid;
-				grid-template-columns: 1fr 340px;
+				grid-template-columns: 1fr 360px;
 				gap: 1.5rem;
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 20px;
+				background: var(--bg-card, #ffffff);
+				border: 1px solid var(--card-border, #e2e8f0);
+				border-radius: 24px;
 				padding: 1.5rem;
-				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-				backdrop-filter: blur(12px);
+				box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 			}
 
-			@media (max-width: 850px) {
-				.game-container {
+			@media (max-width: 900px) {
+				.game-layout {
 					grid-template-columns: 1fr;
-					gap: 1rem;
 					padding: 1rem;
 				}
 			}
 
-			.stage-box {
+			/* 🎮 游戏视窗：自适应且支持溢出滚动 */
+			.game-stage {
 				display: flex;
 				flex-direction: column;
-				align-items: center;
 				gap: 1rem;
 				width: 100%;
-				overflow: hidden; 
+				overflow: hidden;
 			}
-			.level-bar {
+
+			.status-bar {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				width: 100%;
-				background: var(--search-bg);
-				padding: 0.6em 1em;
-				border-radius: 12px;
-				border: 1px solid var(--card-border);
+				background: var(--search-bg, #f1f5f9);
+				padding: 0.8rem 1.2rem;
+				border-radius: 14px;
 				font-weight: 700;
-				font-size: 0.92rem;
+				font-size: 0.95rem;
+				color: var(--text-main);
 			}
 
-			.level-select {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
+			.level-selector {
+				background: var(--bg-card, #fff);
+				border: 1px solid var(--card-border, #cbd5e1);
 				color: var(--text-main);
-				padding: 0.3em 0.6em;
+				padding: 0.4rem 0.8rem;
 				border-radius: 8px;
 				font-weight: 700;
-				font-size: 0.88rem;
+				font-family: inherit;
 				outline: none;
 				cursor: pointer;
-				max-width: 200px;
 			}
 
-			/* 🎮 游戏视口区域 */
 			.viewport {
 				width: 100%;
-				max-width: 100%;
-				overflow: auto; /* 允许滚动 */
-				background: #090d16;
+				background: #0f172a;
 				border: 4px solid #334155;
-				border-radius: 12px;
-				padding: 12px;
+				border-radius: 16px;
+				padding: 1rem;
 				box-sizing: border-box;
-				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+				box-shadow: inset 0 8px 32px rgba(0,0,0,0.6);
+				overflow: auto;
 				display: flex;
 				justify-content: center;
 				align-items: center;
-				min-height: 300px;
+				min-height: 400px;
 			}
 
-			/* 严格的二维网格 */
-			.sokoban-grid {
-				display: grid;
+			/* 🧩 矩阵网格引擎：绝对像素渲染，防止任何形变 */
+			.matrix-grid {
+				display: inline-grid;
 				gap: 0;
 				margin: auto;
 			}
 
-			/* 基础单元格：统一尺寸，拒绝变形 */
-			.cell {
-				width: 36px;
-				height: 36px;
+			.matrix-cell {
+				width: 40px;
+				height: 40px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.6rem;
+				font-size: 1.8rem;
 				position: relative;
 				user-select: none;
-				box-sizing: border-box;
 			}
 
 			@media (max-width: 850px) {
-				.cell {
-					width: 30px;
-					height: 30px;
-					font-size: 1.3rem;
-				}
+				.matrix-cell { width: 34px; height: 34px; font-size: 1.5rem; }
 			}
 
-			/* 🎨 场景材质渲染 */
-			.cell.void {
-				background-color: transparent; /* 墙外的区域不可见 */
-			}
-			.cell.wall {
+			/* 材质映射 */
+			.cell-void { background-color: transparent; }
+			
+			.cell-wall {
 				background-color: #1e293b;
-				border: 1px solid #0f172a;
-				border-radius: 4px;
-				box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+				border: 1px solid #020617;
+				box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+				border-radius: 6px;
 			}
-			/* 内部地板深浅交错 (利用 CSS 变量动态赋值) */
-			.cell.floor {
-				background-color: var(--tile-bg, #1a2436);
-				border: 1px solid var(--tile-border, #2a384e);
+			
+			.cell-floor {
+				background-color: var(--tile-bg, #1e293b);
+				border: 1px solid var(--tile-border, #334155);
 			}
-			.cell.floor.target {
-				background-color: rgba(245, 158, 11, 0.2);
-				border: 2px dashed #f59e0b;
-				border-radius: 4px;
+
+			/* 数据节点 (目标) */
+			.cell-floor.target-node {
+				background-color: rgba(56, 189, 248, 0.15);
+				border: 2px dashed #38bdf8;
 			}
-			.cell.floor.target.filled {
+			/* 节点被激活 (箱子在目标上) */
+			.cell-floor.target-node.active {
 				background-color: rgba(16, 185, 129, 0.3);
 				border: 2px solid #10b981;
 			}
 
 			.sprite {
 				position: absolute;
-				transition: transform 0.1s ease-out;
-				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-				z-index: 2;
+				transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+				z-index: 10;
+				filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
 			}
-			.sprite.robot {
-				z-index: 3;
-			}
+			.sprite-robot { z-index: 20; }
 
-			/* 控制面板 */
-			.editor-box {
+			/* 🎛️ 控制台区域 */
+			.control-panel {
 				display: flex;
 				flex-direction: column;
 				gap: 1.2rem;
 			}
 
-			.panel-title {
-				font-size: 0.9rem;
-				font-weight: 700;
-				color: var(--text-main);
+			.data-card {
+				background: var(--search-bg, #f1f5f9);
+				border: 1px solid var(--card-border, #cbd5e1);
+				border-radius: 14px;
+				padding: 1rem;
 				display: flex;
-				align-items: center;
-				gap: 0.4rem;
+				flex-direction: column;
+				gap: 0.5rem;
+				font-weight: 700;
+			}
+			.data-row {
+				display: flex;
+				justify-content: space-between;
+				font-size: 0.9rem;
 			}
 
-			.dpad-container {
+			.dpad {
 				display: grid;
 				grid-template-columns: repeat(3, 1fr);
-				gap: 0.5rem;
-				width: 210px;
-				margin: 0.5rem auto;
-			}
-
-			@media (max-width: 850px) {
-				.dpad-container { width: 250px; gap: 0.7rem; }
+				gap: 0.6rem;
+				width: 220px;
+				margin: 1rem auto;
 			}
 
 			.dpad-btn {
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
+				background: var(--bg-card, #fff);
+				border: 2px solid var(--card-border, #cbd5e1);
 				color: var(--text-main);
-				height: 60px;
-				border-radius: 14px;
-				font-size: 1.4rem;
+				height: 64px;
+				border-radius: 16px;
+				font-size: 1.5rem;
 				font-weight: 800;
 				cursor: pointer;
 				display: flex;
 				align-items: center;
 				justify-content: center;
+				box-shadow: 0 4px 0 var(--card-border, #cbd5e1);
+				transition: all 0.1s ease;
 				user-select: none;
 				touch-action: manipulation;
 			}
 			.dpad-btn:active {
-				transform: scale(0.92);
-				background: var(--accent);
+				transform: translateY(4px);
+				box-shadow: 0 0 0 var(--card-border);
+				background: #3b82f6;
 				color: #fff;
+				border-color: #2563eb;
 			}
-			.dpad-btn.empty { visibility: hidden; }
+			.dpad-btn.hidden { visibility: hidden; }
 
-			.stat-card {
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 0.8rem 1rem;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				font-size: 0.88rem;
-				font-weight: 700;
-			}
-
-			.action-bar {
+			.btn-group {
 				display: grid;
 				grid-template-columns: 1fr 1fr;
 				gap: 0.8rem;
 			}
 
-			.btn-action {
-				padding: 0.8em;
+			.action-btn {
+				padding: 0.9em;
 				border-radius: 12px;
 				font-weight: 800;
-				font-size: 0.92rem;
+				font-size: 0.9rem;
 				cursor: pointer;
 				border: none;
-				color: #fff;
+				transition: opacity 0.2s;
 			}
-			.btn-action.undo { background: #f59e0b; }
-			.btn-action.reset { background: var(--search-bg); color: var(--text-main); border: 1px solid var(--card-border); }
-			.btn-action:hover { opacity: 0.9; }
-
-			.key-tips {
-				font-size: 0.8rem;
-				color: var(--text-muted);
-				text-align: center;
-				line-height: 1.5;
-			}
-			kbd {
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 4px;
-				padding: 1px 5px;
-				font-size: 0.75rem;
-			}
+			.action-btn.undo { background: #f59e0b; color: #fff; }
+			.action-btn.reset { background: #ef4444; color: #fff; }
+			.action-btn:hover { opacity: 0.85; }
 		</style>
 	</head>
 	<body>
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>📦 儿童编程小游戏：键盘推箱子大冒险</h1>
-				<p>搭载全新重构的二维矩阵引擎，完美解析 155 关开源地图，100% 杜绝错位死局！</p>
+				<h1>🧩 AI逻辑构建：智能核心大挑战</h1>
+				<p>在未来的 AI 时代，强大的逻辑推导能力是核心基石。<br/>操控 AI 探路者，将散落的“逻辑积木”推入数据节点，完成底层算法的重构！</p>
 			</div>
 
-			<div class="game-container">
-				<!-- 左侧地图面板 -->
-				<div class="stage-box">
-					<div class="level-bar">
+			<div class="game-layout">
+				<div class="game-stage">
+					<div class="status-bar">
 						<div>
-							关卡: 
-							<select id="levelSelect" class="level-select">
-								<option>系统初始化中...</option>
+							系统层级: 
+							<select id="levelSelect" class="level-selector">
+								<option>逻辑载入中...</option>
 							</select>
 						</div>
-						<span>📦 目标: <span id="targetStatus">0/0</span></span>
+						<span>节点激活率: <span id="nodeStatus" style="color: #10b981;">0/0</span></span>
 					</div>
 
 					<div class="viewport" id="viewport">
-						<div class="sokoban-grid" id="gridContainer">
-							<!-- 引擎动态渲染二维矩阵 -->
+						<div class="matrix-grid" id="gridContainer">
+							<!-- 二维矩阵渲染区 -->
 						</div>
 					</div>
 				</div>
 
-				<!-- 右侧控制面板 -->
-				<div class="editor-box">
-					<div class="stat-card">
-						<span>👟 当前步数: <span id="stepCount" style="color:var(--accent);">0</span></span>
-						<span>🏆 历史最好: <span id="bestCount">--</span></span>
+				<div class="control-panel">
+					<div class="data-card">
+						<div class="data-row">
+							<span>⏱️ 运算步数:</span>
+							<span id="stepCount" style="color:#3b82f6;">0</span>
+						</div>
+						<div class="data-row">
+							<span>🏆 最优算法:</span>
+							<span id="bestCount">--</span>
+						</div>
 					</div>
 
-					<div class="panel-title">🎮 方向键控制 (键盘/触摸)</div>
-					
-					<div class="dpad-container">
-						<div class="dpad-btn empty"></div>
-						<button class="dpad-btn" id="btnUp" aria-label="向上">▲</button>
-						<div class="dpad-btn empty"></div>
-						<button class="dpad-btn" id="btnLeft" aria-label="向左">◄</button>
-						<button class="dpad-btn" id="btnDown" aria-label="向下">▼</button>
-						<button class="dpad-btn" id="btnRight" aria-label="向右">►</button>
+					<div class="dpad">
+						<div class="dpad-btn hidden"></div>
+						<button class="dpad-btn" id="btnUp">▲</button>
+						<div class="dpad-btn hidden"></div>
+						<button class="dpad-btn" id="btnLeft">◄</button>
+						<button class="dpad-btn" id="btnDown">▼</button>
+						<button class="dpad-btn" id="btnRight">►</button>
 					</div>
 
-					<div class="action-bar">
-						<button class="btn-action undo" id="btnUndo">↩️ 撤销上一步</button>
-						<button class="btn-action reset" id="btnReset">🔄 重置本关</button>
-					</div>
-
-					<div class="key-tips">
-						💡 提示：电脑端可直接使用键盘 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 控制，<kbd>Z</kbd> 键快速撤销。
+					<div class="btn-group">
+						<button class="action-btn undo" id="btnUndo">↩️ 回溯代码</button>
+						<button class="action-btn reset" id="btnReset">🔄 重启进程</button>
 					</div>
 				</div>
 			</div>
@@ -337,583 +305,130 @@ const pageDescription = "基于严格二维矩阵引擎重构的推箱子游戏�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			/* =========================================================
-			   核心引擎 1: 数据源获取与解析 (Smart Block Parser)
-			   - 彻底修复因空行、注释导致的错位问题。
-			   - 只提取包含有效游戏字符的二维阵列。
-			========================================================= */
-			
-			// 提供本地内置的前 50 关 Microban，并尝试拉取 155 关完整版
-			const INTERNAL_LEVELS = `
-;0
-####
-# .#
-#  ###
-#*@  #
-#  $ #
-#  ###
-####
-
-; 1
-######
-#    #
-# #@ #
-# $* #
-# .* #
-#    #
-######
-
-; 2
+			/* 
+			  ================================================
+			  🧱 逻辑层：严谨的二维矩阵引擎 (The Matrix Engine)
+			  ================================================
+			*/
+			const CORE_LEVELS = `
+; 算法启蒙
   ####
-###  ####
-#     $ #
-# #  #$ #
-# . .#@ #
-#########
-
-; 3
-########
-#      #
-# .**$@#
-#      #
-#####  #
-    ####
-
-; 4
- #######
- #     #
- # .$. #
-## $@$ #
-#  .$. #
-#      #
-########
-
-; 5
-###### #####
-#    ###   #
-# $$     #@#
-# $ #...   #
-#   ########
-#####
-
-; 6
-#######
-#     #
-# .$. #
-# $.$ #
-# .$. #
-# $.$ #
-#  @  #
-#######
-
-; 7
-  ######
-  # ..@#
-  # $$ #
-  ## ###
-   # #
-   # #
-#### #
-#    ##
-# #   #
-#   # #
-###   #
-  #####
-
-; 8
-#####
-#.  ##
-#@$$ #
-##   #
- ##  #
-  ##.#
-   ###
-
-; 9
-      #####
-      #.  #
-      #.# #
-#######.# #
-# @ $ $ $ #
-# # # # ###
-#       #
-#########
-
-; 10
-  ######
-  #    #
-  # ##@##
-### # $ #
-# ..# $ #
-#       #
-#  ######
-####
-
-; 11
-#####
-#   ##
-# $  #
-## $ ####
- ###@.  #
-  #  .# #
-  #     #
-  #######
-
-; 12
-####
-#. ##
-#.@ #
-#. $#
-##$ ###
- # $  #
- #    #
- #  ###
- ####
-
-; 13
-#######
-#     #
-# # # #
-#. $*@#
-#   ###
-#####
-
-; 14
-     ###
-######@##
-#    .* #
-#   #   #
-#####$# #
-    #   #
-    #####
-
-; 15
- ####
- #  ####
- #     ##
-## ##   #
-#. .# @$##
-#   # $$ #
-#  .#    #
-##########
-
-; 16
-#####
-# @ #
-#...#
-#$$$##
-#    #
-#    #
-######
-
-; 17
-#######
-#     #
-#. .  #
-# ## ##
-#  $ #
-###$ #
-  #@ #
-  #  #
-  ####
-
-; 18
-########
-#   .. #
-#  @$$ #
-##### ##
-   #  #
-   #  #
-   #  #
-   ####
-
-; 19
-#######
-#     ###
-#  @$$..#
-#### ## #
-  #     #
-  #  ####
-  #  #
-  ####
-
-; 20
-####
-#  ####
-# . . #
-# $$#@#
-##    #
- ######
-
-; 21
-#####
-#   ###
-#. .  #
-#   # #
-## #  #
- #@$$ #
- #    #
- #  ###
- ####
-
-; 22
-#######
-#  *  #
-#     #
-## # ##
- #$@.#
- #   #
- #####
-
-; 23
-# #####
-  #   #
-###$$@#
-#   ###
-#     #
-# . . #
-#######
-
-; 24
- ####
- #  ###
- # $$ #
-##... #
-#  @$ #
-#   ###
-#####
-
-; 25
- #####
- # @ #
- #   #
-###$ #
-# ...#
-# $$ #
 ###  #
-  ####
-
-; 26
+# $  #
+# #@.#
+#    #
 ######
-#   .#
-# ## ##
-#  $$@#
-# #   #
-#.  ###
-#####
 
-; 27
+; 逻辑分支
+#####
+#@  #
+# $$#
+## .#
+ #..#
+ ####
+
+; 空间推导
+  ####
+###  #
+# .  #
+# #$ #
+# $ $#
+#.#@.#
+######
+
+; 死锁规避
+ ####
+ #  ###
+ #$   #
+## $  #
+#  # $#
+#.#@.#
+######
+
+; 矩阵穿透
 #####
 #   #
-# @ #
-# $$###
-##. . #
- #    #
- ######
-
-; 28
-     #####
-     #   ##
-     #    #
- ######   #
-##     #. #
-# $ $ @  ##
-# ######.#
-#        #
-##########
-
-; 29
-####
-#  ###
-# $$ #
-#... #
-# @$ #
-#   ##
+# $ #
+##$ #
+# . #
+#@. #
 #####
+`;
 
-; 30
-  ####
- ##  #
-##@$.##
-# $$  #
-# . . #
-###   #
-  #####
-
-; 31
- ####
-##  ###
-#     #
-#.**$@#
-#   ###
-##  #
- ####
-
-; 32
-#######
-#. #  #
-#  $  #
-#. $#@#
-#  $  #
-#. #  #
-#######
-
-; 33
-  ####
-###  ####
-#       #
-#@$***. #
-#       #
-#########
-
-; 34
- ####
-##  #
-#. $#
-#.$ #
-#.$ #
-#.$ #
-#. $##
-#   @#
-##   #
- #####
-
-; 35
-####
-#  ############
-# $ $ $ $ $ @ #
-# .....       #
-###############
-
-; 36
-      ###
-##### #.#
-#   ###.#
-#   $ #.#
-# $  $  #
-#####@# #
-    #   #
-    #####
-
-; 37
-##########
-#        #
-# ##.### #
-# # $$ . #
-# . @$## #
-#####    #
-    ######
-
-; 38
-#####
-#   ####
-# # # .#
-#    $ ###
-### #$.  #
-#   #@   #
-# # ######
-#   #
-#####
-
-; 39
- #####
- #   #
-##   ##
-# $$$ #
-# .+. #
-#######
-
-; 40
-#######
-#     #
-#@$$$ ##
-#  #...#
-##    ##
- ######
-
-; 41
-   ####
-   #  #
-   #@ #
-####$.#
-#   $.#
-# # $.#
-#    ##
-######
-
-; 42
-     ####
-     # @#
-     #  #
-###### .#
-#   $  .#
-#  $$# .#
-#    ####
-###  #
-  ####
-
-; 43
-#####
-#@$.#
-#####
-
-; 44
-######
-#... #
-#  $ #
-# #$##
-#  $ #
-#  @ #
-######
-
-; 45
- ######
-##    #
-#  ## #
-# # $ #
-#  * .#
-## #@##
- #   #
- #####
-
-; 46
-  #######
-###     #
-# $ $   #
-# ### #####
-# @ . .   #
-#   ###   #
-##### #####
-
-; 47
-######
-#  @ #
-#  # ##
-# .#  ##
-# .$$$ #
-# .#   #
-####   #
-   #####
-
-; 48
-######
-# @  #
-# $# #
-# $  #
-# $ ##
-### ####
- #  #  #
- #...  #
- #     #
- #######
-
-; 49
-  ####
-###  #####
-#  $  @..#
-# $    # #
-### #### #
-  #      #
-  ########
-
-; 50
-####
-#  ###
-#    ###
-#  $*@ #
-### .# #
-  #    #
-  ######
-
-			function parseXSB(text) {
-				const lines = text.replace(/\r/g, '').split('\n');
-				const levels = [];
-				let currentMap = [];
-
-				for (let line of lines) {
-					// 判定有效行：包含 #，且只包含合法符号
-					if (/^[ \t\-_]*[#][#@\+\$\*\.\s\-_]*$/.test(line)) {
-						currentMap.push(line.replace(/[\-_]/g, ' '));
-					} else {
-						if (currentMap.length > 0) {
-							levels.push(currentMap);
-							currentMap = [];
-						}
-					}
-				}
-				if (currentMap.length > 0) levels.push(currentMap);
-				return levels;
-			}
-
-			/* =========================================================
-			   核心引擎 2: 矩阵化状态管理 (Matrix State Management)
-			   - 将文本转化为严格的 2D Array。
-			   - 使用 Flood-Fill 算法区分“墙外黑洞”与“墙内地板”。
-			========================================================= */
-			class SokobanEngine {
+			class LogicEngine {
 				constructor() {
-					this.levels = [];
-					this.levelIdx = 0;
+					this.rawMaps = [];
+					this.currentLevel = 0;
 					
 					this.width = 0;
 					this.height = 0;
+					this.baseGrid = []; // 'void', 'wall', 'floor', 'target'
 					
-					// 静态层：'void' (外部), 'wall' (墙壁), 'floor' (空地), 'target' (目标点)
-					this.staticGrid = []; 
+					this.blocks = []; // [{x, y}] -> 逻辑积木
+					this.bot = { x: 0, y: 0, dir: 2 }; // AI 探路者
 					
-					// 动态层
-					this.boxes = []; // [{x, y}]
-					this.player = { x: 0, y: 0, dir: 2 };
 					this.history = [];
 					this.steps = 0;
 				}
 
-				loadRawLevels(rawArray) {
-					this.levels = rawArray;
+				// 稳健的区块提取器
+				parseData(text) {
+					const lines = text.replace(/\r/g, '').split('\n');
+					const levels = [];
+					let buffer = [];
+
+					for (let line of lines) {
+						if (/^[ \t\-_]*[#][#@\+\$\*\.\s\-_]*$/.test(line)) {
+							buffer.push(line.replace(/[\-_]/g, ' '));
+						} else if (buffer.length > 0) {
+							levels.push(buffer);
+							buffer = [];
+						}
+					}
+					if (buffer.length > 0) levels.push(buffer);
+					this.rawMaps = levels;
 				}
 
-				initLevel(idx) {
-					if (!this.levels[idx]) return;
-					this.levelIdx = idx;
-					const rawMap = this.levels[idx];
+				loadLevel(idx) {
+					if (!this.rawMaps[idx]) return false;
+					this.currentLevel = idx;
+					const mapData = this.rawMaps[idx];
 					
-					this.height = rawMap.length;
-					this.width = Math.max(...rawMap.map(l => l.length));
+					this.height = mapData.length;
+					this.width = Math.max(...mapData.map(l => l.length));
 					
-					this.staticGrid = Array.from({ length: this.height }, () => Array(this.width).fill('void'));
-					this.boxes = [];
+					this.baseGrid = Array.from({ length: this.height }, () => Array(this.width).fill('void'));
+					this.blocks = [];
 					this.history = [];
 					this.steps = 0;
 
-					// 1. 初步解析元素
+					// 1. 扫描写入矩阵
 					for (let y = 0; y < this.height; y++) {
-						const row = rawMap[y];
+						const row = mapData[y];
 						for (let x = 0; x < this.width; x++) {
 							const char = row[x] || ' ';
-							if (char === '#') this.staticGrid[y][x] = 'wall';
-							else if (char === '.') this.staticGrid[y][x] = 'target';
-							else if (char === '*') { this.staticGrid[y][x] = 'target'; this.boxes.push({x, y}); }
-							else if (char === '$') { this.staticGrid[y][x] = 'floor'; this.boxes.push({x, y}); }
-							else if (char === '+') { this.staticGrid[y][x] = 'target'; this.player = {x, y, dir: 2}; }
-							else if (char === '@') { this.staticGrid[y][x] = 'floor'; this.player = {x, y, dir: 2}; }
-							else if (char === ' ') this.staticGrid[y][x] = 'floor';
+							if (char === '#') this.baseGrid[y][x] = 'wall';
+							else if (char === '.') this.baseGrid[y][x] = 'target';
+							else if (char === '*') { this.baseGrid[y][x] = 'target'; this.blocks.push({x, y}); }
+							else if (char === '$') { this.baseGrid[y][x] = 'floor'; this.blocks.push({x, y}); }
+							else if (char === '+') { this.baseGrid[y][x] = 'target'; this.bot = {x, y, dir: 2}; }
+							else if (char === '@') { this.baseGrid[y][x] = 'floor'; this.bot = {x, y, dir: 2}; }
+							else if (char === ' ') this.baseGrid[y][x] = 'floor';
 						}
 					}
 
-					// 2. Flood Fill 优化视觉：把墙外的 floor 标记回 void
-					// 找到任何一个必定在墙内的点 (玩家位置) 进行连通性填充
+					// 2. Flood Fill 清理外围噪点区域
 					const visited = Array.from({ length: this.height }, () => Array(this.width).fill(false));
-					const queue = [[this.player.x, this.player.y]];
-					visited[this.player.y][this.player.x] = true;
+					const queue = [[this.bot.x, this.bot.y]];
+					visited[this.bot.y][this.bot.x] = true;
 
 					while(queue.length > 0) {
 						const [cx, cy] = queue.shift();
 						const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
 						for (let [dx, dy] of dirs) {
-							const nx = cx + dx;
-							const ny = cy + dy;
+							const nx = cx + dx, ny = cy + dy;
 							if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
-								if (!visited[ny][nx] && this.staticGrid[ny][nx] !== 'wall') {
+								if (!visited[ny][nx] && this.baseGrid[ny][nx] !== 'wall') {
 									visited[ny][nx] = true;
 									queue.push([nx, ny]);
 								}
@@ -921,239 +436,241 @@ const pageDescription = "基于严格二维矩阵引擎重构的推箱子游戏�
 						}
 					}
 
-					// 清理未被访问到的非墙区域 (认定为墙外)
 					for (let y = 0; y < this.height; y++) {
 						for (let x = 0; x < this.width; x++) {
-							if (this.staticGrid[y][x] !== 'wall' && !visited[y][x]) {
-								this.staticGrid[y][x] = 'void';
+							if (this.baseGrid[y][x] !== 'wall' && !visited[y][x]) {
+								this.baseGrid[y][x] = 'void';
 							}
 						}
 					}
+					return true;
 				}
 
-				getBoxAt(x, y) {
-					return this.boxes.find(b => b.x === x && b.y === y);
+				getBlockAt(x, y) {
+					return this.blocks.find(b => b.x === x && b.y === y);
 				}
 
-				move(dir) {
-					// dir: 0:Up, 1:Right, 2:Down, 3:Left
-					this.player.dir = dir;
+				executeMove(dir) {
+					this.bot.dir = dir; // 0:Up, 1:Right, 2:Down, 3:Left
 					const dx = [0, 1, 0, -1][dir];
 					const dy = [-1, 0, 1, 0][dir];
 					
-					const nx = this.player.x + dx;
-					const ny = this.player.y + dy;
+					const nx = this.bot.x + dx;
+					const ny = this.bot.y + dy;
 
-					// 越界或撞墙
 					if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) return false;
-					if (this.staticGrid[ny][nx] === 'wall' || this.staticGrid[ny][nx] === 'void') return false;
+					if (this.baseGrid[ny][nx] === 'wall' || this.baseGrid[ny][nx] === 'void') return false;
 
-					const box = this.getBoxAt(nx, ny);
-					let pushedBox = null;
-					let oldBoxPos = null;
+					const block = this.getBlockAt(nx, ny);
+					let pushedBlock = null;
+					let oldPos = null;
 
-					if (box) {
-						const bnx = nx + dx;
-						const bny = ny + dy;
-						// 箱子受阻
+					if (block) {
+						const bnx = nx + dx, bny = ny + dy;
 						if (bnx < 0 || bnx >= this.width || bny < 0 || bny >= this.height) return false;
-						if (this.staticGrid[bny][bnx] === 'wall' || this.staticGrid[bny][bnx] === 'void') return false;
-						if (this.getBoxAt(bnx, bny)) return false;
+						if (this.baseGrid[bny][bnx] === 'wall' || this.baseGrid[bny][bnx] === 'void') return false;
+						if (this.getBlockAt(bnx, bny)) return false;
 
-						oldBoxPos = { x: box.x, y: box.y };
-						box.x = bnx;
-						box.y = bny;
-						pushedBox = box;
+						oldPos = { x: block.x, y: block.y };
+						block.x = bnx;
+						block.y = bny;
+						pushedBlock = block;
 					}
 
 					this.history.push({
-						px: this.player.x, py: this.player.y, pdir: this.player.dir,
-						box: pushedBox, oldBoxPos: oldBoxPos
+						px: this.bot.x, py: this.bot.y, pdir: this.bot.dir,
+						block: pushedBlock, oldPos: oldPos
 					});
 
-					this.player.x = nx;
-					this.player.y = ny;
+					this.bot.x = nx;
+					this.bot.y = ny;
 					this.steps++;
 					return true;
 				}
 
-				undo() {
+				revert() {
 					if (this.history.length === 0) return false;
 					const last = this.history.pop();
-					this.player.x = last.px;
-					this.player.y = last.py;
-					this.player.dir = last.pdir;
-					if (last.box) {
-						last.box.x = last.oldBoxPos.x;
-						last.box.y = last.oldBoxPos.y;
+					this.bot.x = last.px;
+					this.bot.y = last.py;
+					this.bot.dir = last.pdir;
+					if (last.block) {
+						last.block.x = last.oldPos.x;
+						last.block.y = last.oldPos.y;
 					}
 					this.steps--;
 					return true;
 				}
 
-				isWin() {
-					let placed = 0;
-					let total = 0;
+				checkSystemStatus() {
+					let activeNodes = 0;
+					let totalNodes = 0;
 					for (let y = 0; y < this.height; y++) {
 						for (let x = 0; x < this.width; x++) {
-							if (this.staticGrid[y][x] === 'target') {
-								total++;
-								if (this.getBoxAt(x, y)) placed++;
+							if (this.baseGrid[y][x] === 'target') {
+								totalNodes++;
+								if (this.getBlockAt(x, y)) activeNodes++;
 							}
 						}
 					}
-					return { placed, total, win: (total > 0 && placed === total) };
+					return { activeNodes, totalNodes, isComplete: (totalNodes > 0 && activeNodes === totalNodes) };
 				}
 			}
 
-			/* =========================================================
-			   核心引擎 3: 视图渲染器 (DOM Renderer)
-			   - 绝对像素匹配，彻底消除 CSS Grid 变形。
-			========================================================= */
-			const engine = new SokobanEngine();
-			const gridContainer = document.getElementById('gridContainer');
+			/* 
+			  ================================================
+			  🖥️ 渲染层：数据驱动视图 (DOM Renderer)
+			  ================================================
+			*/
+			const sys = new LogicEngine();
+			const gridEl = document.getElementById('gridContainer');
 			const levelSelect = document.getElementById('levelSelect');
-			const targetStatus = document.getElementById('targetStatus');
-			const stepCountEl = document.getElementById('stepCount');
-			const bestCountEl = document.getElementById('bestCount');
-
-			async function initApp() {
-				let levelsData = parseXSB(INTERNAL_LEVELS);
+			
+			async function bootSystem() {
+				sys.parseData(CORE_LEVELS);
 				
-				// 尝试静默拉取完整库
+				// 获取全量外部算法库
 				try {
 					const res = await fetch('https://raw.githubusercontent.com/sokoban-levels/sokoban-levels/master/microban.xsb');
 					if (res.ok) {
 						const text = await res.text();
-						const fetched = parseXSB(text);
-						if (fetched.length > 0) levelsData = fetched;
+						sys.parseData(text);
 					}
 				} catch (e) {
-					console.log("使用本地内置关卡库");
+					console.log("外部数据源断开，使用本地核心引擎池");
 				}
 
-				engine.loadRawLevels(levelsData);
-				
 				levelSelect.innerHTML = '';
-				engine.levels.forEach((_, i) => {
+				sys.rawMaps.forEach((_, i) => {
 					const opt = document.createElement('option');
 					opt.value = i;
-					opt.textContent = `第 ${i + 1} 关`;
+					
+					let difficulty = '🟢基础逻辑';
+					if (i > 15) difficulty = '🟡算法进阶';
+					if (i > 50) difficulty = '🔴底层重构';
+					if (i > 100) difficulty = '🔥终极计算';
+					
+					opt.textContent = `层级 ${i + 1} - ${difficulty}`;
 					levelSelect.appendChild(opt);
 				});
 
-				startGame(0);
+				renderLevel(0);
 			}
 
-			function startGame(idx) {
-				engine.initLevel(idx);
+			function renderLevel(idx) {
+				sys.loadLevel(idx);
 				levelSelect.value = idx;
-				updateUI();
+				paint();
 			}
 
-			function updateUI() {
-				// 1. 渲染矩阵
-				gridContainer.innerHTML = '';
-				gridContainer.style.gridTemplateColumns = `repeat(${engine.width}, 1fr)`;
-				gridContainer.style.gridTemplateRows = `repeat(${engine.height}, 1fr)`;
+			function paint() {
+				gridEl.innerHTML = '';
+				gridEl.style.gridTemplateColumns = `repeat(${sys.width}, 1fr)`;
+				gridEl.style.gridTemplateRows = `repeat(${sys.height}, 1fr)`;
 
-				for (let y = 0; y < engine.height; y++) {
-					for (let x = 0; x < engine.width; x++) {
-						const cellType = engine.staticGrid[y][x];
-						const cellEl = document.createElement('div');
-						cellEl.className = `cell ${cellType}`;
+				for (let y = 0; y < sys.height; y++) {
+					for (let x = 0; x < sys.width; x++) {
+						const cellType = sys.baseGrid[y][x];
+						const cell = document.createElement('div');
+						cell.className = `matrix-cell cell-${cellType}`;
 
-						// 生成深浅交错的地板视觉
+						// 棋盘格运算区渲染
 						if (cellType === 'floor' || cellType === 'target') {
-							const isAlt = (x + y) % 2 === 1;
-							if (isAlt) {
-								cellEl.style.setProperty('--tile-bg', '#2b3a52');
-								cellEl.style.setProperty('--tile-border', '#3a4b66');
+							if ((x + y) % 2 === 1) {
+								cell.style.setProperty('--tile-bg', '#1e293b');
+								cell.style.setProperty('--tile-border', '#334155');
+							} else {
+								cell.style.setProperty('--tile-bg', '#0f172a');
+								cell.style.setProperty('--tile-border', '#1e293b');
 							}
 						}
 
-						// 绘制墙壁
-						if (cellType === 'wall') cellEl.textContent = '🧱';
-						// 绘制目标点 (未填充)
-						else if (cellType === 'target' && !engine.getBoxAt(x, y)) {
-							const star = document.createElement('span');
-							star.textContent = '⭐';
-							star.className = 'sprite';
-							cellEl.appendChild(star);
+						if (cellType === 'wall') {
+							cell.textContent = '🧱';
+						} else if (cellType === 'target') {
+							cell.classList.add('target-node');
+							if (!sys.getBlockAt(x, y)) {
+								const indicator = document.createElement('span');
+								indicator.textContent = '⚡';
+								indicator.className = 'sprite';
+								indicator.style.opacity = '0.5';
+								cell.appendChild(indicator);
+							}
 						}
 
-						// 绘制箱子
-						const box = engine.getBoxAt(x, y);
-						if (box) {
-							const boxEl = document.createElement('span');
-							boxEl.textContent = '📦';
-							boxEl.className = 'sprite box';
-							if (cellType === 'target') cellEl.classList.add('filled');
-							cellEl.appendChild(boxEl);
+						// 渲染逻辑积木 (Box)
+						const block = sys.getBlockAt(x, y);
+						if (block) {
+							const bEl = document.createElement('span');
+							// 结合教育玩具与数据概念
+							bEl.textContent = '🧩'; 
+							bEl.className = 'sprite';
+							if (cellType === 'target') cell.classList.add('active');
+							cell.appendChild(bEl);
 						}
 
-						// 绘制玩家
-						if (engine.player.x === x && engine.player.y === y) {
-							const bot = document.createElement('span');
-							bot.textContent = '🤖';
-							bot.className = 'sprite robot';
-							const angles = [0, 90, 180, -90]; // Up, Right, Down, Left
-							bot.style.transform = `rotate(${angles[engine.player.dir]}deg)`;
-							cellEl.appendChild(bot);
+						// 渲染 AI 探路者 (Player)
+						if (sys.bot.x === x && sys.bot.y === y) {
+							const botEl = document.createElement('span');
+							botEl.textContent = '🤖';
+							botEl.className = 'sprite sprite-robot';
+							const angles = [0, 90, 180, -90];
+							botEl.style.transform = `rotate(${angles[sys.bot.dir]}deg) scale(1.1)`;
+							cell.appendChild(botEl);
 						}
 
-						gridContainer.appendChild(cellEl);
+						gridEl.appendChild(cell);
 					}
 				}
 
-				// 2. 状态更新
-				const status = engine.isWin();
-				targetStatus.textContent = `${status.placed}/${status.total}`;
-				stepCountEl.textContent = engine.steps;
+				// 更新仪表盘
+				const status = sys.checkSystemStatus();
+				document.getElementById('nodeStatus').textContent = `${status.activeNodes}/${status.totalNodes}`;
+				document.getElementById('stepCount').textContent = sys.steps;
 
-				const best = localStorage.getItem(`sokoban_best_v2_${engine.levelIdx}`);
-				bestCountEl.textContent = best ? `${best} 步` : '--';
+				const bestKey = `ai_logic_best_${sys.currentLevel}`;
+				const best = localStorage.getItem(bestKey);
+				document.getElementById('bestCount').textContent = best ? best : '--';
 
-				// 3. 胜利判定
-				if (status.win) {
-					if (!best || engine.steps < parseInt(best)) {
-						localStorage.setItem(`sokoban_best_v2_${engine.levelIdx}`, engine.steps);
+				// 结算判定
+				if (status.isComplete) {
+					if (!best || sys.steps < parseInt(best)) {
+						localStorage.setItem(bestKey, sys.steps);
 					}
 					setTimeout(() => {
-						if (engine.levelIdx < engine.levels.length - 1) {
-							alert(`🎉 恭喜！用时 ${engine.steps} 步通过第 ${engine.levelIdx + 1} 关！`);
-							startGame(engine.levelIdx + 1);
+						if (sys.currentLevel < sys.rawMaps.length - 1) {
+							alert(`🎉 逻辑重构完成！运算消耗: ${sys.steps} 步。系统将自动切入下一层级。`);
+							renderLevel(sys.currentLevel + 1);
 						} else {
-							alert('🏆 太牛了！全部关卡已被攻克！');
+							alert('🏆 恭喜！你已通关所有矩阵算法，展现了卓越的计算思维！');
 						}
 					}, 200);
 				}
 			}
 
-			// 控制绑定
-			function doMove(dir) {
-				if (engine.move(dir)) updateUI();
+			// 指令绑定
+			function inputCommand(dir) {
+				if (sys.executeMove(dir)) paint();
 			}
 
 			window.addEventListener('keydown', (e) => {
-				if (['ArrowUp', 'w', 'W'].includes(e.key)) { e.preventDefault(); doMove(0); }
-				if (['ArrowRight', 'd', 'D'].includes(e.key)) { e.preventDefault(); doMove(1); }
-				if (['ArrowDown', 's', 'S'].includes(e.key)) { e.preventDefault(); doMove(2); }
-				if (['ArrowLeft', 'a', 'A'].includes(e.key)) { e.preventDefault(); doMove(3); }
-				if (['z', 'Z'].includes(e.key)) { e.preventDefault(); if (engine.undo()) updateUI(); }
+				if (['ArrowUp', 'w', 'W'].includes(e.key)) { e.preventDefault(); inputCommand(0); }
+				if (['ArrowRight', 'd', 'D'].includes(e.key)) { e.preventDefault(); inputCommand(1); }
+				if (['ArrowDown', 's', 'S'].includes(e.key)) { e.preventDefault(); inputCommand(2); }
+				if (['ArrowLeft', 'a', 'A'].includes(e.key)) { e.preventDefault(); inputCommand(3); }
+				if (['z', 'Z'].includes(e.key)) { e.preventDefault(); if (sys.revert()) paint(); }
 			});
 
-			document.getElementById('btnUp').addEventListener('click', () => doMove(0));
-			document.getElementById('btnRight').addEventListener('click', () => doMove(1));
-			document.getElementById('btnDown').addEventListener('click', () => doMove(2));
-			document.getElementById('btnLeft').addEventListener('click', () => doMove(3));
+			document.getElementById('btnUp').addEventListener('click', () => inputCommand(0));
+			document.getElementById('btnRight').addEventListener('click', () => inputCommand(1));
+			document.getElementById('btnDown').addEventListener('click', () => inputCommand(2));
+			document.getElementById('btnLeft').addEventListener('click', () => inputCommand(3));
 
-			document.getElementById('btnUndo').addEventListener('click', () => { if(engine.undo()) updateUI(); });
-			document.getElementById('btnReset').addEventListener('click', () => startGame(engine.levelIdx));
-			levelSelect.addEventListener('change', (e) => startGame(parseInt(e.target.value)));
+			document.getElementById('btnUndo').addEventListener('click', () => { if(sys.revert()) paint(); });
+			document.getElementById('btnReset').addEventListener('click', () => renderLevel(sys.currentLevel));
+			levelSelect.addEventListener('change', (e) => renderLevel(parseInt(e.target.value)));
 
-			// 启动引擎
-			initApp();
+			bootSystem();
 		</script>
 	</body>
 </html>
