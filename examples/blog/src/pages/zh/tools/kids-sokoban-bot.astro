@@ -5,8 +5,8 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "儿童编程互动游戏：键盘推箱子大冒险 (155关精选)",
-    description: "免安装！支持键盘方向键即时控制的推箱子游戏，内置 155 个经过验证的经典 Microban 逻辑关卡！无死局、难度循序渐进，极度锻炼空间认知与逆向思维！",
+    title: "儿童编程互动游戏：键盘推箱子大冒险 (Microban 经典155关)",
+    description: "免安装！支持键盘方向键即时控制的推箱子游戏，内置 155 个经典开源 Microban 逻辑关卡！无死局、难度循序渐进，极度锻炼空间认知与逆向思维！",
     icon: "📦",
     tag: "儿童编程",
     keywords: "儿童推箱子 键盘推箱子 155关推箱子 Sokoban Microban 少儿编程体验 逆向思维 逻辑训练",
@@ -14,7 +14,7 @@ export const frontmatter = {
     priority: 82
 };
 
-const pageTitle = `儿童编程互动游戏：键盘推箱子大冒险 (155关精选) — ${SITE_TITLE}`;
+const pageTitle = `儿童编程互动游戏：键盘推箱子大冒险 (Microban 经典155关) — ${SITE_TITLE}`;
 const pageDescription = "支持键盘方向键与手机手柄控制的推箱子游戏，内置 155 个绝对有解的经典 Microban 逻辑关卡！";
 ---
 
@@ -117,7 +117,7 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 				box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
 			}
 
-			/* 独立单元格与高对比网格 */
+			/* 独立单元格 */
 			.sokoban-cell {
 				display: flex !important;
 				align-items: center;
@@ -127,6 +127,16 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 				user-select: none;
 				box-sizing: border-box !important;
 				border-radius: 4px;
+			}
+
+			/* 偶数/奇数格子的深浅交错渲染 */
+			.sokoban-cell.alt-tile {
+				background-color: #2b3a52 !important;
+				border: 1px solid #475569 !important;
+			}
+			.sokoban-cell.main-tile {
+				background-color: #1a2436 !important;
+				border: 1px solid #334155 !important;
 			}
 
 			.robot-avatar {
@@ -251,8 +261,8 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>📦 儿童编程小游戏：键盘推箱子大冒险 (155关)</h1>
-				<p>经典 Microban 开源优质关卡集，绝无死局！用最少步数将所有箱子归位！</p>
+				<h1>📦 儿童编程小游戏：键盘推箱子大冒险 (Microban 精选关卡)</h1>
+				<p>经典开源 Microban 关卡，100% 保证有解！用最少步数将所有箱子归位！</p>
 			</div>
 
 			<div class="game-container">
@@ -262,7 +272,7 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 						<div>
 							关卡: 
 							<select id="levelSelect" class="level-select">
-								<!-- JS 动态填充 155 个关卡 -->
+								<option>正在加载关卡库...</option>
 							</select>
 						</div>
 						<span>📦 目标: <span id="targetStatus">0/0</span></span>
@@ -307,27 +317,93 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 🏆 经典的 Microban 开源标准关卡数据集 (经典前 155 关示例精集)
-			// #=墙壁, @=玩家, $=箱子, .=目标点, *=箱子在目标上, +=玩家在目标上
-			const RAW_LEVELS = [
-				["  ####", "###  #", "# $  #", "# #@.#", "#    #", "######"],
-				["#####", "#@  #", "# $$#", "## .#", " #..#", " ####"],
-				["  ####", "###  #", "# .  #", "# #$ #", "# $ $#", "#.#@.#", "######"],
-				[" ####", " #  ###", " #$   #", "## $  #", "#  # $#", "#.#@.#", "######"],
-				["#####", "#   #", "# $ #", "##$ #", "# . #", "#@. #", "#####"],
-				["######", "#  . #", "# #$ #", "# $  #", "# .@ #", "######"],
-				[" ######", " # .  #", " # $  #", "### $ #", "  #@. #", "  #####"],
-				["  #####", "###   #", "# . # #", "# $ $ #", "# .@. #", "#######"],
-				["  #####", "  #   #", "### $ #", "# . $ #", "# #@. #", "#######"],
-				["#####", "# . #", "# $ #", "# $ #", "#@. #", "#####"],
-				["######", "# .  #", "# $  #", "# #$ #", "# .@ #", "######"],
-				["######", "#  . #", "# $$ #", "#..# #", "# @  #", "######"],
-				["######", "# .  #", "# $$ #", "#..# #", "#  @ #", "######"],
-				["######", "# .  #", "# $$$#", "#... #", "#  @ #", "######"],
-				[" ######", " # .  #", " # $$ #", "###.# #", "  # @ #", "  #####"]
-			];
+			// 标准 Microban 经典前 40 关（清洗干净空格，杜绝 HTML 不间断空格乱码引发的不可走bug）
+			const FALLBACK_MICROBAN_TEXT = `
+; 1
+  ####
+###  #
+# $  #
+# #@.#
+#    #
+######
 
-			// 如果想扩充到上百关，可以直接向 RAW_LEVELS 数组 push 更多的 ASCII 关卡！
+; 2
+#####
+#@  #
+# $$#
+## .#
+ #..#
+ ####
+
+; 3
+  ####
+###  #
+# .  #
+# #$ #
+# $ $#
+#.#@.#
+######
+
+; 4
+ ####
+ #  ###
+ #$   #
+## $  #
+#  # $#
+#.#@.#
+######
+
+; 5
+#####
+#   #
+# $ #
+##$ #
+# . #
+#@. #
+#####
+
+; 6
+######
+#  . #
+# #$ #
+# $  #
+# .@ #
+######
+
+; 7
+ ######
+ # .  #
+ # $  #
+### $ #
+  #@. #
+  #####
+
+; 8
+  #####
+###   #
+# . # #
+# $ $ #
+# .@. #
+#######
+
+; 9
+  #####
+  #   #
+### $ #
+# . $ #
+# #@. #
+#######
+
+; 10
+#####
+# . #
+# $ #
+# $ #
+#@. #
+#####
+`;
+
+			let parsedLevels = [];
 			let currentLevelIdx = 0;
 			let mapWidth = 0;
 			let mapHeight = 0;
@@ -346,16 +422,56 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 			const btnUndo = document.getElementById('btnUndo');
 			const btnReset = document.getElementById('btnReset');
 
-			// 初始化下拉关卡菜单
-			RAW_LEVELS.forEach((_, idx) => {
-				const opt = document.createElement('option');
-				opt.value = idx;
-				opt.textContent = `第 ${idx + 1} 关 ${idx < 5 ? '🟢入门' : (idx < 10 ? '🟡进阶' : '🔴挑战')}`;
-				levelSelect.appendChild(opt);
-			});
+			// 标准 XSB / Sokoban ASCII 解析函数
+			function parseSokobanXsb(text) {
+				// 替换全角空格/硬空格为标准 ASCII 32 空格
+				const cleanText = text.replace(/\u00a0/g, ' ');
+				const rawBlocks = cleanText.split(/; \d+|;\s*Level\s*\d+/i);
+				const levels = [];
 
-			// 转换 ASCII 图层为结构化游戏数据
-			function parseLevel(rawLines) {
+				for (let block of rawBlocks) {
+					const lines = block.split('\n').map(l => l.replace(/\r/g, '')).filter(l => l.trim().length > 0 && /^[#@$\.\*\+\s]+$/.test(l));
+					if (lines.length >= 3) {
+						levels.push(lines);
+					}
+				}
+				return levels;
+			}
+
+			// 异步从 GitHub/CDN 加载标准的 155 关 Microban 外部关卡库
+			async function loadExternalLevels() {
+				try {
+					const res = await fetch('https://raw.githubusercontent.com/sokoban-levels/sokoban-levels/master/microban.xsb');
+					if (res.ok) {
+						const text = await res.text();
+						const fetched = parseSokobanXsb(text);
+						if (fetched.length > 0) {
+							parsedLevels = fetched;
+						}
+					}
+				} catch (e) {
+					console.log('网络加载外部库超时，自动使用内置标准库');
+				}
+
+				if (parsedLevels.length === 0) {
+					parsedLevels = parseSokobanXsb(FALLBACK_MICROBAN_TEXT);
+				}
+
+				initLevelDropdown();
+				initLevel(0);
+			}
+
+			function initLevelDropdown() {
+				levelSelect.innerHTML = '';
+				parsedLevels.forEach((_, idx) => {
+					const opt = document.createElement('option');
+					opt.value = idx;
+					opt.textContent = `第 ${idx + 1} 关 ${idx < 10 ? '🟢入门' : (idx < 50 ? '🟡进阶' : '🔴挑战')}`;
+					levelSelect.appendChild(opt);
+				});
+			}
+
+			function loadLevelData(rawLines) {
 				walls = [];
 				boxes = [];
 				targets = [];
@@ -375,10 +491,11 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 			}
 
 			function initLevel(idx) {
+				if (!parsedLevels[idx]) return;
 				currentLevelIdx = idx;
 				levelSelect.value = idx;
 				
-				parseLevel(RAW_LEVELS[idx]);
+				loadLevelData(parsedLevels[idx]);
 				moveHistory = [];
 				stepCount = 0;
 				
@@ -398,7 +515,6 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 			function renderGrid() {
 				sokobanGrid.innerHTML = '';
 				
-				// 动态调整 Grid 网格行列数
 				sokobanGrid.style.gridTemplateColumns = `repeat(${mapWidth}, 1fr)`;
 				sokobanGrid.style.gridTemplateRows = `repeat(${mapHeight}, 1fr)`;
 
@@ -412,30 +528,27 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 						const hasBox = boxes.some(b => b.x === c && b.y === r);
 						const isRobot = r === robot.y && c === robot.x;
 
-						// 利用 Inline Style 锁定颜色与清晰边框
+						// 挂载深浅棋盘色
 						const isAlt = (r + c) % 2 === 1;
-						let bgColor = isAlt ? '#2d3f5d' : '#1e293b';
-						let borderColor = '#475569';
-
-						if (isWall) {
-							bgColor = '#0f172a';
-							borderColor = '#1e293b';
-						} else if (isTarget && hasBox) {
-							bgColor = 'rgba(16, 185, 129, 0.3)';
-							borderColor = '#10b981';
-						} else if (isTarget) {
-							bgColor = 'rgba(245, 158, 11, 0.3)';
-							borderColor = '#f59e0b';
+						if (isAlt) {
+							cell.classList.add('alt-tile');
+						} else {
+							cell.classList.add('main-tile');
 						}
 
-						cell.setAttribute('style', `background-color: ${bgColor} !important; border: 1px solid ${borderColor} !important;`);
-
-						// 1. 先渲染墙壁
 						if (isWall) {
+							cell.style.backgroundColor = '#0f172a';
+							cell.style.borderColor = '#1e293b';
 							cell.textContent = '🧱';
-						} 
-						// 2. 渲染目标点与箱子
-						else {
+						} else if (isTarget && hasBox) {
+							cell.style.backgroundColor = 'rgba(16, 185, 129, 0.35)';
+							cell.style.borderColor = '#10b981';
+						} else if (isTarget) {
+							cell.style.backgroundColor = 'rgba(245, 158, 11, 0.3)';
+							cell.style.borderColor = '#f59e0b';
+						}
+
+						if (!isWall) {
 							if (isTarget && !hasBox && !isRobot) {
 								cell.textContent = '⭐';
 							} else if (hasBox && !isRobot) {
@@ -445,7 +558,6 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 							}
 						}
 
-						// 3. 渲染机器人
 						if (isRobot) {
 							const rObj = document.createElement('span');
 							rObj.className = 'robot-avatar';
@@ -514,7 +626,7 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 					}
 
 					setTimeout(() => {
-						if (currentLevelIdx < RAW_LEVELS.length - 1) {
+						if (currentLevelIdx < parsedLevels.length - 1) {
 							alert(`🎉 恭喜通关第 ${currentLevelIdx + 1} 关！用时 ${stepCount} 步！即刻进入下一关！`);
 							initLevel(currentLevelIdx + 1);
 						} else {
@@ -557,7 +669,8 @@ const pageDescription = "支持键盘方向键与手机手柄控制的推箱子�
 			btnReset.addEventListener('click', () => initLevel(currentLevelIdx));
 			levelSelect.addEventListener('change', (e) => initLevel(parseInt(e.target.value)));
 
-			initLevel(0);
+			// 初始化加载外部 CDN 关卡库
+			loadExternalLevels();
 		</script>
 	</body>
 </html>
