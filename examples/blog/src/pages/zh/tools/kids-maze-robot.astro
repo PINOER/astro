@@ -105,7 +105,7 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				cursor: pointer;
 			}
 
-			/* 🏁 修复重点 1：重构网格布局，确保 6x6 方格 100% 绝对正方形且边框分明 */
+			/* 🏁 1. 棋盘容器：定义细边框分隔线 */
 			.maze-grid {
 				display: grid !important;
 				grid-template-columns: repeat(6, 1fr) !important;
@@ -113,7 +113,7 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				gap: 1px !important;
 				width: min(100%, 410px);
 				aspect-ratio: 1 / 1;
-				background: #090d16 !important;
+				background: #0f172a !important;
 				border: 3px solid #3b82f6;
 				border-radius: 16px;
 				padding: 6px;
@@ -122,7 +122,6 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				overflow: hidden;
 			}
 
-			/* 🏁 修复重点 2：清晰可辨的深浅棋盘格交错样式 */
 			.maze-cell {
 				display: flex !important;
 				align-items: center;
@@ -131,24 +130,28 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 				position: relative;
 				user-select: none;
 				box-sizing: border-box;
-				border-radius: 3px;
+				border-radius: 4px;
 			}
 
+			/* 🏁 2. 核心深浅交错高对比颜色 */
 			.maze-cell.cell-light {
-				background-color: #28364d !important;
+				background-color: #2b3a52 !important; /* 浅色格子：明亮蓝灰色 */
+				border: 1px solid #3a4b66 !important;
 			}
 
 			.maze-cell.cell-dark {
-				background-color: #162032 !important;
+				background-color: #162032 !important; /* 深色格子：深沉墨蓝色 */
+				border: 1px solid #233047 !important;
 			}
 
 			.maze-cell.wall-cell {
-				background-color: #0b1120 !important;
-				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
+				background-color: #0b1120 !important; /* 墙壁：深黑色凹陷 */
+				border: 1px solid #1e293b !important;
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
 			}
 
 			.maze-cell.target-cell {
-				background-color: rgba(245, 158, 11, 0.25) !important;
+				background-color: rgba(245, 158, 11, 0.35) !important; /* 终点：金黄光芒 */
 				border: 2px dashed #f59e0b !important;
 			}
 
@@ -634,8 +637,9 @@ const pageDescription = '组合前进、转向和条件判断积木，挑战100�
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
 						
-						// 🏁 挂载交错的棋盘颜色
-						cell.classList.add((row + column) % 2 === 0 ? 'cell-dark' : 'cell-light');
+						// 🏁 3. 根据 (行 + 列) 的奇偶绑定交错的样式类
+						const isEven = (row + column) % 2 === 0;
+						cell.classList.add(isEven ? 'cell-dark' : 'cell-light');
 
 						const key = positionKey(column, row);
 						const isWall = level.wallSet.has(key);
