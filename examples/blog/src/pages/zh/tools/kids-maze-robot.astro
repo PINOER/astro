@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "儿童编程互动游戏：智能机器人迷宫大逃脱 (100关算法保证有解)",
-    description: "免安装！专为儿童设计的逻辑避障编程游戏。采用递归回溯迷宫算法生成 100 个完美无死局关卡！通过组合积木指令指挥机器人自主避障！",
-    icon: "🧱",
-    tag: "儿童编程",
-    keywords: "儿童编程游戏 迷宫算法 条件判断 100关迷宫 DFS迷宫 if-else 少儿编程 Scratch逻辑 STEM",
-    pinned: true,
-    priority: 85
+	title: '儿童编程互动游戏：智能机器人迷宫大逃脱（100关）',
+	description: '免安装的儿童逻辑编程游戏。100个确定性迷宫关卡均经过BFS可达性验证，通过前进、转向和条件判断积木指挥机器人到达终点。',
+	icon: '🤖',
+	tag: '儿童编程',
+	keywords: '儿童编程游戏 机器人迷宫 逻辑训练 条件判断 BFS迷宫 少儿编程 Scratch逻辑 STEM',
+	pinned: true,
+	priority: 85
 };
 
-const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱 (100关保证有解) — ${SITE_TITLE}`;
-const pageDescription = "免安装！专为儿童设计的逻辑避障编程游戏，算法保障 100 个由浅入深且绝对有解的迷宫关卡。";
+const pageTitle = `儿童编程互动游戏：智能机器人迷宫大逃脱（100关）— ${SITE_TITLE}`;
+const pageDescription = '组合前进、转向和条件判断积木，挑战100个经过可达性验证、难度逐步提升的机器人迷宫关卡。';
 ---
 
 <!doctype html>
@@ -29,10 +29,12 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				margin: auto;
 				padding: 2.5em 1em 4em;
 			}
+
 			.tool-header {
 				text-align: center;
 				margin-bottom: 1.5em;
 			}
+
 			.tool-header h1 {
 				font-size: 2.2rem;
 				font-weight: 800;
@@ -41,12 +43,12 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
+
 			.tool-header p {
 				color: var(--text-muted);
 				font-size: 0.95rem;
 			}
 
-			/* 游戏容器 */
 			.game-container {
 				display: grid;
 				grid-template-columns: 1fr 340px;
@@ -59,38 +61,43 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				backdrop-filter: blur(12px);
 			}
 
-			@media (max-width: 850px) {
-				.game-container {
-					grid-template-columns: 1fr;
-					padding: 1rem;
-				}
-			}
-
 			.stage-box {
 				display: flex;
 				flex-direction: column;
 				align-items: center;
 				gap: 1rem;
 				width: 100%;
+				min-width: 0;
 			}
+
 			.level-bar {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				gap: 0.8rem;
 				width: 100%;
 				background: var(--search-bg);
 				padding: 0.6em 1em;
 				border-radius: 12px;
 				border: 1px solid var(--card-border);
 				font-weight: 700;
-				font-size: 0.92rem;
+				font-size: 0.88rem;
+				box-sizing: border-box;
+			}
+
+			.level-meta {
+				display: flex;
+				gap: 0.8rem;
+				flex-wrap: wrap;
+				justify-content: flex-end;
+				color: var(--text-muted);
 			}
 
 			.level-select {
 				background: var(--bg-card);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.3em 0.6em;
+				padding: 0.35em 0.6em;
 				border-radius: 8px;
 				font-weight: 700;
 				font-size: 0.88rem;
@@ -98,71 +105,64 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				cursor: pointer;
 			}
 
-			/* 🏁 迷宫地图外框 */
 			.maze-grid {
-				display: grid !important;
-				grid-template-columns: repeat(6, 1fr) !important;
-				grid-template-rows: repeat(6, 1fr) !important;
-				gap: 2px !important;
-				width: 100%;
-				max-width: 380px;
+				display: grid;
+				grid-template-columns: repeat(6, 1fr);
+				grid-template-rows: repeat(6, 1fr);
+				gap: 3px;
+				width: min(100%, 410px);
 				aspect-ratio: 1 / 1;
-				background: #090d16 !important;
+				background: #090d16;
 				border: 3px solid #3b82f6;
 				border-radius: 16px;
-				padding: 6px;
-				box-sizing: border-box !important;
-				box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+				padding: 7px;
+				box-sizing: border-box;
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 			}
 
-			/* 🏁 基础格子基础属性 */
 			.maze-cell {
-				display: flex !important;
+				display: flex;
 				align-items: center;
 				justify-content: center;
-				font-size: 1.6rem;
+				font-size: clamp(1.15rem, 4vw, 1.75rem);
 				position: relative;
 				user-select: none;
-				box-sizing: border-box !important;
-				border-radius: 4px;
+				box-sizing: border-box;
+				border-radius: 5px;
 			}
 
-			/* 🏁 核心：利用 CSS 棋盘交替规则强行渲染“深浅色块交错” */
-			/* 偶数行奇数列 & 奇数行偶数列 -> 浅蓝灰块 */
-			.maze-cell:nth-child(2n) {
-				background-color: #2b3a52 !important;
-				border: 1px solid #475569 !important;
-			}
-			/* 奇数行奇数列 & 偶数行偶数列 -> 深蓝灰块 */
-			.maze-cell:nth-child(2n+1) {
-				background-color: #1a2436 !important;
-				border: 1px solid #334155 !important;
+			.maze-cell.cell-light {
+				background-color: #2b3a52;
+				border: 1px solid #475569;
 			}
 
-			/* 🏁 墙壁样式：高优先级覆写 */
+			.maze-cell.cell-dark {
+				background-color: #1a2436;
+				border: 1px solid #334155;
+			}
+
 			.maze-cell.wall-cell {
-				background-color: #0b1120 !important;
-				border: 1px solid #1e293b !important;
+				background-color: #0b1120;
+				border: 1px solid #1e293b;
 				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
 			}
 
-			/* 🏁 终点目标样式 */
 			.maze-cell.target-cell {
-				background-color: rgba(245, 158, 11, 0.3) !important;
-				border: 2px dashed #f59e0b !important;
+				background-color: rgba(245, 158, 11, 0.3);
+				border: 2px dashed #f59e0b;
 			}
 
 			.robot-icon {
-				transition: transform 0.2s ease-out;
+				transition: transform 0.18s ease-out;
 				display: inline-block;
-				filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+				filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 			}
 
-			/* 右侧编辑器 */
 			.editor-box {
 				display: flex;
 				flex-direction: column;
 				gap: 0.9rem;
+				min-width: 0;
 			}
 
 			.panel-title {
@@ -176,7 +176,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 
 			.block-palette {
 				display: grid;
-				grid-template-columns: repeat(2, 1fr);
+				grid-template-columns: repeat(2, minmax(0, 1fr));
 				gap: 0.5rem;
 			}
 
@@ -184,17 +184,19 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.5em 0.6em;
+				padding: 0.55em 0.6em;
 				border-radius: 10px;
-				font-size: 0.82rem;
+				font-size: 0.8rem;
 				font-weight: 700;
 				cursor: pointer;
 				display: flex;
 				align-items: center;
 				gap: 0.3rem;
-				transition: all 0.2s ease;
+				transition: transform 0.2s ease, border-color 0.2s ease;
+				text-align: left;
 			}
-			.block-btn:hover {
+
+			.block-btn:hover:not(:disabled) {
 				transform: translateY(-2px);
 				border-color: var(--accent);
 			}
@@ -210,7 +212,7 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				border-radius: 12px;
 				padding: 0.8rem;
 				min-height: 180px;
-				max-height: 220px;
+				max-height: 235px;
 				overflow-y: auto;
 				display: flex;
 				flex-direction: column;
@@ -221,18 +223,24 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				background: var(--bg-card);
 				border: 1px solid var(--card-border);
 				border-radius: 8px;
-				padding: 0.4em 0.7em;
+				padding: 0.4em 0.55em 0.4em 0.7em;
 				font-size: 0.82rem;
 				font-weight: 600;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				gap: 0.5rem;
 			}
 
-			.code-item .remove-btn {
+			.remove-btn {
+				border: none;
+				background: transparent;
 				color: #ef4444;
 				cursor: pointer;
-				font-weight: bold;
+				font-weight: 900;
+				font-size: 1rem;
+				line-height: 1;
+				padding: 0.25rem;
 			}
 
 			.action-bar {
@@ -241,29 +249,41 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				gap: 0.8rem;
 			}
 
-			.btn-run {
-				background: #3b82f6;
-				color: #fff;
-				border: none;
+			.btn-run,
+			.btn-reset {
 				padding: 0.8em;
 				border-radius: 12px;
 				font-weight: 800;
 				font-size: 0.92rem;
 				cursor: pointer;
 			}
-			.btn-run:hover { opacity: 0.9; transform: scale(1.02); }
+
+			.btn-run {
+				background: #3b82f6;
+				color: #fff;
+				border: none;
+			}
+
+			.btn-run:hover:not(:disabled) {
+				opacity: 0.9;
+				transform: scale(1.02);
+			}
 
 			.btn-reset {
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				padding: 0.8em;
-				border-radius: 12px;
-				font-weight: 700;
-				font-size: 0.92rem;
-				cursor: pointer;
 			}
-			.btn-reset:hover { border-color: var(--accent); }
+
+			.btn-reset:hover:not(:disabled) {
+				border-color: var(--accent);
+			}
+
+			button:disabled,
+			select:disabled {
+				cursor: not-allowed;
+				opacity: 0.55;
+			}
 
 			.empty-hint {
 				color: var(--text-muted);
@@ -271,53 +291,93 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				text-align: center;
 				margin: auto;
 			}
+
+			.code-tip {
+				font-size: 0.78rem;
+				line-height: 1.55;
+				color: var(--text-muted);
+				text-align: center;
+			}
+
+			@media (max-width: 850px) {
+				.game-container {
+					grid-template-columns: 1fr;
+					padding: 1rem;
+				}
+
+				.level-bar {
+					align-items: flex-start;
+					flex-direction: column;
+				}
+
+				.level-meta {
+					justify-content: flex-start;
+				}
+			}
+
+			@media (max-width: 460px) {
+				main {
+					max-width: calc(100% - 1em);
+					padding-left: 0.5em;
+					padding-right: 0.5em;
+				}
+
+				.tool-header h1 {
+					font-size: 1.65rem;
+				}
+
+				.block-palette {
+					grid-template-columns: 1fr;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<Header lang="zh" />
 		<main>
 			<div class="tool-header">
-				<h1>🧱 儿童编程小游戏：智能机器人迷宫大逃脱 (100关)</h1>
-				<p>组合“检测传感器”与“方向转弯”算法，帮助探险机器人冲出迷宫陷阱！</p>
+				<h1>🤖 儿童编程小游戏：智能机器人迷宫大逃脱（100关）</h1>
+				<p>组合前进、转向与条件判断积木，编写程序帮助机器人安全抵达终点。</p>
 			</div>
 
 			<div class="game-container">
-				<!-- 左侧：迷宫地图 -->
 				<div class="stage-box">
 					<div class="level-bar">
-						<div>
-							关卡: 
-							<select id="levelSelect" class="level-select">
-								<!-- JS 动态生成 100 关 -->
-							</select>
+						<label>
+							关卡：
+							<select id="levelSelect" class="level-select" aria-label="选择迷宫关卡"></select>
+						</label>
+						<div class="level-meta">
+							<span id="routeStatus">最短路线：--</span>
+							<span id="bestStatus">最佳积木：--</span>
 						</div>
-						<span>电池状态: ⚡ 100%</span>
 					</div>
 
-					<div class="maze-grid" id="mazeGrid">
-						<!-- 动态生成 6x6 迷宫 -->
-					</div>
+					<div class="maze-grid" id="mazeGrid" aria-label="6乘6机器人迷宫"></div>
 				</div>
 
-				<!-- 右侧：代码积木区 -->
 				<div class="editor-box">
-					<div class="panel-title">🧩 1. 点击添加避障逻辑</div>
+					<div class="panel-title">🧩 1. 点击添加编程积木</div>
 					<div class="block-palette">
-						<button class="block-btn blue" data-action="MOVE">🤖 前进 1 格</button>
-						<button class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
-						<button class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
-						<button class="block-btn purple" data-action="IF_WALL_RIGHT">⚠️ 若前方有墙则右转</button>
-						<button class="block-btn emerald" data-action="REPEAT_3">🔁 重复前进 3 次</button>
+						<button type="button" class="block-btn blue" data-action="MOVE">🤖 前进 1 格</button>
+						<button type="button" class="block-btn amber" data-action="TURN_RIGHT">↻ 右转 90°</button>
+						<button type="button" class="block-btn amber" data-action="TURN_LEFT">↺ 左转 90°</button>
+						<button type="button" class="block-btn purple" data-action="IF_WALL_RIGHT">⚠️ 前方有墙则右转</button>
+						<button type="button" class="block-btn emerald" data-action="REPEAT_3">⏩ 连续前进 3 格</button>
 					</div>
 
 					<div class="panel-title">📜 2. 探险逻辑代码</div>
-					<div class="code-workspace" id="codeWorkspace">
-						<div class="empty-hint" id="emptyHint">点击上方积木组装避障代码...</div>
+					<div class="code-workspace" id="codeWorkspace" aria-live="polite">
+						<div class="empty-hint" id="emptyHint">点击上方积木组装机器人程序……</div>
 					</div>
 
 					<div class="action-bar">
-						<button class="btn-run" id="btnRun">▶ 启动机器人</button>
-						<button class="btn-reset" id="btnReset">🔄 复位重置</button>
+						<button type="button" class="btn-run" id="btnRun">▶ 从起点运行</button>
+						<button type="button" class="btn-reset" id="btnReset">🗑️ 清空并复位</button>
+					</div>
+
+					<div class="code-tip">
+						每次运行都会从起点开始。程序最多可放置60个积木，撞墙后可修改代码再次尝试。
 					</div>
 				</div>
 			</div>
@@ -326,65 +386,169 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 		<Footer lang="zh" />
 
 		<script is:inline>
-			// 🧠 利用 DFS 深度优先算法生成绝对有解的 6x6 迷宫
-			function generateValidMaze(levelNum) {
-				const size = 6;
-				let seed = levelNum * 9301 + 49297;
-				function random() {
-					seed = (seed * 9301 + 49297) % 233280;
-					return seed / 233280;
-				}
+			const GRID_SIZE = 6;
+			const TOTAL_LEVELS = 100;
+			const MAX_INSTRUCTIONS = 60;
+			const STEP_DELAY = 360;
+			const DIRECTIONS = [
+				{ dx: 0, dy: -1 },
+				{ dx: 1, dy: 0 },
+				{ dx: 0, dy: 1 },
+				{ dx: -1, dy: 0 }
+			];
 
-				let maze = Array(size).fill(null).map(() => Array(size).fill(true));
-				
-				function carve(x, y) {
-					maze[y][x] = false;
-					const dirs = [
-						{dx: 0, dy: -1}, {dx: 1, dy: 0},
-						{dx: 0, dy: 1}, {dx: -1, dy: 0}
-					].sort(() => random() - 0.5);
-
-					for (let d of dirs) {
-						let nx = x + d.dx, ny = y + d.dy;
-						if (nx >= 0 && nx < size && ny >= 0 && ny < size && maze[ny][nx]) {
-							let neighbors = 0;
-							for (let check of [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}]) {
-								let cx = nx + check.dx, cy = ny + check.dy;
-								if (cx >= 0 && cx < size && cy >= 0 && cy < size && !maze[cy][cx]) neighbors++;
-							}
-							if (neighbors <= 1 || random() > 0.4) {
-								carve(nx, ny);
-							}
-						}
-					}
-				}
-
-				carve(0, 0);
-				maze[0][0] = false;
-				maze[5][5] = false;
-
-				let walls = [];
-				for (let r = 0; r < size; r++) {
-					for (let c = 0; c < size; c++) {
-						if (maze[r][c] && !(c === 0 && r === 0) && !(c === 5 && r === 5)) {
-							walls.push({ x: c, y: r });
-						}
-					}
-				}
-
-				return {
-					title: `第 ${levelNum} 关 ${levelNum <= 30 ? '🟢入门' : (levelNum <= 70 ? '🟡进阶' : '🔴高难')}`,
-					start: { x: 0, y: 0, dir: 1 },
-					target: { x: 5, y: 5 },
-					walls
+			function createRandom(seed) {
+				let state = seed >>> 0;
+				return function random() {
+					state = (state + 0x6D2B79F5) >>> 0;
+					let value = state;
+					value = Math.imul(value ^ (value >>> 15), value | 1);
+					value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+					return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
 				};
 			}
 
-			const TOTAL_LEVELS = 100;
-			const LEVELS = [];
-			for (let i = 1; i <= TOTAL_LEVELS; i++) {
-				LEVELS.push(generateValidMaze(i));
+			function shuffle(values, random) {
+				const result = [...values];
+				for (let index = result.length - 1; index > 0; index--) {
+					const swapIndex = Math.floor(random() * (index + 1));
+					[result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+				}
+				return result;
 			}
+
+			function positionKey(x, y) {
+				return `${x},${y}`;
+			}
+
+			function getDifficultyConfig(levelNum) {
+				if (levelNum <= 30) {
+					return {
+						label: '🟢 入门',
+						minWalls: 5,
+						maxWalls: 8,
+						minPathLength: 10,
+						minTurns: 1
+					};
+				}
+
+				if (levelNum <= 70) {
+					return {
+						label: '🟡 进阶',
+						minWalls: 8,
+						maxWalls: 12,
+						minPathLength: 12,
+						minTurns: 3
+					};
+				}
+
+				return {
+					label: '🔴 高难',
+					minWalls: 11,
+					maxWalls: 15,
+					minPathLength: 14,
+					minTurns: 4
+				};
+			}
+
+			function findShortestPath(walls) {
+				const wallSet = new Set(walls.map((wall) => positionKey(wall.x, wall.y)));
+				const targetX = GRID_SIZE - 1;
+				const targetY = GRID_SIZE - 1;
+				const queue = [{ x: 0, y: 0, path: [] }];
+				const visited = new Set([positionKey(0, 0)]);
+				let queueIndex = 0;
+
+				while (queueIndex < queue.length) {
+					const current = queue[queueIndex++];
+
+					if (current.x === targetX && current.y === targetY) {
+						return current.path;
+					}
+
+					for (let direction = 0; direction < DIRECTIONS.length; direction++) {
+						const nextX = current.x + DIRECTIONS[direction].dx;
+						const nextY = current.y + DIRECTIONS[direction].dy;
+						const key = positionKey(nextX, nextY);
+
+						if (
+							nextX < 0 || nextX >= GRID_SIZE ||
+							nextY < 0 || nextY >= GRID_SIZE ||
+							wallSet.has(key) ||
+							visited.has(key)
+						) {
+							continue;
+						}
+
+						visited.add(key);
+						queue.push({
+							x: nextX,
+							y: nextY,
+							path: [...current.path, direction]
+						});
+					}
+				}
+
+				return null;
+			}
+
+			function countTurns(path) {
+				let turns = 0;
+				for (let index = 1; index < path.length; index++) {
+					if (path[index] !== path[index - 1]) turns++;
+				}
+				return turns;
+			}
+
+			function generateValidMaze(levelNum, usedSignatures) {
+				const config = getDifficultyConfig(levelNum);
+				const availableCells = [];
+
+				for (let y = 0; y < GRID_SIZE; y++) {
+					for (let x = 0; x < GRID_SIZE; x++) {
+						const isStart = x === 0 && y === 0;
+						const isTarget = x === GRID_SIZE - 1 && y === GRID_SIZE - 1;
+						if (!isStart && !isTarget) availableCells.push({ x, y });
+					}
+				}
+
+				for (let attempt = 0; attempt < 5000; attempt++) {
+					const random = createRandom(levelNum * 1000003 + attempt * 9176 + 12345);
+					const wallRange = config.maxWalls - config.minWalls + 1;
+					const wallCount = config.minWalls + Math.floor(random() * wallRange);
+					const walls = shuffle(availableCells, random).slice(0, wallCount);
+					const signature = walls
+						.map((wall) => positionKey(wall.x, wall.y))
+						.sort()
+						.join('|');
+
+					if (usedSignatures.has(signature)) continue;
+
+					const shortestPath = findShortestPath(walls);
+					if (!shortestPath) continue;
+					if (shortestPath.length < config.minPathLength) continue;
+					if (countTurns(shortestPath) < config.minTurns) continue;
+
+					usedSignatures.add(signature);
+					return {
+						title: `第 ${levelNum} 关 ${config.label}`,
+						start: { x: 0, y: 0, dir: 1 },
+						target: { x: GRID_SIZE - 1, y: GRID_SIZE - 1 },
+						walls,
+						wallSet: new Set(walls.map((wall) => positionKey(wall.x, wall.y))),
+						shortestPathLength: shortestPath.length,
+						turnCount: countTurns(shortestPath)
+					};
+				}
+
+				throw new Error(`无法生成第 ${levelNum} 关迷宫`);
+			}
+
+			const usedSignatures = new Set();
+			const LEVELS = Array.from(
+				{ length: TOTAL_LEVELS },
+				(_, index) => generateValidMaze(index + 1, usedSignatures)
+			);
 
 			let currentLevelIdx = 0;
 			let robot = { x: 0, y: 0, dir: 1 };
@@ -395,60 +559,102 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 			const codeWorkspace = document.getElementById('codeWorkspace');
 			const emptyHint = document.getElementById('emptyHint');
 			const levelSelect = document.getElementById('levelSelect');
+			const routeStatus = document.getElementById('routeStatus');
+			const bestStatus = document.getElementById('bestStatus');
 			const btnRun = document.getElementById('btnRun');
 			const btnReset = document.getElementById('btnReset');
+			const blockButtons = [...document.querySelectorAll('.block-btn')];
 
-			LEVELS.forEach((lvl, idx) => {
-				const opt = document.createElement('option');
-				opt.value = idx;
-				opt.textContent = lvl.title;
-				levelSelect.appendChild(opt);
+			function readBest(levelIdx) {
+				try {
+					const value = localStorage.getItem(`robot_maze_best_v2_${levelIdx}`);
+					if (value === null) return null;
+					const parsed = Number.parseInt(value, 10);
+					return Number.isFinite(parsed) ? parsed : null;
+				} catch {
+					return null;
+				}
+			}
+
+			function saveBest(levelIdx, count) {
+				try {
+					localStorage.setItem(`robot_maze_best_v2_${levelIdx}`, String(count));
+				} catch {
+					// 本地存储不可用时，不影响游戏继续运行。
+				}
+			}
+
+			function updateLevelStatus() {
+				const level = LEVELS[currentLevelIdx];
+				const best = readBest(currentLevelIdx);
+				routeStatus.textContent = `最短路线：${level.shortestPathLength} 格`;
+				bestStatus.textContent = best === null ? '最佳积木：--' : `最佳积木：${best} 个`;
+			}
+
+			function setControlsDisabled(disabled) {
+				btnRun.disabled = disabled;
+				btnReset.disabled = disabled;
+				levelSelect.disabled = disabled;
+				blockButtons.forEach((button) => {
+					button.disabled = disabled;
+				});
+				codeWorkspace.querySelectorAll('.remove-btn').forEach((button) => {
+					button.disabled = disabled;
+				});
+			}
+
+			LEVELS.forEach((level, index) => {
+				const option = document.createElement('option');
+				option.value = String(index);
+				option.textContent = level.title;
+				levelSelect.appendChild(option);
 			});
 
-			function initMaze(idx) {
-				currentLevelIdx = idx;
-				levelSelect.value = idx;
-				const lvl = LEVELS[idx];
-				robot = { ...lvl.start };
-				instructions = [];
-				renderWorkspace();
+			function initMaze(index, clearProgram = true) {
+				const safeIndex = Math.max(0, Math.min(index, TOTAL_LEVELS - 1));
+				currentLevelIdx = safeIndex;
+				levelSelect.value = String(safeIndex);
+				robot = { ...LEVELS[safeIndex].start };
+
+				if (clearProgram) {
+					instructions = [];
+					renderWorkspace();
+				}
+
+				updateLevelStatus();
 				renderGrid();
 			}
 
 			function renderGrid() {
-				mazeGrid.innerHTML = '';
-				const lvl = LEVELS[currentLevelIdx];
+				mazeGrid.replaceChildren();
+				const level = LEVELS[currentLevelIdx];
 
-				for (let r = 0; r < 6; r++) {
-					for (let c = 0; c < 6; c++) {
+				for (let row = 0; row < GRID_SIZE; row++) {
+					for (let column = 0; column < GRID_SIZE; column++) {
 						const cell = document.createElement('div');
 						cell.className = 'maze-cell';
+						cell.classList.add((row + column) % 2 === 0 ? 'cell-dark' : 'cell-light');
 
-						const isWall = lvl.walls.some(w => w.x === c && w.y === r);
-						const isTarget = c === lvl.target.x && r === lvl.target.y;
-						const isRobot = r === robot.y && c === robot.x;
+						const key = positionKey(column, row);
+						const isWall = level.wallSet.has(key);
+						const isTarget = column === level.target.x && row === level.target.y;
+						const isRobot = column === robot.x && row === robot.y;
 
-						// 1. 墙壁类名
 						if (isWall) {
 							cell.classList.add('wall-cell');
 							cell.textContent = '🧱';
-						} 
-						// 2. 终点类名
-						else if (isTarget) {
+						} else if (isTarget) {
 							cell.classList.add('target-cell');
-							if (!isRobot) {
-								cell.textContent = '🏆';
-							}
+							if (!isRobot) cell.textContent = '🏆';
 						}
 
-						// 3. 渲染机器人
 						if (isRobot) {
-							const rObj = document.createElement('span');
-							rObj.className = 'robot-icon';
-							rObj.textContent = '🤖';
+							const robotIcon = document.createElement('span');
+							robotIcon.className = 'robot-icon';
+							robotIcon.textContent = '🤖';
 							const angles = [270, 0, 90, 180];
-							rObj.style.transform = `rotate(${angles[robot.dir]}deg)`;
-							cell.appendChild(rObj);
+							robotIcon.style.transform = `rotate(${angles[robot.dir]}deg)`;
+							cell.appendChild(robotIcon);
 						}
 
 						mazeGrid.appendChild(cell);
@@ -456,124 +662,193 @@ const pageDescription = "免安装！专为儿童设计的逻辑避障编程游�
 				}
 			}
 
-			document.querySelectorAll('.block-palette .block-btn').forEach(btn => {
-				btn.addEventListener('click', () => {
+			function renderWorkspace() {
+				codeWorkspace.replaceChildren();
+
+				if (instructions.length === 0) {
+					emptyHint.style.display = 'block';
+					codeWorkspace.appendChild(emptyHint);
+					return;
+				}
+
+				emptyHint.style.display = 'none';
+
+				instructions.forEach((instruction, index) => {
+					const item = document.createElement('div');
+					item.className = 'code-item';
+
+					const label = document.createElement('span');
+					label.textContent = `${index + 1}. ${instruction.label}`;
+
+					const removeButton = document.createElement('button');
+					removeButton.type = 'button';
+					removeButton.className = 'remove-btn';
+					removeButton.dataset.index = String(index);
+					removeButton.setAttribute('aria-label', `删除第 ${index + 1} 个积木`);
+					removeButton.textContent = '✕';
+					removeButton.disabled = isRunning;
+
+					item.append(label, removeButton);
+					codeWorkspace.appendChild(item);
+				});
+			}
+
+			function getNextPosition(direction) {
+				return {
+					x: robot.x + DIRECTIONS[direction].dx,
+					y: robot.y + DIRECTIONS[direction].dy
+				};
+			}
+
+			function isBlocked(level, x, y) {
+				return (
+					x < 0 || x >= GRID_SIZE ||
+					y < 0 || y >= GRID_SIZE ||
+					level.wallSet.has(positionKey(x, y))
+				);
+			}
+
+			function expandInstructions(program) {
+				const queue = [];
+				for (const instruction of program) {
+					if (instruction.action === 'REPEAT_3') {
+						queue.push(
+							{ action: 'MOVE' },
+							{ action: 'MOVE' },
+							{ action: 'MOVE' }
+						);
+					} else {
+						queue.push({ action: instruction.action });
+					}
+				}
+				return queue;
+			}
+
+			function sleep(milliseconds) {
+				return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+			}
+
+			blockButtons.forEach((button) => {
+				button.addEventListener('click', () => {
 					if (isRunning) return;
-					const action = btn.dataset.action;
-					const label = btn.textContent;
-					instructions.push({ action, label });
+
+					if (instructions.length >= MAX_INSTRUCTIONS) {
+						alert(`最多可以添加 ${MAX_INSTRUCTIONS} 个积木。`);
+						return;
+					}
+
+					const action = button.dataset.action;
+					if (!action) return;
+
+					instructions.push({
+						action,
+						label: button.textContent.trim()
+					});
 					renderWorkspace();
 				});
 			});
 
-			function renderWorkspace() {
-				if (instructions.length === 0) {
-					emptyHint.style.display = 'block';
-					codeWorkspace.innerHTML = '';
-					codeWorkspace.appendChild(emptyHint);
-					return;
-				}
-				emptyHint.style.display = 'none';
-				codeWorkspace.innerHTML = '';
-
-				instructions.forEach((item, idx) => {
-					const el = document.createElement('div');
-					el.className = 'code-item';
-					el.innerHTML = `
-						<span>${idx + 1}. ${item.label}</span>
-						<span class="remove-btn" onclick="removeInstruction(${idx})">✕</span>
-					`;
-					codeWorkspace.appendChild(el);
-				});
-			}
-
-			window.removeInstruction = function(idx) {
+			codeWorkspace.addEventListener('click', (event) => {
 				if (isRunning) return;
-				instructions.splice(idx, 1);
+				const button = event.target.closest('.remove-btn');
+				if (!button) return;
+
+				const index = Number.parseInt(button.dataset.index ?? '', 10);
+				if (!Number.isInteger(index) || index < 0 || index >= instructions.length) return;
+
+				instructions.splice(index, 1);
 				renderWorkspace();
-			};
+			});
 
 			btnRun.addEventListener('click', async () => {
 				if (isRunning || instructions.length === 0) return;
+
+				const runLevelIdx = currentLevelIdx;
+				const level = LEVELS[runLevelIdx];
+				const programLength = instructions.length;
+				const executionQueue = expandInstructions(instructions);
+				let reachedTarget = false;
+				let crashed = false;
+
+				robot = { ...level.start };
+				renderGrid();
 				isRunning = true;
-				btnRun.disabled = true;
+				setControlsDisabled(true);
 
-				const lvl = LEVELS[currentLevelIdx];
+				try {
+					for (const instruction of executionQueue) {
+						await sleep(STEP_DELAY);
 
-				let expandedQueue = [];
-				for (let item of instructions) {
-					if (item.action === 'REPEAT_3') {
-						expandedQueue.push({ action: 'MOVE' }, { action: 'MOVE' }, { action: 'MOVE' });
-					} else {
-						expandedQueue.push(item);
-					}
-				}
+						if (currentLevelIdx !== runLevelIdx) break;
 
-				for (let item of expandedQueue) {
-					await new Promise(r => setTimeout(r, 450));
-
-					if (item.action === 'IF_WALL_RIGHT') {
-						let nextX = robot.x;
-						let nextY = robot.y;
-						if (robot.dir === 0) nextY--;
-						if (robot.dir === 1) nextX++;
-						if (robot.dir === 2) nextY++;
-						if (robot.dir === 3) nextX--;
-
-						const hitWall = nextX < 0 || nextX >= 6 || nextY < 0 || nextY >= 6 || lvl.walls.some(w => w.x === nextX && w.y === nextY);
-						if (hitWall) {
+						if (instruction.action === 'IF_WALL_RIGHT') {
+							const next = getNextPosition(robot.dir);
+							if (isBlocked(level, next.x, next.y)) {
+								robot.dir = (robot.dir + 1) % 4;
+							}
+						} else if (instruction.action === 'MOVE') {
+							const next = getNextPosition(robot.dir);
+							if (isBlocked(level, next.x, next.y)) {
+								crashed = true;
+								break;
+							}
+							robot.x = next.x;
+							robot.y = next.y;
+						} else if (instruction.action === 'TURN_RIGHT') {
 							robot.dir = (robot.dir + 1) % 4;
+						} else if (instruction.action === 'TURN_LEFT') {
+							robot.dir = (robot.dir + 3) % 4;
 						}
-					} else if (item.action === 'MOVE') {
-						let nextX = robot.x;
-						let nextY = robot.y;
-						if (robot.dir === 0) nextY--;
-						if (robot.dir === 1) nextX++;
-						if (robot.dir === 2) nextY++;
-						if (robot.dir === 3) nextX--;
 
-						if (nextX < 0 || nextX >= 6 || nextY < 0 || nextY >= 6 || lvl.walls.some(w => w.x === nextX && w.y === nextY)) {
-							alert('💥 嘭！机器人撞到墙壁了！重试一下吧！');
+						renderGrid();
+
+						if (robot.x === level.target.x && robot.y === level.target.y) {
+							reachedTarget = true;
 							break;
 						}
-						robot.x = nextX;
-						robot.y = nextY;
-					} else if (item.action === 'TURN_RIGHT') {
-						robot.dir = (robot.dir + 1) % 4;
-					} else if (item.action === 'TURN_LEFT') {
-						robot.dir = (robot.dir + 3) % 4;
 					}
-
-					renderGrid();
-
-					if (robot.x === lvl.target.x && robot.y === lvl.target.y) {
-						setTimeout(() => {
-							if (currentLevelIdx < TOTAL_LEVELS - 1) {
-								alert(`🎉 恭喜通关第 ${currentLevelIdx + 1} 关！机器人成功逃脱！即将解锁第 ${currentLevelIdx + 2} 关！`);
-								initMaze(currentLevelIdx + 1);
-							} else {
-								alert('🏆 太厉害了！你成功帮助机器人通关了全部 100 个迷宫！');
-							}
-						}, 200);
-						break;
-					}
+				} finally {
+					isRunning = false;
+					setControlsDisabled(false);
 				}
 
-				isRunning = false;
-				btnRun.disabled = false;
+				if (reachedTarget) {
+					const previousBest = readBest(runLevelIdx);
+					if (previousBest === null || programLength < previousBest) {
+						saveBest(runLevelIdx, programLength);
+					}
+					updateLevelStatus();
+
+					if (runLevelIdx < TOTAL_LEVELS - 1) {
+						alert(`🎉 恭喜通关第 ${runLevelIdx + 1} 关！即将进入第 ${runLevelIdx + 2} 关。`);
+						initMaze(runLevelIdx + 1, true);
+					} else {
+						alert('🏆 太厉害了！你已经通关全部100个机器人迷宫！');
+					}
+				} else if (crashed) {
+					alert('💥 机器人撞墙了！修改积木顺序后再试一次。');
+				} else {
+					alert('🤔 程序执行完了，但机器人还没有到达终点。继续完善代码吧！');
+				}
 			});
 
 			btnReset.addEventListener('click', () => {
 				if (isRunning) return;
-				initMaze(currentLevelIdx);
+				initMaze(currentLevelIdx, true);
 			});
 
-			levelSelect.addEventListener('change', (e) => {
-				if (isRunning) return;
-				initMaze(parseInt(e.target.value));
+			levelSelect.addEventListener('change', (event) => {
+				if (isRunning) {
+					levelSelect.value = String(currentLevelIdx);
+					return;
+				}
+
+				const index = Number.parseInt(event.target.value, 10);
+				if (!Number.isInteger(index)) return;
+				initMaze(index, true);
 			});
 
-			initMaze(0);
+			initMaze(0, true);
 		</script>
 	</body>
 </html>
