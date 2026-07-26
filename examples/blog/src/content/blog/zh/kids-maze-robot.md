@@ -2,7 +2,6 @@
 title: "智能机器人迷宫大逃脱玩法攻略：从第一条指令到复杂机关挑战"
 description: "全网最详尽的《智能机器人迷宫大逃脱》全关卡玩法攻略。深入拆解编程积木逻辑、机关套路与高效调试方法，带孩子掌握少儿编程核心思维！"
 pubDate: "2026-07-26"
-heroImage: "src/assets/RobotMazeIllustration.svg"
 lang: "zh"
 tag: "儿童编程"
 pinned: false
