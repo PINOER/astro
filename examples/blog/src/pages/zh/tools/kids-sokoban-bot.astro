@@ -108,7 +108,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				display: grid;
 				grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
 				grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
-				gap: 3px;
+				gap: 1px;
 				width: min(100%, var(--board-max-width));
 				min-width: min(100%, 280px);
 				aspect-ratio: var(--cols) / var(--rows);
@@ -123,8 +123,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			.sokoban-cell {
 				min-width: 0;
 				min-height: 0;
-				background: #1e293b;
-				border-radius: 5px;
+				border-radius: 3px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
@@ -135,12 +134,22 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				overflow: hidden;
 			}
 
+			/* 🏁 深浅交错背景样式 */
+			.sokoban-cell.tile-even {
+				background-color: #1a2332;
+				border: 1px solid #253346;
+			}
+
+			.sokoban-cell.tile-odd {
+				background-color: #243044;
+				border: 1px solid #2e3e57;
+			}
+
 			.sokoban-cell.void {
 				visibility: hidden;
 				pointer-events: none;
 			}
 
-			/* 🏁 修复墙壁样式：使用明确的深色实体背景，确保完美对比度 */
 			.sokoban-cell.wall {
 				background: #0f172a !important;
 				border: 1px solid #334155 !important;
@@ -148,13 +157,13 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			}
 
 			.sokoban-cell.target-cell {
-				background: rgba(245, 158, 11, 0.16);
-				border: 1px dashed #f59e0b;
+				background-color: rgba(245, 158, 11, 0.22) !important;
+				border: 1.5px dashed #f59e0b !important;
 			}
 
 			.sokoban-cell.target-placed {
-				background: rgba(16, 185, 129, 0.28);
-				border: 1px solid #10b981;
+				background-color: rgba(16, 185, 129, 0.35) !important;
+				border: 1.5px solid #10b981 !important;
 			}
 
 			.robot-avatar,
@@ -334,7 +343,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				}
 
 				.sokoban-grid {
-					gap: 2px;
+					gap: 1px;
 					padding: 5px;
 					border-width: 2px;
 					border-radius: 10px;
@@ -1140,13 +1149,16 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 						cell.className = 'sokoban-cell';
 
+						// 🏁 为交错深浅网格设置基础渲染类
+						const isEven = (x + y) % 2 === 0;
+						cell.classList.add(isEven ? 'tile-even' : 'tile-odd');
+
 						if (cellType === CELL.VOID) {
 							cell.classList.add('void');
 							fragment.appendChild(cell);
 							continue;
 						}
 
-						// 🏁 修复重点：为墙壁显式添加砖块符号元素，保障 100% 可见
 						if (cellType === CELL.WALL) {
 							cell.classList.add('wall');
 							const wallAvatar = document.createElement('span');
