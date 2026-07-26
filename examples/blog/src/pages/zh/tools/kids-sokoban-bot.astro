@@ -116,7 +116,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
 				gap: 1px;
 				width: min(100%, var(--board-max-width));
-				min-width: min(100%, 260px);
+				min-width: min(100%, 240px);
 				aspect-ratio: var(--cols) / var(--rows);
 				background: #090d16;
 				border: 3px solid #334155;
@@ -141,7 +141,6 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				overflow: hidden;
 			}
 
-			/* 🏁 深浅交错背景样式 */
 			.sokoban-cell.tile-even {
 				background-color: #1a2332;
 				border: 1px solid #253346;
@@ -188,13 +187,13 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			.editor-box {
 				display: flex;
 				flex-direction: column;
-				gap: 1.1rem;
+				gap: 0.8rem;
 				min-width: 0;
 				width: 100%;
 			}
 
 			.panel-title {
-				font-size: 0.9rem;
+				font-size: 0.85rem;
 				font-weight: 700;
 				color: var(--text-main);
 				display: flex;
@@ -205,10 +204,10 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			.dpad-container {
 				display: grid;
 				grid-template-columns: repeat(3, 1fr);
-				gap: 0.6rem;
+				gap: 0.5rem;
 				width: 100%;
-				max-width: 240px;
-				margin: 0.3rem auto;
+				max-width: 220px;
+				margin: 0.2rem auto;
 				touch-action: manipulation;
 			}
 
@@ -216,9 +215,9 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				color: var(--text-main);
-				height: 62px;
-				border-radius: 14px;
-				font-size: 1.5rem;
+				height: 54px;
+				border-radius: 12px;
+				font-size: 1.4rem;
 				font-weight: 800;
 				cursor: pointer;
 				display: flex;
@@ -245,12 +244,12 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
 				border-radius: 12px;
-				padding: 0.8rem 1rem;
+				padding: 0.6rem 0.9rem;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				gap: 0.8rem;
-				font-size: 0.88rem;
+				font-size: 0.85rem;
 				font-weight: 700;
 				box-sizing: border-box;
 			}
@@ -263,10 +262,10 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 			.btn-undo,
 			.btn-reset {
-				padding: 0.8em;
+				padding: 0.65em;
 				border-radius: 12px;
 				font-weight: 800;
-				font-size: 0.92rem;
+				font-size: 0.88rem;
 				cursor: pointer;
 				-webkit-tap-highlight-color: transparent;
 			}
@@ -283,21 +282,13 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				color: var(--text-main);
 			}
 
-			.btn-undo:hover {
-				opacity: 0.9;
-			}
-
-			.btn-reset:hover {
-				border-color: var(--accent);
-			}
-
 			.game-message {
-				min-height: 1.5em;
-				padding: 0.65rem 0.8rem;
+				min-height: 1.2em;
+				padding: 0.5rem 0.8rem;
 				border-radius: 10px;
 				background: var(--search-bg);
 				border: 1px solid var(--card-border);
-				font-size: 0.84rem;
+				font-size: 0.82rem;
 				font-weight: 700;
 				text-align: center;
 				color: var(--text-muted);
@@ -309,10 +300,10 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			}
 
 			.key-tips {
-				font-size: 0.8rem;
+				font-size: 0.78rem;
 				color: var(--text-muted);
 				text-align: center;
-				line-height: 1.6;
+				line-height: 1.5;
 			}
 
 			kbd {
@@ -320,7 +311,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				border: 1px solid var(--card-border);
 				border-radius: 4px;
 				padding: 1px 5px;
-				font-size: 0.75rem;
+				font-size: 0.72rem;
 			}
 
 			@media (max-width: 900px) {
@@ -335,66 +326,97 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				}
 			}
 
+			/* 📱 手机端适配：全面缩减垂直占用，确保一屏展示 */
 			@media (max-width: 600px) {
 				main {
 					width: 100%;
 					max-width: 100%;
-					padding: 1.2em 0.5em 3em;
+					padding: 0.2em 0.5em 1em;
 				}
 
 				.tool-header {
-					margin-bottom: 1em;
+					margin-bottom: 0.3em;
+				}
+
+				.tool-header h1 {
+					font-size: 1.15rem;
+					margin-bottom: 0;
+				}
+
+				.tool-header p {
+					display: none;
 				}
 
 				.game-container {
-					padding: 0.85rem;
-					border-radius: 16px;
-					gap: 1.2rem;
+					padding: 0.5rem;
+					border-radius: 14px;
+					gap: 0.5rem;
+				}
+
+				.stage-box {
+					gap: 0.3rem;
 				}
 
 				.level-bar {
-					flex-direction: column;
-					align-items: stretch;
-					gap: 0.5rem;
-					padding: 0.7em;
-					text-align: center;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: center;
+					gap: 0.4rem;
+					padding: 0.35em 0.6em;
+					font-size: 0.78rem;
 				}
 
 				.level-select {
-					max-width: 100%;
-					width: 100%;
-					text-align: center;
+					max-width: 125px;
+					padding: 0.2em 0.3em;
+					font-size: 0.78rem;
 				}
 
+				/* 🎯 地图最高限制为视口的 38vh，宽度自动等比缩小 */
 				.sokoban-grid {
+					max-height: 38vh !important;
+					width: auto !important;
 					gap: 1px;
-					padding: 5px;
+					padding: 4px;
 					border-width: 2px;
-					border-radius: 12px;
+					border-radius: 10px;
 				}
 
 				.stat-card {
-					padding: 0.7rem 0.8rem;
-					font-size: 0.82rem;
+					padding: 0.35rem 0.6rem;
+					font-size: 0.78rem;
+				}
+
+				.panel-title {
+					display: none; /* 移动端隐藏面板小标题，省出高度 */
 				}
 
 				.dpad-container {
-					max-width: 220px;
+					max-width: 165px;
+					margin: 0 auto;
+					gap: 0.35rem;
 				}
 
 				.dpad-btn {
-					height: 56px;
-					font-size: 1.3rem;
+					height: 42px;
+					font-size: 1.1rem;
+					border-radius: 8px;
 				}
 
 				.btn-undo,
 				.btn-reset {
-					padding: 0.75em;
-					font-size: 0.88rem;
+					padding: 0.45em;
+					font-size: 0.8rem;
+					border-radius: 8px;
+				}
+
+				.game-message {
+					padding: 0.35rem 0.5rem;
+					font-size: 0.78rem;
 				}
 
 				.key-tips {
-					display: none; /* 移动端隐藏键盘按键提示，界面更简洁 */
+					display: none;
 				}
 			}
 		</style>
@@ -414,7 +436,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 							关卡：
 							<select id="levelSelect" class="level-select" aria-label="选择推箱子关卡"></select>
 						</label>
-						<span>📦 归位目标：<span id="targetStatus">0/0</span></span>
+						<span>📦 目标：<span id="targetStatus">0/0</span></span>
 					</div>
 
 					<div class="board-scroll">
@@ -430,7 +452,7 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 				<div class="editor-box">
 					<div class="stat-card">
 						<span>👟 当前步数：<span id="stepCount" style="color:var(--accent);">0</span></span>
-						<span>🏆 历史最好：<span id="bestCount">--</span></span>
+						<span>🏆 最佳：<span id="bestCount">--</span></span>
 					</div>
 
 					<div class="panel-title">🎮 方向键控制（键盘 / 触摸）</div>
@@ -445,8 +467,8 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 					</div>
 
 					<div class="action-bar">
-						<button class="btn-undo" id="btnUndo" type="button">↩️ 撤销上一步</button>
-						<button class="btn-reset" id="btnReset" type="button">🔄 重置本关</button>
+						<button class="btn-undo" id="btnUndo" type="button">↩️ 撤销</button>
+						<button class="btn-reset" id="btnReset" type="button">🔄 重置</button>
 					</div>
 
 					<div class="game-message" id="gameMessage" aria-live="polite">准备开始</div>
