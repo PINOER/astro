@@ -21,12 +21,18 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 <!doctype html>
 <html lang="zh-CN">
 	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
+			/*
+			 * Legacy-compatible layout:
+			 * - No CSS Grid, flex gap, clamp(), min(), aspect-ratio or backdrop-filter.
+			 * - Theme variables have hard-coded fallbacks for IE11.
+			 */
 			main {
 				width: 1120px;
 				max-width: calc(100% - 2em);
-				margin: auto;
+				margin: 0 auto;
 				padding: 2.5em 1em 4em;
 				box-sizing: border-box;
 			}
@@ -37,60 +43,76 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			}
 
 			.tool-header h1 {
-				font-size: clamp(1.4rem, 4.5vw, 2.2rem);
+				font-size: 2.2rem;
 				font-weight: 800;
-				margin-bottom: 0.3em;
+				margin: 0 0 0.3em;
+				color: #2563eb;
 				background: var(--hero-title-gradient);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
 
 			.tool-header p {
+				color: #64748b;
 				color: var(--text-muted);
-				font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+				font-size: 0.95rem;
 			}
 
 			.game-container {
-				display: grid;
-				grid-template-columns: minmax(0, 1fr) 340px;
-				gap: 1.5rem;
+				display: table;
+				width: 100%;
+				table-layout: fixed;
+				background: #ffffff;
 				background: var(--bg-card);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
 				border-radius: 20px;
 				padding: 1.5rem;
 				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-				backdrop-filter: blur(12px);
+				box-sizing: border-box;
+			}
+
+			.stage-box,
+			.editor-box {
+				display: table-cell;
+				vertical-align: top;
 				box-sizing: border-box;
 			}
 
 			.stage-box {
-				display: flex;
-				min-width: 0;
-				width: 100%;
-				flex-direction: column;
-				align-items: center;
-				gap: 1rem;
+				padding-right: 1.5rem;
+				width: auto;
+			}
+
+			.editor-box {
+				width: 340px;
 			}
 
 			.level-bar {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 0.8rem;
 				width: 100%;
+				overflow: hidden;
+				background: #f3f6fa;
 				background: var(--search-bg);
 				padding: 0.6em 1em;
 				border-radius: 12px;
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
 				font-weight: 700;
 				font-size: 0.92rem;
 				box-sizing: border-box;
+				margin-bottom: 1rem;
 			}
+
+			.level-bar label { float: left; }
+			.level-target { float: right; line-height: 2.1em; }
 
 			.level-select {
 				max-width: 200px;
+				background: #ffffff;
 				background: var(--bg-card);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
+				color: #1f2937;
 				color: var(--text-main);
 				padding: 0.4em 0.65em;
 				border-radius: 8px;
@@ -101,43 +123,39 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			}
 
 			.board-scroll {
-				display: flex;
-				justify-content: center;
-				align-items: center;
 				width: 100%;
 				overflow: auto;
+				text-align: center;
 				padding: 2px;
 				box-sizing: border-box;
 			}
 
 			.sokoban-grid {
-				display: grid;
-				grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-				grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
-				gap: 1px;
-				width: min(100%, var(--board-max-width));
-				min-width: min(100%, 240px);
-				aspect-ratio: var(--cols) / var(--rows);
+				display: table;
+				border-collapse: separate;
+				border-spacing: 1px;
+				margin: 0 auto;
 				background: #090d16;
 				border: 3px solid #334155;
 				border-radius: 16px;
 				padding: 8px;
 				box-sizing: border-box;
 				box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-				touch-action: manipulation;
 			}
 
+			.sokoban-grid tbody,
+			.sokoban-grid tr { border: 0; padding: 0; margin: 0; }
+
 			.sokoban-cell {
-				min-width: 0;
-				min-height: 0;
+				padding: 0;
 				border-radius: 3px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-size: clamp(0.7rem, 3vw, 1.5rem);
+				text-align: center;
+				vertical-align: middle;
 				line-height: 1;
 				position: relative;
 				user-select: none;
+				-ms-user-select: none;
+				-webkit-user-select: none;
 				overflow: hidden;
 			}
 
@@ -153,7 +171,8 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 			.sokoban-cell.void {
 				visibility: hidden;
-				pointer-events: none;
+				border-color: transparent;
+				background: transparent;
 			}
 
 			.sokoban-cell.wall {
@@ -164,12 +183,12 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 
 			.sokoban-cell.target-cell {
 				background-color: rgba(245, 158, 11, 0.22) !important;
-				border: 1.5px dashed #f59e0b !important;
+				border: 1px dashed #f59e0b !important;
 			}
 
 			.sokoban-cell.target-placed {
 				background-color: rgba(16, 185, 129, 0.35) !important;
-				border: 1.5px solid #10b981 !important;
+				border: 1px solid #10b981 !important;
 			}
 
 			.robot-avatar,
@@ -177,247 +196,189 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 			.target-avatar,
 			.wall-avatar {
 				display: inline-block;
-				filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+				text-shadow: 0 2px 3px rgba(0, 0, 0, 0.45);
 			}
 
 			.robot-avatar {
 				transition: transform 0.12s ease-out;
-			}
-
-			.editor-box {
-				display: flex;
-				flex-direction: column;
-				gap: 0.8rem;
-				min-width: 0;
-				width: 100%;
+				-ms-transition: -ms-transform 0.12s ease-out;
 			}
 
 			.panel-title {
 				font-size: 0.85rem;
 				font-weight: 700;
+				color: #1f2937;
 				color: var(--text-main);
-				display: flex;
-				align-items: center;
-				gap: 0.4rem;
+				margin: 0 0 0.6rem;
 			}
 
+			.stat-card {
+				overflow: hidden;
+				background: #f3f6fa;
+				background: var(--search-bg);
+				border: 1px solid #d7deea;
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.6rem 0.9rem;
+				font-size: 0.85rem;
+				font-weight: 700;
+				box-sizing: border-box;
+				margin-bottom: 0.8rem;
+			}
+
+			.stat-card .stat-left { float: left; }
+			.stat-card .stat-right { float: right; }
+
 			.dpad-container {
-				display: grid;
-				grid-template-columns: repeat(3, 1fr);
-				gap: 0.5rem;
-				width: 100%;
-				max-width: 220px;
-				margin: 0.2rem auto;
-				touch-action: manipulation;
+				width: 220px;
+				margin: 0.2rem auto 0.8rem;
+				text-align: center;
+			}
+
+			.dpad-row { height: 60px; white-space: nowrap; }
+
+			.dpad-btn,
+			.dpad-spacer {
+				display: inline-block;
+				vertical-align: top;
+				width: 60px;
+				height: 54px;
+				margin: 3px;
+				box-sizing: border-box;
 			}
 
 			.dpad-btn {
+				background: #f3f6fa;
 				background: var(--search-bg);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
+				color: #1f2937;
 				color: var(--text-main);
-				height: 54px;
 				border-radius: 12px;
 				font-size: 1.4rem;
 				font-weight: 800;
 				cursor: pointer;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				transition: transform 0.1s ease, background 0.1s ease;
-				user-select: none;
-				-webkit-user-select: none;
-				-webkit-touch-callout: none;
-				touch-action: manipulation;
+				line-height: 50px;
+				padding: 0;
+				-webkit-tap-highlight-color: transparent;
 			}
 
 			.dpad-btn:active {
+				-ms-transform: scale(0.92);
+				-webkit-transform: scale(0.92);
 				transform: scale(0.92);
+				background: #2563eb;
 				background: var(--accent);
 				color: #fff;
 			}
 
-			.dpad-btn.empty {
-				visibility: hidden;
-			}
-
-			.stat-card {
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 0.6rem 0.9rem;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 0.8rem;
-				font-size: 0.85rem;
-				font-weight: 700;
-				box-sizing: border-box;
-			}
-
 			.action-bar {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 0.8rem;
+				font-size: 0;
+				white-space: nowrap;
+				margin-bottom: 0.8rem;
 			}
 
 			.btn-undo,
 			.btn-reset {
+				display: inline-block;
+				width: 48%;
 				padding: 0.65em;
 				border-radius: 12px;
 				font-weight: 800;
 				font-size: 0.88rem;
 				cursor: pointer;
-				-webkit-tap-highlight-color: transparent;
+				box-sizing: border-box;
+				vertical-align: top;
 			}
 
-			.btn-undo {
-				background: #f59e0b;
-				color: #fff;
-				border: none;
-			}
-
+			.btn-undo { margin-right: 4%; background: #f59e0b; color: #fff; border: none; }
 			.btn-reset {
+				background: #f3f6fa;
 				background: var(--search-bg);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
+				color: #1f2937;
 				color: var(--text-main);
 			}
+
+			button[disabled] { cursor: not-allowed; opacity: 0.55; }
 
 			.game-message {
 				min-height: 1.2em;
 				padding: 0.5rem 0.8rem;
 				border-radius: 10px;
+				background: #f3f6fa;
 				background: var(--search-bg);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
 				font-size: 0.82rem;
 				font-weight: 700;
 				text-align: center;
+				color: #64748b;
 				color: var(--text-muted);
+				margin-bottom: 0.8rem;
 			}
 
 			.game-message.success {
-				color: #10b981;
-				border-color: rgba(16, 185, 129, 0.5);
+				color: #059669;
+				border-color: #6ee7b7;
 			}
 
 			.key-tips {
 				font-size: 0.78rem;
+				color: #64748b;
 				color: var(--text-muted);
 				text-align: center;
 				line-height: 1.5;
 			}
 
 			kbd {
+				background: #f3f6fa;
 				background: var(--search-bg);
+				border: 1px solid #d7deea;
 				border: 1px solid var(--card-border);
 				border-radius: 4px;
 				padding: 1px 5px;
 				font-size: 0.72rem;
 			}
 
-			@media (max-width: 900px) {
-				.game-container {
-					grid-template-columns: 1fr;
-				}
-
-				.editor-box {
-					max-width: 520px;
-					width: 100%;
-					margin: 0 auto;
-				}
+			.legacy-note {
+				margin-top: 0.8rem;
+				font-size: 0.72rem;
+				text-align: center;
+				color: #64748b;
 			}
 
-			/* 📱 手机端适配：全面缩减垂直占用，确保一屏展示 */
+			@media (max-width: 900px) {
+				.game-container { display: block; }
+				.stage-box,
+				.editor-box { display: block; width: 100%; }
+				.stage-box { padding-right: 0; margin-bottom: 1rem; }
+				.editor-box { max-width: 520px; margin: 0 auto; }
+			}
+
 			@media (max-width: 600px) {
-				main {
-					width: 100%;
-					max-width: 100%;
-					padding: 0.2em 0.5em 1em;
-				}
-
-				.tool-header {
-					margin-bottom: 0.3em;
-				}
-
-				.tool-header h1 {
-					font-size: 1.15rem;
-					margin-bottom: 0;
-				}
-
-				.tool-header p {
-					display: none;
-				}
-
-				.game-container {
-					padding: 0.5rem;
-					border-radius: 14px;
-					gap: 0.5rem;
-				}
-
-				.stage-box {
-					gap: 0.3rem;
-				}
-
-				.level-bar {
-					flex-direction: row;
-					justify-content: space-between;
-					align-items: center;
-					gap: 0.4rem;
-					padding: 0.35em 0.6em;
-					font-size: 0.78rem;
-				}
-
-				.level-select {
-					max-width: 125px;
-					padding: 0.2em 0.3em;
-					font-size: 0.78rem;
-				}
-
-				/* 🎯 地图最高限制为视口的 38vh，宽度自动等比缩小 */
-				.sokoban-grid {
-					max-height: 38vh !important;
-					width: auto !important;
-					gap: 1px;
-					padding: 4px;
-					border-width: 2px;
-					border-radius: 10px;
-				}
-
-				.stat-card {
-					padding: 0.35rem 0.6rem;
-					font-size: 0.78rem;
-				}
-
-				.panel-title {
-					display: none; /* 移动端隐藏面板小标题，省出高度 */
-				}
-
-				.dpad-container {
-					max-width: 165px;
-					margin: 0 auto;
-					gap: 0.35rem;
-				}
-
-				.dpad-btn {
-					height: 42px;
-					font-size: 1.1rem;
-					border-radius: 8px;
-				}
-
+				main { width: 100%; max-width: 100%; padding: 0.2em 0.5em 1em; }
+				.tool-header { margin-bottom: 0.3em; }
+				.tool-header h1 { font-size: 1.15rem; margin-bottom: 0; }
+				.tool-header p { display: none; }
+				.game-container { padding: 0.5rem; border-radius: 14px; }
+				.level-bar { padding: 0.35em 0.6em; font-size: 0.78rem; margin-bottom: 0.4rem; }
+				.level-select { max-width: 125px; padding: 0.2em 0.3em; font-size: 0.78rem; }
+				.level-target { line-height: 1.8em; }
+				.sokoban-grid { padding: 4px; border-width: 2px; border-radius: 10px; }
+				.stat-card { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
+				.panel-title { display: none; }
+				.dpad-container { width: 170px; margin-bottom: 0.4rem; }
+				.dpad-row { height: 46px; }
+				.dpad-btn,
+				.dpad-spacer { width: 48px; height: 42px; margin: 2px; }
+				.dpad-btn { line-height: 38px; font-size: 1.1rem; border-radius: 8px; }
 				.btn-undo,
-				.btn-reset {
-					padding: 0.45em;
-					font-size: 0.8rem;
-					border-radius: 8px;
-				}
-
-				.game-message {
-					padding: 0.35rem 0.5rem;
-					font-size: 0.78rem;
-				}
-
-				.key-tips {
-					display: none;
-				}
+				.btn-reset { padding: 0.45em; font-size: 0.8rem; border-radius: 8px; }
+				.game-message { padding: 0.35rem 0.5rem; font-size: 0.78rem; }
+				.key-tips { display: none; }
+				.legacy-note { margin-top: 0.35rem; }
 			}
 		</style>
 	</head>
@@ -436,39 +397,31 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 							关卡：
 							<select id="levelSelect" class="level-select" aria-label="选择推箱子关卡"></select>
 						</label>
-						<span>📦 目标：<span id="targetStatus">0/0</span></span>
+						<span class="level-target">📦 目标：<span id="targetStatus">0/0</span></span>
 					</div>
 
-					<div class="board-scroll">
-						<div
-							class="sokoban-grid"
-							id="sokobanGrid"
-							role="application"
-							aria-label="推箱子游戏地图"
-						></div>
+					<div class="board-scroll" id="boardScroll">
+						<table class="sokoban-grid" id="sokobanGrid" role="application" aria-label="推箱子游戏地图">
+							<tbody></tbody>
+						</table>
 					</div>
 				</div>
 
 				<div class="editor-box">
 					<div class="stat-card">
-						<span>👟 当前步数：<span id="stepCount" style="color:var(--accent);">0</span></span>
-						<span>🏆 最佳：<span id="bestCount">--</span></span>
+						<span class="stat-left">👟 当前步数：<span id="stepCount" style="color:#2563eb;">0</span></span>
+						<span class="stat-right">🏆 最佳：<span id="bestCount">--</span></span>
 					</div>
 
 					<div class="panel-title">🎮 方向键控制（键盘 / 触摸）</div>
 
 					<div class="dpad-container" aria-label="方向控制">
-						<div class="dpad-btn empty" aria-hidden="true"></div>
-						<button class="dpad-btn" id="btnUp" type="button" aria-label="向上">▲</button>
-						<div class="dpad-btn empty" aria-hidden="true"></div>
-						<button class="dpad-btn" id="btnLeft" type="button" aria-label="向左">◄</button>
-						<button class="dpad-btn" id="btnDown" type="button" aria-label="向下">▼</button>
-						<button class="dpad-btn" id="btnRight" type="button" aria-label="向右">►</button>
+						<div class="dpad-row"><span class="dpad-spacer"></span><button class="dpad-btn" id="btnUp" type="button" aria-label="向上">▲</button><span class="dpad-spacer"></span></div>
+						<div class="dpad-row"><button class="dpad-btn" id="btnLeft" type="button" aria-label="向左">◄</button><button class="dpad-btn" id="btnDown" type="button" aria-label="向下">▼</button><button class="dpad-btn" id="btnRight" type="button" aria-label="向右">►</button></div>
 					</div>
 
 					<div class="action-bar">
-						<button class="btn-undo" id="btnUndo" type="button">↩️ 撤销</button>
-						<button class="btn-reset" id="btnReset" type="button">🔄 重置</button>
+						<button class="btn-undo" id="btnUndo" type="button">↩️ 撤销</button><button class="btn-reset" id="btnReset" type="button">🔄 重置</button>
 					</div>
 
 					<div class="game-message" id="gameMessage" aria-live="polite">准备开始</div>
@@ -477,14 +430,15 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
 						电脑端可使用 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或
 						<kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>；按 <kbd>Z</kbd> 撤销，按 <kbd>R</kbd> 重置。
 					</div>
+					<div class="legacy-note">兼容模式：不依赖 CSS Grid、ES6 集合或现代数组 API。</div>
 				</div>
 			</div>
+			<noscript><p style="text-align:center;color:#b91c1c;">此游戏需要启用 JavaScript。</p></noscript>
 		</main>
 
 		<Footer lang="zh" />
 
-		<script is:inline>
-			const RAW_LEVELS = String.raw`
+		<script type="text/plain" id="rawLevels">
 ;0
 ######
 # @$.#
@@ -1420,472 +1374,558 @@ const pageDescription = '支持键盘方向键和触摸按键即时控制，内�
  #         #
  #   ###   #
  ##### #####
-`;
+		</script>
 
-			const CELL = Object.freeze({
-				VOID: 'void',
-				FLOOR: 'floor',
-				WALL: 'wall'
-			});
+		<script is:inline>
+			(function () {
+				'use strict';
 
-			const keyOf = (x, y) => `${x},${y}`;
-
-			function parseLevelPack(rawText) {
-				const sourceLines = rawText.replace(/\r/g, '').split('\n');
-				const sections = [];
-				let current = null;
-
-				const finishCurrent = () => {
-					if (!current) return;
-
-					while (current.lines.length && current.lines[0].trim() === '') {
-						current.lines.shift();
-					}
-					while (current.lines.length && current.lines[current.lines.length - 1].trim() === '') {
-						current.lines.pop();
-					}
-
-					if (current.lines.length) sections.push(current);
+				var CELL = {
+					VOID: 'void',
+					FLOOR: 'floor',
+					WALL: 'wall'
 				};
 
-				for (const sourceLine of sourceLines) {
-					const marker = sourceLine.match(/^;\s*(\d+)\s*$/);
-					if (marker) {
-						finishCurrent();
-						current = { sourceId: Number(marker[1]), lines: [] };
-						continue;
-					}
-
-					if (current) {
-						current.lines.push(sourceLine.replace(/\s+$/, ''));
-					}
-				}
-				finishCurrent();
-
-				return sections.map(parseLevelSection);
-			}
-
-			function parseLevelSection(section, index) {
-				const height = section.lines.length;
-				const width = Math.max(...section.lines.map((line) => line.length));
-				const rawGrid = section.lines.map((line) => line.padEnd(width, ' ').split(''));
-
-				const walls = new Set();
-				const targets = new Set();
-				const boxes = [];
-				let robot = null;
-
-				for (let y = 0; y < height; y++) {
-					for (let x = 0; x < width; x++) {
-						const symbol = rawGrid[y][x];
-						const key = keyOf(x, y);
-
-						if (symbol === '#') walls.add(key);
-						if (symbol === '.' || symbol === '*' || symbol === '+') targets.add(key);
-						if (symbol === '$' || symbol === '*') boxes.push({ x, y });
-						if (symbol === '@' || symbol === '+') robot = { x, y, dir: 1 };
+				function addEvent(element, eventName, handler) {
+					if (!element) return;
+					if (element.addEventListener) {
+						element.addEventListener(eventName, handler, false);
+					} else if (element.attachEvent) {
+						element.attachEvent('on' + eventName, handler);
 					}
 				}
 
-				if (!robot) {
-					throw new Error(`关卡 ${section.sourceId} 缺少玩家符号 @ 或 +`);
-				}
-				if (boxes.length !== targets.size) {
-					throw new Error(
-						`关卡 ${section.sourceId} 的箱子数量（${boxes.length}）与目标数量（${targets.size}）不一致`
-					);
+				function getEvent(event) {
+					return event || window.event;
 				}
 
-				const outsideSpaces = findOutsideSpaces(rawGrid, width, height);
-				const cells = Array.from({ length: height }, (_, y) =>
-					Array.from({ length: width }, (_, x) => {
-						const key = keyOf(x, y);
-						if (walls.has(key)) return CELL.WALL;
-						if (outsideSpaces.has(key)) return CELL.VOID;
-						return CELL.FLOOR;
-					})
-				);
-
-				return {
-					index,
-					sourceId: section.sourceId,
-					title: `第 ${index + 1} 关`,
-					width,
-					height,
-					cells,
-					walls,
-					targets,
-					initialRobot: robot,
-					initialBoxes: boxes
-				};
-			}
-
-			function findOutsideSpaces(rawGrid, width, height) {
-				const outside = new Set();
-				const queue = [];
-				let head = 0;
-
-				const addSpace = (x, y) => {
-					if (x < 0 || y < 0 || x >= width || y >= height) return;
-					if (rawGrid[y][x] !== ' ') return;
-
-					const key = keyOf(x, y);
-					if (outside.has(key)) return;
-
-					outside.add(key);
-					queue.push({ x, y });
-				};
-
-				for (let x = 0; x < width; x++) {
-					addSpace(x, 0);
-					addSpace(x, height - 1);
-				}
-				for (let y = 0; y < height; y++) {
-					addSpace(0, y);
-					addSpace(width - 1, y);
+				function preventDefault(event) {
+					if (event.preventDefault) event.preventDefault();
+					else event.returnValue = false;
 				}
 
-				while (head < queue.length) {
-					const { x, y } = queue[head++];
-					addSpace(x + 1, y);
-					addSpace(x - 1, y);
-					addSpace(x, y + 1);
-					addSpace(x, y - 1);
+				function setText(element, value) {
+					if (!element) return;
+					if (typeof element.textContent !== 'undefined') element.textContent = value;
+					else element.innerText = value;
 				}
 
-				return outside;
-			}
-
-			function cloneBoxes(sourceBoxes) {
-				return sourceBoxes.map((box) => ({ ...box }));
-			}
-
-			const LEVELS = parseLevelPack(RAW_LEVELS);
-			let currentLevelIdx = 0;
-			let robot = { x: 0, y: 0, dir: 1 };
-			let boxes = [];
-			let moveHistory = [];
-			let stepCount = 0;
-			let levelCompleted = false;
-			let completionTimer = null;
-
-			const sokobanGrid = document.getElementById('sokobanGrid');
-			const levelSelect = document.getElementById('levelSelect');
-			const targetStatus = document.getElementById('targetStatus');
-			const stepCountEl = document.getElementById('stepCount');
-			const bestCountEl = document.getElementById('bestCount');
-			const gameMessage = document.getElementById('gameMessage');
-			const btnUndo = document.getElementById('btnUndo');
-			const btnReset = document.getElementById('btnReset');
-
-			function getDifficultyLabel(index) {
-				if (index < 15) return '🌱 教学';
-				if (index < 35) return '🟢 入门';
-				if (index < 65) return '🟡 进阶';
-				if (index < 85) return '🟠 困难';
-				return '🔴 大师';
-			}
-
-			LEVELS.forEach((level, index) => {
-				const option = document.createElement('option');
-				option.value = String(index);
-				option.textContent = `第 ${index + 1} 关 · ${getDifficultyLabel(index)}`;
-				option.title = `已通过求解器验证 · ${getDifficultyLabel(index)}`;
-				levelSelect.appendChild(option);
-			});
-
-			function readBest(levelIndex) {
-				try {
-					const value = localStorage.getItem(`sokoban_v3_best_${levelIndex}`);
-					if (value === null) return null;
-					const parsed = Number.parseInt(value, 10);
-					return Number.isFinite(parsed) ? parsed : null;
-				} catch {
-					return null;
-				}
-			}
-
-			function saveBest(levelIndex, steps) {
-				try {
-					localStorage.setItem(`sokoban_v3_best_${levelIndex}`, String(steps));
-				} catch {
-					// 本地存储不可用时，游戏仍可正常运行。
-				}
-			}
-
-			function setMessage(text, type = '') {
-				gameMessage.textContent = text;
-				gameMessage.classList.toggle('success', type === 'success');
-			}
-
-			function initLevel(index) {
-				if (!Number.isInteger(index) || index < 0 || index >= LEVELS.length) return;
-
-				if (completionTimer !== null) {
-					clearTimeout(completionTimer);
-					completionTimer = null;
+				function trimText(value) {
+					return String(value).replace(/^\s+|\s+$/g, '');
 				}
 
-				currentLevelIdx = index;
-				levelSelect.value = String(index);
-				const level = LEVELS[index];
+				function rightTrim(value) {
+					return String(value).replace(/\s+$/g, '');
+				}
 
-				robot = { ...level.initialRobot };
-				boxes = cloneBoxes(level.initialBoxes);
-				moveHistory = [];
-				stepCount = 0;
-				levelCompleted = false;
+				function keyOf(x, y) {
+					return 'k' + x + '_' + y;
+				}
 
-				setMessage(index < 15 ? `教学阶段 · 第 ${index + 1} 关` : `第 ${index + 1} 关开始`);
-				updateStatsUI();
-				renderGrid();
-			}
+				function dictHas(dict, key) {
+					return Object.prototype.hasOwnProperty.call(dict, key);
+				}
 
-			function updateStatsUI() {
-				const level = LEVELS[currentLevelIdx];
-				const placedCount = boxes.filter((box) => level.targets.has(keyOf(box.x, box.y))).length;
-				const best = readBest(currentLevelIdx);
+				function getRawLevelText() {
+					var node = document.getElementById('rawLevels');
+					if (!node) return '';
+					if (typeof node.text === 'string') return node.text;
+					if (typeof node.textContent === 'string') return node.textContent;
+					return node.innerHTML || '';
+				}
 
-				targetStatus.textContent = `${placedCount}/${level.targets.size}`;
-				stepCountEl.textContent = String(stepCount);
-				bestCountEl.textContent = best === null ? '--' : `${best} 步`;
-				btnUndo.disabled = moveHistory.length === 0 || levelCompleted;
-			}
+				function parseLevelPack(rawText) {
+					var sourceLines = rawText.replace(/\r/g, '').split('\n');
+					var sections = [];
+					var current = null;
+					var i;
 
-			function renderGrid() {
-				const level = LEVELS[currentLevelIdx];
-				const boxMap = new Map(boxes.map((box, index) => [keyOf(box.x, box.y), index]));
+					function finishCurrent() {
+						if (!current) return;
+						while (current.lines.length && trimText(current.lines[0]) === '') current.lines.shift();
+						while (current.lines.length && trimText(current.lines[current.lines.length - 1]) === '') current.lines.pop();
+						if (current.lines.length) sections.push(current);
+					}
 
-				sokobanGrid.innerHTML = '';
-				sokobanGrid.style.setProperty('--cols', String(level.width));
-				sokobanGrid.style.setProperty('--rows', String(level.height));
-				sokobanGrid.style.setProperty(
-					'--board-max-width',
-					`${Math.min(760, Math.max(260, level.width * 52 + 20))}px`
-				);
-
-				const fragment = document.createDocumentFragment();
-
-				for (let y = 0; y < level.height; y++) {
-					for (let x = 0; x < level.width; x++) {
-						const cell = document.createElement('div');
-						const key = keyOf(x, y);
-						const cellType = level.cells[y][x];
-						const isTarget = level.targets.has(key);
-						const hasBox = boxMap.has(key);
-						const isRobot = robot.x === x && robot.y === y;
-
-						cell.className = 'sokoban-cell';
-
-						// 🏁 为交错深浅网格设置基础渲染类
-						const isEven = (x + y) % 2 === 0;
-						cell.classList.add(isEven ? 'tile-even' : 'tile-odd');
-
-						if (cellType === CELL.VOID) {
-							cell.classList.add('void');
-							fragment.appendChild(cell);
-							continue;
+					for (i = 0; i < sourceLines.length; i++) {
+						var sourceLine = sourceLines[i];
+						var marker = sourceLine.match(/^;\s*(\d+)\s*$/);
+						if (marker) {
+							finishCurrent();
+							current = { sourceId: parseInt(marker[1], 10), lines: [] };
+						} else if (current) {
+							current.lines.push(rightTrim(sourceLine));
 						}
+					}
+					finishCurrent();
 
-						if (cellType === CELL.WALL) {
-							cell.classList.add('wall');
-							const wallAvatar = document.createElement('span');
-							wallAvatar.className = 'wall-avatar';
-							wallAvatar.textContent = '🧱';
-							cell.appendChild(wallAvatar);
-							fragment.appendChild(cell);
-							continue;
+					var levels = [];
+					for (i = 0; i < sections.length; i++) levels.push(parseLevelSection(sections[i], i));
+					return levels;
+				}
+
+				function parseLevelSection(section, index) {
+					var height = section.lines.length;
+					var width = 0;
+					var rawGrid = [];
+					var walls = {};
+					var targets = {};
+					var targetCount = 0;
+					var boxes = [];
+					var robot = null;
+					var x, y;
+
+					for (y = 0; y < height; y++) {
+						if (section.lines[y].length > width) width = section.lines[y].length;
+					}
+
+					for (y = 0; y < height; y++) {
+						var row = section.lines[y];
+						while (row.length < width) row += ' ';
+						rawGrid.push(row.split(''));
+					}
+
+					for (y = 0; y < height; y++) {
+						for (x = 0; x < width; x++) {
+							var symbol = rawGrid[y][x];
+							var key = keyOf(x, y);
+							if (symbol === '#') walls[key] = true;
+							if (symbol === '.' || symbol === '*' || symbol === '+') {
+								if (!dictHas(targets, key)) targetCount++;
+								targets[key] = true;
+							}
+							if (symbol === '$' || symbol === '*') boxes.push({ x: x, y: y });
+							if (symbol === '@' || symbol === '+') robot = { x: x, y: y, dir: 1 };
 						}
+					}
 
-						if (isTarget && hasBox) {
-							cell.classList.add('target-placed');
-						} else if (isTarget) {
-							cell.classList.add('target-cell');
+					if (!robot) throw new Error('关卡 ' + section.sourceId + ' 缺少玩家符号 @ 或 +');
+					if (boxes.length !== targetCount) {
+						throw new Error('关卡 ' + section.sourceId + ' 的箱子数量（' + boxes.length + '）与目标数量（' + targetCount + '）不一致');
+					}
+
+					var outsideSpaces = findOutsideSpaces(rawGrid, width, height);
+					var cells = [];
+					for (y = 0; y < height; y++) {
+						var cellRow = [];
+						for (x = 0; x < width; x++) {
+							var cellKey = keyOf(x, y);
+							if (dictHas(walls, cellKey)) cellRow.push(CELL.WALL);
+							else if (dictHas(outsideSpaces, cellKey)) cellRow.push(CELL.VOID);
+							else cellRow.push(CELL.FLOOR);
 						}
+						cells.push(cellRow);
+					}
 
-						if (hasBox) {
-							const boxAvatar = document.createElement('span');
-							boxAvatar.className = 'box-avatar';
-							boxAvatar.textContent = '📦';
-							cell.appendChild(boxAvatar);
-						} else if (isTarget && !isRobot) {
-							const targetAvatar = document.createElement('span');
-							targetAvatar.className = 'target-avatar';
-							targetAvatar.textContent = '⭐';
-							cell.appendChild(targetAvatar);
-						}
+					return {
+						index: index,
+						sourceId: section.sourceId,
+						title: '第 ' + (index + 1) + ' 关',
+						width: width,
+						height: height,
+						cells: cells,
+						walls: walls,
+						targets: targets,
+						targetCount: targetCount,
+						initialRobot: robot,
+						initialBoxes: boxes
+					};
+				}
 
-						if (isRobot) {
-							const robotAvatar = document.createElement('span');
-							robotAvatar.className = 'robot-avatar';
-							robotAvatar.textContent = '🤖';
-							const angles = [270, 0, 90, 180];
-							robotAvatar.style.transform = `rotate(${angles[robot.dir]}deg)`;
-							cell.appendChild(robotAvatar);
-						}
+				function findOutsideSpaces(rawGrid, width, height) {
+					var outside = {};
+					var queue = [];
+					var head = 0;
 
-						fragment.appendChild(cell);
+					function addSpace(x, y) {
+						if (x < 0 || y < 0 || x >= width || y >= height) return;
+						if (rawGrid[y][x] !== ' ') return;
+						var key = keyOf(x, y);
+						if (dictHas(outside, key)) return;
+						outside[key] = true;
+						queue.push({ x: x, y: y });
+					}
+
+					var x, y;
+					for (x = 0; x < width; x++) {
+						addSpace(x, 0);
+						addSpace(x, height - 1);
+					}
+					for (y = 0; y < height; y++) {
+						addSpace(0, y);
+						addSpace(width - 1, y);
+					}
+
+					while (head < queue.length) {
+						var point = queue[head++];
+						addSpace(point.x + 1, point.y);
+						addSpace(point.x - 1, point.y);
+						addSpace(point.x, point.y + 1);
+						addSpace(point.x, point.y - 1);
+					}
+					return outside;
+				}
+
+				function cloneRobot(source) {
+					return { x: source.x, y: source.y, dir: source.dir };
+				}
+
+				function cloneBoxes(sourceBoxes) {
+					var result = [];
+					var i;
+					for (i = 0; i < sourceBoxes.length; i++) {
+						result.push({ x: sourceBoxes[i].x, y: sourceBoxes[i].y });
+					}
+					return result;
+				}
+
+				var LEVELS = parseLevelPack(getRawLevelText());
+				var currentLevelIdx = 0;
+				var robot = { x: 0, y: 0, dir: 1 };
+				var boxes = [];
+				var moveHistory = [];
+				var stepCount = 0;
+				var levelCompleted = false;
+				var completionTimer = null;
+				var resizeTimer = null;
+
+				var sokobanGrid = document.getElementById('sokobanGrid');
+				var boardScroll = document.getElementById('boardScroll');
+				var levelSelect = document.getElementById('levelSelect');
+				var targetStatus = document.getElementById('targetStatus');
+				var stepCountEl = document.getElementById('stepCount');
+				var bestCountEl = document.getElementById('bestCount');
+				var gameMessage = document.getElementById('gameMessage');
+				var btnUndo = document.getElementById('btnUndo');
+				var btnReset = document.getElementById('btnReset');
+
+				function getDifficultyLabel(index) {
+					if (index < 15) return '🌱 教学';
+					if (index < 35) return '🟢 入门';
+					if (index < 65) return '🟡 进阶';
+					if (index < 85) return '🟠 困难';
+					return '🔴 大师';
+				}
+
+				function populateLevelSelect() {
+					var i;
+					for (i = 0; i < LEVELS.length; i++) {
+						var option = document.createElement('option');
+						option.value = String(i);
+						setText(option, '第 ' + (i + 1) + ' 关 · ' + getDifficultyLabel(i));
+						option.title = '已通过求解器验证 · ' + getDifficultyLabel(i);
+						levelSelect.appendChild(option);
 					}
 				}
 
-				sokobanGrid.appendChild(fragment);
-			}
+				function readBest(levelIndex) {
+					try {
+						var value = window.localStorage ? window.localStorage.getItem('sokoban_v3_best_' + levelIndex) : null;
+						if (value === null || typeof value === 'undefined') return null;
+						var parsed = parseInt(value, 10);
+						return isFinite(parsed) ? parsed : null;
+					} catch (error) {
+						return null;
+					}
+				}
 
-			function isBlocked(level, x, y) {
-				if (x < 0 || y < 0 || x >= level.width || y >= level.height) return true;
-				return level.cells[y][x] !== CELL.FLOOR;
-			}
+				function saveBest(levelIndex, steps) {
+					try {
+						if (window.localStorage) window.localStorage.setItem('sokoban_v3_best_' + levelIndex, String(steps));
+					} catch (error) {
+						/* Storage failure must not stop the game. */
+					}
+				}
 
-			function handleMove(dir) {
-				if (levelCompleted) return;
+				function setMessage(text, type) {
+					setText(gameMessage, text);
+					gameMessage.className = type === 'success' ? 'game-message success' : 'game-message';
+				}
 
-				const level = LEVELS[currentLevelIdx];
-				const previousRobot = { ...robot };
-				const vectors = [
-					{ dx: 0, dy: -1 },
-					{ dx: 1, dy: 0 },
-					{ dx: 0, dy: 1 },
-					{ dx: -1, dy: 0 }
-				];
-				const { dx, dy } = vectors[dir];
-				const nextX = robot.x + dx;
-				const nextY = robot.y + dy;
+				function isInteger(value) {
+					return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
+				}
 
-				robot.dir = dir;
+				function initLevel(index) {
+					if (!isInteger(index) || index < 0 || index >= LEVELS.length) return;
+					if (completionTimer !== null) {
+						window.clearTimeout(completionTimer);
+						completionTimer = null;
+					}
 
-				if (isBlocked(level, nextX, nextY)) {
+					currentLevelIdx = index;
+					levelSelect.value = String(index);
+					var level = LEVELS[index];
+					robot = cloneRobot(level.initialRobot);
+					boxes = cloneBoxes(level.initialBoxes);
+					moveHistory = [];
+					stepCount = 0;
+					levelCompleted = false;
+
+					setMessage(index < 15 ? '教学阶段 · 第 ' + (index + 1) + ' 关' : '第 ' + (index + 1) + ' 关开始', '');
+					updateStatsUI();
 					renderGrid();
-					return;
 				}
 
-				const boxIndex = boxes.findIndex((box) => box.x === nextX && box.y === nextY);
-				let previousBox = null;
+				function updateStatsUI() {
+					var level = LEVELS[currentLevelIdx];
+					var placedCount = 0;
+					var i;
+					for (i = 0; i < boxes.length; i++) {
+						if (dictHas(level.targets, keyOf(boxes[i].x, boxes[i].y))) placedCount++;
+					}
+					var best = readBest(currentLevelIdx);
+					setText(targetStatus, placedCount + '/' + level.targetCount);
+					setText(stepCountEl, String(stepCount));
+					setText(bestCountEl, best === null ? '--' : best + ' 步');
+					btnUndo.disabled = moveHistory.length === 0 || levelCompleted;
+				}
 
-				if (boxIndex !== -1) {
-					const boxNextX = nextX + dx;
-					const boxNextY = nextY + dy;
-					const anotherBoxBlocks = boxes.some(
-						(box, index) => index !== boxIndex && box.x === boxNextX && box.y === boxNextY
-					);
+				function calculateCellSize(level) {
+					var availableWidth = boardScroll && boardScroll.clientWidth ? boardScroll.clientWidth - 28 : 720;
+					var viewportHeight = document.documentElement && document.documentElement.clientHeight ? document.documentElement.clientHeight : 700;
+					var maxBoardHeight = viewportHeight < 700 ? Math.floor(viewportHeight * 0.42) : 620;
+					var byWidth = Math.floor(availableWidth / level.width) - 3;
+					var byHeight = Math.floor(maxBoardHeight / level.height) - 3;
+					var size = Math.min(52, byWidth, byHeight);
+					if (size < 18) size = 18;
+					return size;
+				}
 
-					if (isBlocked(level, boxNextX, boxNextY) || anotherBoxBlocks) {
+				function renderGrid() {
+					var level = LEVELS[currentLevelIdx];
+					var boxMap = {};
+					var i, x, y;
+					for (i = 0; i < boxes.length; i++) boxMap[keyOf(boxes[i].x, boxes[i].y)] = i;
+
+					while (sokobanGrid.firstChild) sokobanGrid.removeChild(sokobanGrid.firstChild);
+					var tbody = document.createElement('tbody');
+					var cellSize = calculateCellSize(level);
+
+					for (y = 0; y < level.height; y++) {
+						var row = document.createElement('tr');
+						for (x = 0; x < level.width; x++) {
+							var cell = document.createElement('td');
+							var key = keyOf(x, y);
+							var cellType = level.cells[y][x];
+							var isTarget = dictHas(level.targets, key);
+							var hasBox = dictHas(boxMap, key);
+							var isRobot = robot.x === x && robot.y === y;
+							var className = 'sokoban-cell ' + (((x + y) % 2 === 0) ? 'tile-even' : 'tile-odd');
+
+							cell.style.width = cellSize + 'px';
+							cell.style.height = cellSize + 'px';
+							cell.style.fontSize = Math.max(11, Math.floor(cellSize * 0.48)) + 'px';
+
+							if (cellType === CELL.VOID) {
+								cell.className = className + ' void';
+								row.appendChild(cell);
+								continue;
+							}
+
+							if (cellType === CELL.WALL) {
+								cell.className = className + ' wall';
+								var wallAvatar = document.createElement('span');
+								wallAvatar.className = 'wall-avatar';
+								setText(wallAvatar, '🧱');
+								cell.appendChild(wallAvatar);
+								row.appendChild(cell);
+								continue;
+							}
+
+							if (isTarget && hasBox) className += ' target-placed';
+							else if (isTarget) className += ' target-cell';
+							cell.className = className;
+
+							if (hasBox) {
+								var boxAvatar = document.createElement('span');
+								boxAvatar.className = 'box-avatar';
+								setText(boxAvatar, '📦');
+								cell.appendChild(boxAvatar);
+							} else if (isTarget && !isRobot) {
+								var targetAvatar = document.createElement('span');
+								targetAvatar.className = 'target-avatar';
+								setText(targetAvatar, '⭐');
+								cell.appendChild(targetAvatar);
+							}
+
+							if (isRobot) {
+								var robotAvatar = document.createElement('span');
+								var angles = [270, 0, 90, 180];
+								robotAvatar.className = 'robot-avatar';
+								setText(robotAvatar, '🤖');
+								robotAvatar.style.transform = 'rotate(' + angles[robot.dir] + 'deg)';
+								robotAvatar.style.msTransform = 'rotate(' + angles[robot.dir] + 'deg)';
+								robotAvatar.style.webkitTransform = 'rotate(' + angles[robot.dir] + 'deg)';
+								cell.appendChild(robotAvatar);
+							}
+							row.appendChild(cell);
+						}
+						tbody.appendChild(row);
+					}
+					sokobanGrid.appendChild(tbody);
+				}
+
+				function isBlocked(level, x, y) {
+					if (x < 0 || y < 0 || x >= level.width || y >= level.height) return true;
+					return level.cells[y][x] !== CELL.FLOOR;
+				}
+
+				function findBoxIndex(x, y) {
+					var i;
+					for (i = 0; i < boxes.length; i++) {
+						if (boxes[i].x === x && boxes[i].y === y) return i;
+					}
+					return -1;
+				}
+
+				function handleMove(dir) {
+					if (levelCompleted) return;
+					var level = LEVELS[currentLevelIdx];
+					var previousRobot = cloneRobot(robot);
+					var vectors = [
+						{ dx: 0, dy: -1 },
+						{ dx: 1, dy: 0 },
+						{ dx: 0, dy: 1 },
+						{ dx: -1, dy: 0 }
+					];
+					var dx = vectors[dir].dx;
+					var dy = vectors[dir].dy;
+					var nextX = robot.x + dx;
+					var nextY = robot.y + dy;
+					var boxIndex;
+					var previousBox = null;
+
+					robot.dir = dir;
+					if (isBlocked(level, nextX, nextY)) {
 						renderGrid();
 						return;
 					}
 
-					previousBox = { ...boxes[boxIndex] };
-					boxes[boxIndex] = { x: boxNextX, y: boxNextY };
+					boxIndex = findBoxIndex(nextX, nextY);
+					if (boxIndex !== -1) {
+						var boxNextX = nextX + dx;
+						var boxNextY = nextY + dy;
+						var anotherBoxIndex = findBoxIndex(boxNextX, boxNextY);
+						if (isBlocked(level, boxNextX, boxNextY) || anotherBoxIndex !== -1) {
+							renderGrid();
+							return;
+						}
+						previousBox = { x: boxes[boxIndex].x, y: boxes[boxIndex].y };
+						boxes[boxIndex] = { x: boxNextX, y: boxNextY };
+					}
+
+					moveHistory.push({
+						robot: previousRobot,
+						boxIndex: boxIndex === -1 ? null : boxIndex,
+						box: previousBox
+					});
+					robot.x = nextX;
+					robot.y = nextY;
+					stepCount++;
+					updateStatsUI();
+					renderGrid();
+					checkCompletion();
 				}
 
-				moveHistory.push({
-					robot: previousRobot,
-					boxIndex: boxIndex === -1 ? null : boxIndex,
-					box: previousBox
+				function checkCompletion() {
+					var level = LEVELS[currentLevelIdx];
+					var allPlaced = true;
+					var i;
+					for (i = 0; i < boxes.length; i++) {
+						if (!dictHas(level.targets, keyOf(boxes[i].x, boxes[i].y))) {
+							allPlaced = false;
+							break;
+						}
+					}
+					if (!allPlaced || levelCompleted) return;
+
+					levelCompleted = true;
+					var completedLevelIndex = currentLevelIdx;
+					var completedSteps = stepCount;
+					var oldBest = readBest(completedLevelIndex);
+					if (oldBest === null || completedSteps < oldBest) saveBest(completedLevelIndex, completedSteps);
+					updateStatsUI();
+					setMessage('🎉 第 ' + (completedLevelIndex + 1) + ' 关完成，共 ' + completedSteps + ' 步！', 'success');
+
+					completionTimer = window.setTimeout(function () {
+						completionTimer = null;
+						if (completedLevelIndex < LEVELS.length - 1) initLevel(completedLevelIndex + 1);
+						else setMessage('🏆 恭喜完成全部 ' + LEVELS.length + ' 关！', 'success');
+					}, 900);
+				}
+
+				function undo() {
+					if (levelCompleted || moveHistory.length === 0) return;
+					var lastMove = moveHistory.pop();
+					robot = cloneRobot(lastMove.robot);
+					if (lastMove.boxIndex !== null && lastMove.box) {
+						boxes[lastMove.boxIndex] = { x: lastMove.box.x, y: lastMove.box.y };
+					}
+					stepCount = Math.max(0, stepCount - 1);
+					setMessage('已撤销上一步', '');
+					updateStatsUI();
+					renderGrid();
+				}
+
+				function getDirectionFromKeyboard(event) {
+					var key = event.key;
+					var code = event.which || event.keyCode || 0;
+					if (key === 'ArrowUp' || key === 'w' || key === 'W' || code === 38 || code === 87) return 0;
+					if (key === 'ArrowRight' || key === 'd' || key === 'D' || code === 39 || code === 68) return 1;
+					if (key === 'ArrowDown' || key === 's' || key === 'S' || code === 40 || code === 83) return 2;
+					if (key === 'ArrowLeft' || key === 'a' || key === 'A' || code === 37 || code === 65) return 3;
+					return -1;
+				}
+
+				function handleKeyDown(rawEvent) {
+					var event = getEvent(rawEvent);
+					var target = event.target || event.srcElement;
+					var tagName = target && target.tagName ? String(target.tagName).toUpperCase() : '';
+					if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return;
+
+					var direction = getDirectionFromKeyboard(event);
+					var code = event.which || event.keyCode || 0;
+					var key = event.key;
+					if (direction !== -1) {
+						preventDefault(event);
+						handleMove(direction);
+						return;
+					}
+					if (key === 'z' || key === 'Z' || code === 90) {
+						preventDefault(event);
+						undo();
+						return;
+					}
+					if (key === 'r' || key === 'R' || code === 82) {
+						preventDefault(event);
+						initLevel(currentLevelIdx);
+					}
+				}
+
+				populateLevelSelect();
+				addEvent(window, 'keydown', handleKeyDown);
+				addEvent(document.getElementById('btnUp'), 'click', function () { handleMove(0); });
+				addEvent(document.getElementById('btnRight'), 'click', function () { handleMove(1); });
+				addEvent(document.getElementById('btnDown'), 'click', function () { handleMove(2); });
+				addEvent(document.getElementById('btnLeft'), 'click', function () { handleMove(3); });
+				addEvent(btnUndo, 'click', undo);
+				addEvent(btnReset, 'click', function () { initLevel(currentLevelIdx); });
+				addEvent(levelSelect, 'change', function (rawEvent) {
+					var event = getEvent(rawEvent);
+					var target = event.target || event.srcElement;
+					initLevel(parseInt(target.value, 10));
+				});
+				addEvent(window, 'resize', function () {
+					if (resizeTimer !== null) window.clearTimeout(resizeTimer);
+					resizeTimer = window.setTimeout(function () {
+						resizeTimer = null;
+						renderGrid();
+					}, 100);
 				});
 
-				robot.x = nextX;
-				robot.y = nextY;
-				stepCount++;
-
-				updateStatsUI();
-				renderGrid();
-				checkCompletion();
-			}
-
-			function checkCompletion() {
-				const level = LEVELS[currentLevelIdx];
-				const allPlaced = boxes.every((box) => level.targets.has(keyOf(box.x, box.y)));
-				if (!allPlaced || levelCompleted) return;
-
-				levelCompleted = true;
-				const completedLevelIndex = currentLevelIdx;
-				const completedSteps = stepCount;
-				const oldBest = readBest(completedLevelIndex);
-
-				if (oldBest === null || completedSteps < oldBest) {
-					saveBest(completedLevelIndex, completedSteps);
-				}
-
-				updateStatsUI();
-				setMessage(`🎉 第 ${completedLevelIndex + 1} 关完成，共 ${completedSteps} 步！`, 'success');
-
-				completionTimer = window.setTimeout(() => {
-					completionTimer = null;
-					if (completedLevelIndex < LEVELS.length - 1) {
-						initLevel(completedLevelIndex + 1);
-					} else {
-						setMessage(`🏆 恭喜完成全部 ${LEVELS.length} 关！`, 'success');
-					}
-				}, 900);
-			}
-
-			function undo() {
-				if (levelCompleted || moveHistory.length === 0) return;
-
-				const lastMove = moveHistory.pop();
-				robot = { ...lastMove.robot };
-
-				if (lastMove.boxIndex !== null && lastMove.box) {
-					boxes[lastMove.boxIndex] = { ...lastMove.box };
-				}
-
-				stepCount = Math.max(0, stepCount - 1);
-				setMessage('已撤销上一步');
-				updateStatsUI();
-				renderGrid();
-			}
-
-			window.addEventListener('keydown', (event) => {
-				if (event.target instanceof HTMLInputElement ||
-					event.target instanceof HTMLTextAreaElement ||
-					event.target instanceof HTMLSelectElement) {
-					return;
-				}
-
-				const directionMap = {
-					ArrowUp: 0,
-					w: 0,
-					W: 0,
-					ArrowRight: 1,
-					d: 1,
-					D: 1,
-					ArrowDown: 2,
-					s: 2,
-					S: 2,
-					ArrowLeft: 3,
-					a: 3,
-					A: 3
-				};
-
-				if (Object.prototype.hasOwnProperty.call(directionMap, event.key)) {
-					event.preventDefault();
-					handleMove(directionMap[event.key]);
-					return;
-				}
-
-				if (event.key === 'z' || event.key === 'Z') {
-					event.preventDefault();
-					undo();
-					return;
-				}
-
-				if (event.key === 'r' || event.key === 'R') {
-					event.preventDefault();
-					initLevel(currentLevelIdx);
-				}
-			});
-
-			document.getElementById('btnUp').addEventListener('click', () => handleMove(0));
-			document.getElementById('btnRight').addEventListener('click', () => handleMove(1));
-			document.getElementById('btnDown').addEventListener('click', () => handleMove(2));
-			document.getElementById('btnLeft').addEventListener('click', () => handleMove(3));
-			btnUndo.addEventListener('click', undo);
-			btnReset.addEventListener('click', () => initLevel(currentLevelIdx));
-			levelSelect.addEventListener('change', (event) => {
-				initLevel(Number.parseInt(event.target.value, 10));
-			});
-
-			initLevel(0);
+				initLevel(0);
+			}());
 		</script>
 	</body>
 </html>
