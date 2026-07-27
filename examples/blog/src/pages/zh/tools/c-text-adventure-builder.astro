@@ -1,0 +1,450 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: '儿童 C 语言入门：控制台文字冒险游戏引擎（C Text Adventure Builder）',
+	description: '免安装！通过玩文字冒险地牢游戏，实时对照学习 C 语言的变量声明、printf/scanf 输入输出以及 if-else 条件分支结构，轻松开启文本编程第一课。',
+	icon: '⚔️',
+	tag: 'C语言入门',
+	keywords: 'C语言入门 少儿C语言 C语言控制台游戏 if-else分支结构 C语言变量 编程启蒙',
+	pinned: false,
+	priority: 87
+};
+
+const pageTitle = `儿童 C 语言入门：控制台文字冒险游戏引擎 — ${SITE_TITLE}`;
+const pageDescription = '玩地牢冒险游戏，实时生成与学习 C 语言代码！带孩子轻松掌握 if-else 分支与变量基础。';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1120px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2em 1em 3em;
+				box-sizing: border-box;
+			}
+
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.2em;
+			}
+
+			.tool-header h1 {
+				font-size: clamp(1.3rem, 4vw, 2.1rem);
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+			}
+
+			.game-container {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 420px;
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.2rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+				box-sizing: border-box;
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				width: 100%;
+			}
+
+			.terminal-window {
+				background: #090d16;
+				border: 2px solid #334155;
+				border-radius: 12px;
+				padding: 1rem;
+				box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+				font-family: 'Fira Code', Consolas, Monaco, monospace;
+				color: #38bdf8;
+				min-height: 280px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+
+			.terminal-header {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				border-bottom: 1px solid #1e293b;
+				padding-bottom: 0.5rem;
+				margin-bottom: 0.8rem;
+				font-size: 0.78rem;
+				color: #94a3b8;
+			}
+
+			.dot {
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+			.dot-red { background: #ef4444; }
+			.dot-yellow { background: #f59e0b; }
+			.dot-green { background: #10b981; }
+
+			.terminal-body {
+				line-height: 1.6;
+				font-size: 0.9rem;
+				color: #f1f5f9;
+				flex-grow: 1;
+			}
+
+			.story-text {
+				margin-bottom: 1rem;
+				color: #38bdf8;
+				white-space: pre-line;
+			}
+
+			.option-list {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.opt-btn {
+				background: #1e293b;
+				border: 1px solid #334155;
+				color: #f8fafc;
+				padding: 0.6em 0.8em;
+				border-radius: 8px;
+				font-size: 0.85rem;
+				font-weight: 700;
+				cursor: pointer;
+				text-align: left;
+				transition: all 0.15s ease;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			.opt-btn:hover {
+				background: #0284c7;
+				border-color: #38bdf8;
+				color: #fff;
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				min-width: 0;
+				width: 100%;
+			}
+
+			.panel-section {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.7rem;
+				box-sizing: border-box;
+			}
+
+			.section-title {
+				font-size: 0.82rem;
+				font-weight: 700;
+				color: var(--text-muted);
+				margin-bottom: 0.5rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.param-group {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.5rem;
+			}
+
+			.param-item {
+				display: flex;
+				flex-direction: column;
+				gap: 0.2rem;
+				font-size: 0.78rem;
+				font-weight: 700;
+			}
+
+			.param-input {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.3em 0.5em;
+				border-radius: 6px;
+				font-size: 0.85rem;
+				font-weight: 700;
+				outline: none;
+			}
+
+			.code-window {
+				background: #0f172a;
+				border: 1px solid #334155;
+				border-radius: 10px;
+				padding: 0.8rem;
+				font-family: 'Fira Code', Consolas, Monaco, monospace;
+				font-size: 0.8rem;
+				line-height: 1.5;
+				color: #cbd5e1;
+				overflow-x: auto;
+				max-height: 320px;
+				box-sizing: border-box;
+			}
+
+			.c-keyword { color: #f43f5e; font-weight: bold; }
+			.c-type { color: #38bdf8; font-weight: bold; }
+			.c-string { color: #10b981; }
+			.c-func { color: #fbbf24; }
+			.c-comment { color: #64748b; font-style: italic; }
+			.c-num { color: #a855f7; }
+
+			.btn-reset {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em;
+				border-radius: 10px;
+				font-weight: 800;
+				font-size: 0.85rem;
+				cursor: pointer;
+				width: 100%;
+			}
+
+			@media (max-width: 900px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+
+				.editor-box {
+					max-width: 520px;
+					margin: 0 auto;
+				}
+			}
+
+			@media (max-width: 600px) {
+				main {
+					padding: 0.2em 0.5em 1em;
+				}
+
+				.tool-header p {
+					display: none;
+				}
+
+				.tool-header h1 {
+					font-size: 1.15rem;
+					margin-bottom: 0;
+				}
+
+				.game-container {
+					padding: 0.5rem;
+					gap: 0.5rem;
+				}
+
+				.terminal-window {
+					min-height: 220px;
+					padding: 0.6rem;
+				}
+
+				.code-window {
+					max-height: 240px;
+					font-size: 0.75rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>⚔️ 儿童 C 语言入门：控制台文字冒险游戏引擎</h1>
+				<p>在左侧玩地牢文字游戏，右侧将实时呈现游戏对应的 C 语言语法与 if-else 条件分支逻辑！</p>
+			</div>
+
+			<div class="game-container">
+				<div class="stage-box">
+					<div class="terminal-window">
+						<div>
+							<div class="terminal-header">
+								<span class="dot dot-red"></span>
+								<span class="dot dot-yellow"></span>
+								<span class="dot dot-green"></span>
+								<span>dungeon_game.c - C 语言控制台运行中</span>
+							</div>
+							<div class="story-text" id="storyText">剧情载入中...</div>
+						</div>
+						<div class="option-list" id="optionList"></div>
+					</div>
+				</div>
+
+				<div class="editor-box">
+					<div class="panel-section">
+						<div class="section-title">⚙️ 游戏初始变量设置</div>
+						<div class="param-group">
+							<div class="param-item">
+								<label for="healthInput">初始生命 (int hp)</label>
+								<input class="param-input" id="healthInput" type="number" value="100" min="10" max="200" />
+							</div>
+							<div class="param-item">
+								<label for="goldInput">初始金币 (int gold)</label>
+								<input class="param-input" id="goldInput" type="number" value="10" min="0" max="100" />
+							</div>
+						</div>
+					</div>
+
+					<div class="panel-section">
+						<div class="section-title">
+							<span>💻 对应的 C 语言源代码</span>
+							<span style="font-size:0.72rem; color:var(--accent);">包含 if-else 结构</span>
+						</div>
+						<pre class="code-window"><code id="codeDisplay"></code></pre>
+					</div>
+
+					<button class="btn-reset" id="btnResetStory" type="button">🔄 重新开始游戏</button>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const STORY_NODES = {
+				start: {
+					text: "你醒来在一个阴暗的城堡地牢入口。\n面前有两条通道：左边传来巨龙的低吼，右边隐约有金币的光芒。\n请做出你的选择：",
+					options: [
+						{ text: "1. 走左边通道（挑战巨龙）", next: "left_path", choiceVal: 1 },
+						{ text: "2. 走右边通道（寻找宝箱）", next: "right_path", choiceVal: 2 }
+					]
+				},
+				left_path: {
+					text: "你走进了左通道，一只巨大的火焰喷火龙正盯着你！\n你需要选择战斗还是逃跑：",
+					options: [
+						{ text: "1. 拔剑攻击巨龙", next: "dragon_fight", choiceVal: 1 },
+						{ text: "2. 迅速转身逃跑", next: "start", choiceVal: 2 }
+					]
+				},
+				right_path: {
+					text: "你走进了右通道，发现了一个神秘的金色宝箱！\n宝箱上有两道防盗机关：",
+					options: [
+						{ text: "1. 用金币购买钥匙解开", next: "open_box", choiceVal: 1 },
+						{ text: "2. 强行用手撬开", next: "trap_box", choiceVal: 2 }
+					]
+				},
+				dragon_fight: {
+					text: "你勇敢地冲向巨龙！经过激烈的战斗，你斩杀巨龙获得了 50 额外金币，成功通关地牢！",
+					options: [
+						{ text: "🔄 重新挑战", next: "start", choiceVal: 0 }
+					]
+				},
+				open_box: {
+					text: "你使用 5 个金币成功开启宝箱，获得了魔法护盾与丰厚宝藏！游戏胜利！",
+					options: [
+						{ text: "🔄 重新挑战", next: "start", choiceVal: 0 }
+					]
+				},
+				trap_box: {
+					text: "糟糕！撬开宝箱触发了毒箭陷阱，你的生命值损失了 30 点！但这也是一次难忘的冒险！",
+					options: [
+						{ text: "🔄 重新挑战", next: "start", choiceVal: 0 }
+					]
+				}
+			};
+
+			const storyTextEl = document.getElementById('storyText');
+			const optionListEl = document.getElementById('optionList');
+			const codeDisplayEl = document.getElementById('codeDisplay');
+			const healthInput = document.getElementById('healthInput');
+			const goldInput = document.getElementById('goldInput');
+			const btnResetStory = document.getElementById('btnResetStory');
+
+			let currentNodeKey = 'start';
+			let lastChoice = 1;
+
+			function updateGameUI() {
+				const node = STORY_NODES[currentNodeKey];
+				storyTextEl.textContent = node.text;
+
+				optionListEl.innerHTML = '';
+				node.options.forEach((opt) => {
+					const btn = document.createElement('button');
+					btn.className = 'opt-btn';
+					btn.textContent = opt.text;
+					btn.addEventListener('click', () => {
+						lastChoice = opt.choiceVal;
+						currentNodeKey = opt.next;
+						updateGameUI();
+					});
+					optionListEl.appendChild(btn);
+				});
+
+				updateCCodeDisplay();
+			}
+
+			function updateCCodeDisplay() {
+				const hp = healthInput.value || 100;
+				const gold = goldInput.value || 10;
+
+				const codeTemplate = `<span class="c-comment">// C 语言控制台程序：地牢文字冒险</span>
+<span class="c-keyword">#include</span> <span class="c-string">&lt;stdio.h&gt;</span>
+
+<span class="c-type">int</span> <span class="c-func">main</span>() {
+    <span class="c-comment">// 声明主角初始属性变量</span>
+    <span class="c-type">int</span> hp = <span class="c-num">${hp}</span>;
+    <span class="c-type">int</span> gold = <span class="c-num">${gold}</span>;
+    <span class="c-type">int</span> choice;
+
+    <span class="c-func">printf</span>(<span class="c-string">"=== 地牢大冒险 ===\\n"</span>);
+    <span class="c-func">printf</span>(<span class="c-string">"1. 走左边通道\\n2. 走右边通道\\n"</span>);
+    <span class="c-[#f59e0b]">printf</span>(<span class="c-string">"请输入你的选择 (1 或 2): "</span>);
+    
+    <span class="c-comment">// 获取玩家的键盘输入</span>
+    <span class="c-func">scanf</span>(<span class="c-string">"%d"</span>, &choice);
+
+    <span class="c-comment">// 判断选择的条件分支结构</span>
+    <span class="c-keyword">if</span> (choice == <span class="c-num">1</span>) {
+        <span class="c-func">printf</span>(<span class="c-string">"你遇到了喷火龙！\\n"</span>);
+        <span class="c-comment">// 对应当前玩家的选择: ${lastChoice === 1 ? '选择了左侧通道' : '分支判断中'}</span>
+    } <span class="c-keyword">else if</span> (choice == <span class="c-num">2</span>) {
+        <span class="c-func">printf</span>(<span class="c-string">"你找到了神秘金币宝箱！\\n"</span>);
+    } <span class="c-keyword">else</span> {
+        <span class="c-func">printf</span>(<span class="c-string">"无效的选择！\\n"</span>);
+    }
+
+    <span class="c-keyword">return</span> <span class="c-num">0</span>;
+}`;
+
+				codeDisplayEl.innerHTML = codeTemplate;
+			}
+
+			healthInput.addEventListener('input', updateCCodeDisplay);
+			goldInput.addEventListener('input', updateCCodeDisplay);
+
+			btnResetStory.addEventListener('click', () => {
+				currentNodeKey = 'start';
+				lastChoice = 1;
+				updateGameUI();
+			});
+
+			updateGameUI();
+		</script>
+	</body>
+</html>
