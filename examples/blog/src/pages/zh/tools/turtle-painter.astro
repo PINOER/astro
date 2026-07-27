@@ -1,0 +1,571 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: '儿童编程互动工具：智能机器人指令画画（Turtle Painter）',
+	description: '免安装！通过组合方向、角度与画笔指令控制小机器人绘制几何图案，培养孩子顺序执行思维与空间角度认知。',
+	icon: '🎨',
+	tag: '儿童编程',
+	keywords: '儿童编程 图形化编程 海龟画图 Turtle Graphics 指令画图 空间认知 角度学习',
+	pinned: false,
+	priority: 83
+};
+
+const pageTitle = `儿童编程互动工具：智能机器人指令画图 — ${SITE_TITLE}`;
+const pageDescription = '通过给小机器人下达动作指令，画出好看的几何图案，体验最基础的程序绘制乐趣！';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1120px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2em 1em 3em;
+				box-sizing: border-box;
+			}
+
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.2em;
+			}
+
+			.tool-header h1 {
+				font-size: clamp(1.3rem, 4vw, 2.1rem);
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+			}
+
+			.game-container {
+				display: grid;
+				grid-template-columns: 1fr 340px;
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.2rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+				box-sizing: border-box;
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.8rem;
+				width: 100%;
+			}
+
+			.preset-bar {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				width: 100%;
+				background: var(--search-bg);
+				padding: 0.5em 0.8em;
+				border-radius: 12px;
+				border: 1px solid var(--card-border);
+				font-size: 0.88rem;
+				font-weight: 700;
+				box-sizing: border-box;
+				overflow-x: auto;
+			}
+
+			.preset-bar label {
+				white-space: nowrap;
+			}
+
+			.preset-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.3em 0.6em;
+				border-radius: 8px;
+				font-size: 0.82rem;
+				font-weight: 700;
+				cursor: pointer;
+				white-space: nowrap;
+				transition: all 0.15s ease;
+			}
+
+			.preset-btn:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			.canvas-wrapper {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 1 / 1;
+				max-height: 52vh;
+				background: #090d16;
+				border: 2px solid #334155;
+				border-radius: 16px;
+				overflow: hidden;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#paintCanvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				min-width: 0;
+				width: 100%;
+			}
+
+			.panel-section {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.7rem;
+				box-sizing: border-box;
+			}
+
+			.section-title {
+				font-size: 0.82rem;
+				font-weight: 700;
+				color: var(--text-muted);
+				margin-bottom: 0.5rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.command-palette {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				gap: 0.4rem;
+			}
+
+			.cmd-btn {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.5em 0.2em;
+				border-radius: 8px;
+				font-size: 0.8rem;
+				font-weight: 700;
+				cursor: pointer;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.2rem;
+				user-select: none;
+				-webkit-tap-highlight-color: transparent;
+			}
+
+			.cmd-btn:active {
+				transform: scale(0.95);
+				background: var(--accent);
+				color: #fff;
+			}
+
+			.command-queue {
+				min-height: 140px;
+				max-height: 180px;
+				overflow-y: auto;
+				display: flex;
+				flex-wrap: wrap;
+				align-content: flex-start;
+				gap: 0.35rem;
+				padding: 0.4rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+			}
+
+			.queue-tag {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.2rem;
+				padding: 0.2em 0.5em;
+				border-radius: 6px;
+				background: #1e293b;
+				border: 1px solid #334155;
+				color: #f8fafc;
+				font-size: 0.75rem;
+				font-weight: 700;
+				cursor: pointer;
+			}
+
+			.queue-tag.active {
+				border-color: #f59e0b;
+				box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+			}
+
+			.queue-tag .remove {
+				color: #ef4444;
+				margin-left: 0.2rem;
+				font-weight: 900;
+			}
+
+			.action-bar {
+				display: grid;
+				grid-template-columns: 1.2fr 1fr 1fr;
+				gap: 0.5rem;
+			}
+
+			.btn-run {
+				background: #10b981;
+				color: #fff;
+				border: none;
+				padding: 0.65em;
+				border-radius: 10px;
+				font-weight: 800;
+				font-size: 0.88rem;
+				cursor: pointer;
+			}
+
+			.btn-clear,
+			.btn-reset-pos {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.65em;
+				border-radius: 10px;
+				font-weight: 700;
+				font-size: 0.82rem;
+				cursor: pointer;
+			}
+
+			.btn-run:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+
+			@media (max-width: 900px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+
+				.editor-box {
+					max-width: 520px;
+					margin: 0 auto;
+				}
+			}
+
+			@media (max-width: 600px) {
+				main {
+					padding: 0.2em 0.5em 1em;
+				}
+
+				.tool-header p {
+					display: none;
+				}
+
+				.game-container {
+					padding: 0.5rem;
+					gap: 0.5rem;
+				}
+
+				.canvas-wrapper {
+					max-height: 38vh !important;
+				}
+
+				.command-queue {
+					min-height: 90px;
+					max-height: 110px;
+				}
+
+				.cmd-btn {
+					padding: 0.4em 0.1em;
+					font-size: 0.75rem;
+				}
+
+				.btn-run,
+				.btn-clear,
+				.btn-reset-pos {
+					padding: 0.55em 0.2em;
+					font-size: 0.78rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🎨 儿童编程小工具：智能机器人指令画画</h1>
+				<p>点击添加动作指令，排好指令队列后点击“运行程序”，看小机器人画出美妙几何图案！</p>
+			</div>
+
+			<div class="game-container">
+				<div class="stage-box">
+					<div class="preset-bar">
+						<label>💡 预设图案：</label>
+						<button class="preset-btn" data-preset="square" type="button">正方形</button>
+						<button class="preset-btn" data-preset="triangle" type="button">等边三角形</button>
+						<button class="preset-btn" data-preset="star" type="button">五角星</button>
+						<button class="preset-btn" data-preset="stair" type="button">阶梯画线</button>
+					</div>
+
+					<div class="canvas-wrapper">
+						<canvas id="paintCanvas" width="600" height="600"></canvas>
+					</div>
+				</div>
+
+				<div class="editor-box">
+					<div class="panel-section">
+						<div class="section-title">➕ 点击添加指令积木</div>
+						<div class="command-palette">
+							<button class="cmd-btn" data-cmd="FORWARD_50" type="button">🚀 前进 50</button>
+							<button class="cmd-btn" data-cmd="FORWARD_100" type="button">🚀 前进 100</button>
+							<button class="cmd-btn" data-cmd="BACK_50" type="button">🔙 后退 50</button>
+							<button class="cmd-btn" data-cmd="TURN_LEFT_90" type="button">⟲ 左转 90°</button>
+							<button class="cmd-btn" data-cmd="TURN_RIGHT_90" type="button">⟳ 右转 90°</button>
+							<button class="cmd-btn" data-cmd="TURN_RIGHT_144" type="button">⟳ 右转 144°</button>
+							<button class="cmd-btn" data-cmd="TURN_RIGHT_120" type="button">⟳ 右转 120°</button>
+							<button class="cmd-btn" data-cmd="COLOR_CYAN" type="button">🎨 蓝绿画笔</button>
+							<button class="cmd-btn" data-cmd="COLOR_AMBER" type="button">🎨 琥珀金笔</button>
+						</div>
+					</div>
+
+					<div class="panel-section">
+						<div class="section-title">
+							<span>📜 执行队列 (<span id="queueCount">0</span>)</span>
+							<span style="font-weight:normal; font-size:0.72rem; color:var(--text-muted);">点击可移除单个</span>
+						</div>
+						<div class="command-queue" id="commandQueue"></div>
+					</div>
+
+					<div class="action-bar">
+						<button class="btn-run" id="btnRun" type="button">▶ 运行程序</button>
+						<button class="btn-clear" id="btnClearQueue" type="button">🗑️ 清空队列</button>
+						<button class="btn-reset-pos" id="btnResetCanvas" type="button">🔄 重置画布</button>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const COMMAND_DICT = {
+				FORWARD_50: { label: '前进 50', type: 'move', dist: 50 },
+				FORWARD_100: { label: '前进 100', type: 'move', dist: 100 },
+				BACK_50: { label: '后退 50', type: 'move', dist: -50 },
+				TURN_LEFT_90: { label: '左转 90°', type: 'turn', angle: -90 },
+				TURN_RIGHT_90: { label: '右转 90°', type: 'turn', angle: 90 },
+				TURN_RIGHT_120: { label: '右转 120°', type: 'turn', angle: 120 },
+				TURN_RIGHT_144: { label: '右转 144°', type: 'turn', angle: 144 },
+				COLOR_CYAN: { label: '蓝绿笔', type: 'color', color: '#06b6d4' },
+				COLOR_AMBER: { label: '琥珀金笔', type: 'color', color: '#f59e0b' }
+			};
+
+			const PRESETS = {
+				square: ['COLOR_CYAN', 'FORWARD_100', 'TURN_RIGHT_90', 'FORWARD_100', 'TURN_RIGHT_90', 'FORWARD_100', 'TURN_RIGHT_90', 'FORWARD_100'],
+				triangle: ['COLOR_AMBER', 'FORWARD_100', 'TURN_RIGHT_120', 'FORWARD_100', 'TURN_RIGHT_120', 'FORWARD_100'],
+				star: ['COLOR_AMBER', 'FORWARD_100', 'TURN_RIGHT_144', 'FORWARD_100', 'TURN_RIGHT_144', 'FORWARD_100', 'TURN_RIGHT_144', 'FORWARD_100', 'TURN_RIGHT_144', 'FORWARD_100'],
+				stair: ['COLOR_CYAN', 'FORWARD_50', 'TURN_RIGHT_90', 'FORWARD_50', 'TURN_LEFT_90', 'FORWARD_50', 'TURN_RIGHT_90', 'FORWARD_50', 'TURN_LEFT_90', 'FORWARD_50']
+			};
+
+			const canvas = document.getElementById('paintCanvas');
+			const ctx = canvas.getContext('2d');
+			const commandQueueEl = document.getElementById('commandQueue');
+			const queueCountEl = document.getElementById('queueCount');
+			const btnRun = document.getElementById('btnRun');
+
+			let queue = [];
+			let isRunning = false;
+			let robotState = { x: 300, y: 300, angle: -90, color: '#06b6d4' };
+
+			function resetRobotState() {
+				robotState = { x: 300, y: 300, angle: -90, color: '#06b6d4' };
+			}
+
+			function clearCanvas() {
+				ctx.fillStyle = '#090d16';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				// 绘制背景参考网格
+				ctx.strokeStyle = '#1e293b';
+				ctx.lineWidth = 1;
+				for (let i = 0; i < canvas.width; i += 40) {
+					ctx.beginPath();
+					ctx.moveTo(i, 0);
+					ctx.lineTo(i, canvas.height);
+					ctx.stroke();
+
+					ctx.beginPath();
+					ctx.moveTo(0, i);
+					ctx.lineTo(canvas.width, i);
+					ctx.stroke();
+				}
+				drawRobot(robotState.x, robotState.y, robotState.angle);
+			}
+
+			function drawRobot(x, y, angleDeg) {
+				ctx.save();
+				ctx.translate(x, y);
+				ctx.rotate((angleDeg * Math.PI) / 180);
+
+				// 外发光
+				ctx.shadowColor = robotState.color;
+				ctx.shadowBlur = 10;
+
+				// 小机器人图标/箭号
+				ctx.fillStyle = robotState.color;
+				ctx.beginPath();
+				ctx.moveTo(14, 0);
+				ctx.lineTo(-10, -10);
+				ctx.lineTo(-5, 0);
+				ctx.lineTo(-10, 10);
+				ctx.closePath();
+				ctx.fill();
+
+				ctx.restore();
+			}
+
+			function renderQueueUI(activeIdx = -1) {
+				commandQueueEl.innerHTML = '';
+				queueCountEl.textContent = String(queue.length);
+
+				queue.forEach((cmdKey, index) => {
+					const item = COMMAND_DICT[cmdKey];
+					const tag = document.createElement('div');
+					tag.className = `queue-tag ${index === activeIdx ? 'active' : ''}`;
+					tag.innerHTML = `<span>${item.label}</span><span class="remove" data-idx="${index}">×</span>`;
+
+					tag.querySelector('.remove').addEventListener('click', (e) => {
+						e.stopPropagation();
+						if (isRunning) return;
+						queue.splice(index, 1);
+						renderQueueUI();
+					});
+
+					commandQueueEl.appendChild(tag);
+				});
+			}
+
+			function delay(ms) {
+				return new Promise((resolve) => setTimeout(resolve, ms));
+			}
+
+			async function runProgram() {
+				if (isRunning || queue.length === 0) return;
+				isRunning = true;
+				btnRun.disabled = true;
+
+				clearCanvas();
+				resetRobotState();
+
+				for (let i = 0; i < queue.length; i++) {
+					renderQueueUI(i);
+					const cmdKey = queue[i];
+					const cmd = COMMAND_DICT[cmdKey];
+
+					if (cmd.type === 'color') {
+						robotState.color = cmd.color;
+					} else if (cmd.type === 'turn') {
+						robotState.angle += cmd.angle;
+					} else if (cmd.type === 'move') {
+						const rad = (robotState.angle * Math.PI) / 180;
+						const targetX = robotState.x + Math.cos(rad) * cmd.dist;
+						const targetY = robotState.y + Math.sin(rad) * cmd.dist;
+
+						// 逐步划线动画
+						const steps = 15;
+						const startX = robotState.x;
+						const startY = robotState.y;
+
+						for (let s = 1; s <= steps; s++) {
+							const curX = startX + ((targetX - startX) * s) / steps;
+							const curY = startY + ((targetY - startY) * s) / steps;
+
+							// 擦除并重动画笔轨迹
+							ctx.strokeStyle = robotState.color;
+							ctx.lineWidth = 3;
+							ctx.lineCap = 'round';
+							ctx.shadowColor = robotState.color;
+							ctx.shadowBlur = 6;
+
+							ctx.beginPath();
+							ctx.moveTo(startX, startY);
+							ctx.lineTo(curX, curY);
+							ctx.stroke();
+
+							robotState.x = curX;
+							robotState.y = curY;
+							await delay(15);
+						}
+					}
+
+					clearRobotAndDrawAll();
+					await delay(150);
+				}
+
+				renderQueueUI(-1);
+				isRunning = false;
+				btnRun.disabled = false;
+			}
+
+			function clearRobotAndDrawAll() {
+				// 重新绘制机器人指针位置
+				drawRobot(robotState.x, robotState.y, robotState.angle);
+			}
+
+			document.querySelectorAll('.cmd-btn').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					if (isRunning) return;
+					const key = btn.dataset.cmd;
+					if (COMMAND_DICT[key]) {
+						queue.push(key);
+						renderQueueUI();
+					}
+				});
+			});
+
+			document.querySelectorAll('.preset-btn').forEach((btn) => {
+				btn.addEventListener('click', () => {
+					if (isRunning) return;
+					const name = btn.dataset.preset;
+					if (PRESETS[name]) {
+						queue = [...PRESETS[name]];
+						renderQueueUI();
+					}
+				});
+			});
+
+			document.getElementById('btnClearQueue').addEventListener('click', () => {
+				if (isRunning) return;
+				queue = [];
+				renderQueueUI();
+			});
+
+			document.getElementById('btnResetCanvas').addEventListener('click', () => {
+				if (isRunning) return;
+				resetRobotState();
+				clearCanvas();
+			});
+
+			btnRun.addEventListener('click', runProgram);
+
+			// 初始化
+			clearCanvas();
+			renderQueueUI();
+		</script>
+	</body>
+</html>
