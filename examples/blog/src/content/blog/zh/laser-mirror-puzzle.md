@@ -2,7 +2,6 @@
 title: "激光折射大挑战玩法攻略：用几何视角与光学反射打通物理逆向思维"
 description: "全网最详尽的《激光折射大挑战（Laser & Mirror Reflex）》思维拆解。深入讲解入射角与反射角原理、多路折射几何预判以及逆向倒推解题法，带孩子轻松探索光学物理与少儿编程的魅力！"
 pubDate: "2026-07-27"
-heroImage: "src/assets/CleanerIllustration.svg"
 lang: "zh"
 tag: "儿童编程"
 pinned: false
