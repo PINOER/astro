@@ -2,7 +2,6 @@
 title: "汉诺塔与排序算法可视化：从经典谜题到计算机算法原理"
 description: "全网最详尽的《汉诺塔与排序算法可视化（Hanoi & Sort Visualizer）》深度拆解。剖析汉诺塔的递归问题求解与冒泡、选择、插入排序的数据重构逻辑，带孩子轻松看懂程序底层思维！"
 pubDate: "2026-07-27"
-heroImage: "src/assets/CleanerIllustration.svg"
 lang: "zh"
 tag: "儿童编程"
 pinned: false
