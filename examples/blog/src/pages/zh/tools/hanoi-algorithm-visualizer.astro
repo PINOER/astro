@@ -1,0 +1,693 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: '儿童编程互动工具：汉诺塔与排序算法可视化演示（Hanoi & Sort Visualizer）',
+	description: '免安装！支持动手挑战与 AI 自动求解的汉诺塔游戏，以及直观动态呈现冒泡排序、选择排序的算法可视化体验，培养递归思想与数据结构认知。',
+	icon: '🧩',
+	tag: '儿童编程',
+	keywords: '汉诺塔 排序算法可视化 冒泡排序 递归算法 少儿编程体验 数据结构 算法动画',
+	pinned: false,
+	priority: 85
+};
+
+const pageTitle = `儿童编程互动工具：汉诺塔与排序算法可视化 — ${SITE_TITLE}`;
+const pageDescription = '动手挑战经典汉诺塔递归难题，并直观观察冒泡排序、选择排序算法的执行过程！';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1120px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2em 1em 3em;
+				box-sizing: border-box;
+			}
+
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.2em;
+			}
+
+			.tool-header h1 {
+				font-size: clamp(1.3rem, 4vw, 2.1rem);
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+			}
+
+			.tab-bar {
+				display: flex;
+				justify-content: center;
+				gap: 0.8rem;
+				margin-bottom: 1.2rem;
+			}
+
+			.tab-btn {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.6em 1.2em;
+				border-radius: 12px;
+				font-size: 0.9rem;
+				font-weight: 800;
+				cursor: pointer;
+				transition: all 0.15s ease;
+			}
+
+			.tab-btn.active {
+				background: var(--accent);
+				color: #fff;
+				border-color: var(--accent);
+			}
+
+			.game-container {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 320px;
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.2rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+				box-sizing: border-box;
+			}
+
+			.stage-box {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.8rem;
+				width: 100%;
+			}
+
+			.display-board {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 16 / 10;
+				max-height: 48vh;
+				background: #090d16;
+				border: 2px solid #334155;
+				border-radius: 16px;
+				overflow: hidden;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+			}
+
+			#visualCanvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+			}
+
+			.editor-box {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				min-width: 0;
+				width: 100%;
+			}
+
+			.panel-section {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.7rem;
+				box-sizing: border-box;
+			}
+
+			.section-title {
+				font-size: 0.82rem;
+				font-weight: 700;
+				color: var(--text-muted);
+				margin-bottom: 0.5rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.opt-select {
+				width: 100%;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.4em 0.6em;
+				border-radius: 8px;
+				font-size: 0.85rem;
+				font-weight: 700;
+				outline: none;
+				cursor: pointer;
+			}
+
+			.btn-action {
+				width: 100%;
+				padding: 0.65em;
+				border-radius: 10px;
+				font-weight: 800;
+				font-size: 0.88rem;
+				cursor: pointer;
+				border: none;
+				transition: all 0.15s ease;
+			}
+
+			.btn-primary {
+				background: #10b981;
+				color: #fff;
+			}
+
+			.btn-secondary {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+			}
+
+			.btn-action:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+
+			.stat-card {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.6rem 0.9rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.85rem;
+				font-weight: 700;
+			}
+
+			.game-message {
+				min-height: 1.2em;
+				padding: 0.5rem 0.8rem;
+				border-radius: 10px;
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				font-size: 0.82rem;
+				font-weight: 700;
+				text-align: center;
+				color: var(--text-muted);
+			}
+
+			.game-message.success {
+				color: #10b981;
+				border-color: rgba(16, 185, 129, 0.5);
+			}
+
+			.view-panel {
+				display: none;
+				width: 100%;
+			}
+
+			.view-panel.active {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+			}
+
+			@media (max-width: 900px) {
+				.game-container {
+					grid-template-columns: 1fr;
+				}
+
+				.editor-box {
+					max-width: 520px;
+					margin: 0 auto;
+				}
+			}
+
+			/* 📱 手机端自适应压缩 */
+			@media (max-width: 600px) {
+				main {
+					padding: 0.2em 0.5em 1em;
+				}
+
+				.tool-header p {
+					display: none;
+				}
+
+				.tool-header h1 {
+					font-size: 1.15rem;
+					margin-bottom: 0;
+				}
+
+				.tab-btn {
+					padding: 0.4em 0.8em;
+					font-size: 0.8rem;
+				}
+
+				.game-container {
+					padding: 0.5rem;
+					gap: 0.5rem;
+				}
+
+				.display-board {
+					max-height: 38vh !important;
+				}
+
+				.stat-card {
+					padding: 0.4rem 0.6rem;
+					font-size: 0.78rem;
+				}
+
+				.btn-action {
+					padding: 0.5em;
+					font-size: 0.82rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🧩 儿童编程小工具：汉诺塔与排序算法可视化</h1>
+				<p>选择“汉诺塔大冒险”体验递归拆解，或切换“排序算法”观察数据排列过程！</p>
+			</div>
+
+			<div class="tab-bar">
+				<button class="tab-btn active" id="tabHanoi" type="button">🏰 汉诺塔 (Hanoi)</button>
+				<button class="tab-btn" id="tabSort" type="button">📊 排序算法 (Sorting)</button>
+			</div>
+
+			<div class="game-container">
+				<div class="stage-box">
+					<div class="display-board">
+						<canvas id="visualCanvas" width="800" height="500"></canvas>
+					</div>
+				</div>
+
+				<div class="editor-box">
+					<!-- 汉诺塔控制面板 -->
+					<div class="view-panel active" id="hanoiPanel">
+						<div class="stat-card">
+							<span>👟 步数：<span id="hanoiSteps" style="color:var(--accent);">0</span></span>
+							<span>🎯 最少解法：<span id="hanoiMinSteps">7</span> 步</span>
+						</div>
+
+						<div class="panel-section">
+							<div class="section-title">⚙️ 选择层数难度</div>
+							<select class="opt-select" id="hanoiDiscSelect">
+								<option value="3">3 层（适合入门）</option>
+								<option value="4" selected>4 层（推荐练习）</option>
+								<option value="5">5 层（进阶挑战）</option>
+								<option value="6">6 层（高手挑战）</option>
+							</select>
+						</div>
+
+						<button class="btn-action btn-primary" id="btnHanoiSolve" type="button">▶ AI 自动演示求解</button>
+						<button class="btn-action btn-secondary" id="btnHanoiReset" type="button">🔄 重置盘片位置</button>
+					</div>
+
+					<!-- 排序算法控制面板 -->
+					<div class="view-panel" id="sortPanel">
+						<div class="panel-section">
+							<div class="section-title">⚙️ 选择排序算法</div>
+							<select class="opt-select" id="sortAlgoSelect">
+								<option value="bubble">冒泡排序 (Bubble Sort)</option>
+								<option value="selection">选择排序 (Selection Sort)</option>
+								<option value="insertion">插入排序 (Insertion Sort)</option>
+							</select>
+						</div>
+
+						<button class="btn-action btn-primary" id="btnSortStart" type="button">▶ 开始排序动画</button>
+						<button class="btn-action btn-secondary" id="btnSortShuffle" type="button">🔀 打乱数组数据</button>
+					</div>
+
+					<div class="game-message" id="gameMessage" aria-live="polite">准备开始体验！</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const canvas = document.getElementById('visualCanvas');
+			const ctx = canvas.getContext('2d');
+			const gameMessage = document.getElementById('gameMessage');
+
+			let activeMode = 'hanoi'; // 'hanoi' | 'sort'
+			let isAnimating = false;
+
+			// --- 汉诺塔逻辑变量 ---
+			let hanoiDiscs = 4;
+			let hanoiPillars = [[], [], []];
+			let hanoiStepCount = 0;
+			let selectedPillar = -1;
+
+			// --- 排序逻辑变量 ---
+			let sortArray = [];
+			const SORT_COUNT = 18;
+			let highlightIndices = { compare: [], swap: [], sorted: [] };
+
+			// --- 模式切换事件 ---
+			const tabHanoi = document.getElementById('tabHanoi');
+			const tabSort = document.getElementById('tabSort');
+			const hanoiPanel = document.getElementById('hanoiPanel');
+			const sortPanel = document.getElementById('sortPanel');
+
+			tabHanoi.addEventListener('click', () => {
+				if (isAnimating) return;
+				activeMode = 'hanoi';
+				tabHanoi.classList.add('active');
+				tabSort.classList.remove('active');
+				hanoiPanel.classList.add('active');
+				sortPanel.classList.remove('active');
+				initHanoi();
+			});
+
+			tabSort.addEventListener('click', () => {
+				if (isAnimating) return;
+				activeMode = 'sort';
+				tabSort.classList.add('active');
+				tabHanoi.classList.remove('active');
+				sortPanel.classList.add('active');
+				hanoiPanel.classList.remove('active');
+				initSort();
+			});
+
+			function delay(ms) {
+				return new Promise((resolve) => setTimeout(resolve, ms));
+			}
+
+			function setMessage(msg, success = false) {
+				gameMessage.textContent = msg;
+				gameMessage.classList.toggle('success', success);
+			}
+
+			// ==================== 1. 汉诺塔部分 ====================
+			const hanoiDiscSelect = document.getElementById('hanoiDiscSelect');
+			const hanoiStepsEl = document.getElementById('hanoiSteps');
+			const hanoiMinStepsEl = document.getElementById('hanoiMinSteps');
+			const btnHanoiSolve = document.getElementById('btnHanoiSolve');
+			const btnHanoiReset = document.getElementById('btnHanoiReset');
+
+			function initHanoi() {
+				hanoiDiscs = Number.parseInt(hanoiDiscSelect.value, 10);
+				hanoiPillars = [[], [], []];
+				for (let i = hanoiDiscs; i >= 1; i--) {
+					hanoiPillars[0].push(i);
+				}
+				hanoiStepCount = 0;
+				selectedPillar = -1;
+				hanoiStepsEl.textContent = '0';
+				hanoiMinStepsEl.textContent = String(Math.pow(2, hanoiDiscs) - 1);
+				setMessage('点击柱子即可手动移动最上方的圆盘。');
+				drawHanoi();
+			}
+
+			function drawHanoi() {
+				ctx.fillStyle = '#090d16';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				const pillarX = [canvas.width * 0.22, canvas.width * 0.5, canvas.width * 0.78];
+				const baseY = canvas.height - 60;
+
+				// 绘制底座与立柱
+				ctx.fillStyle = '#334155';
+				ctx.fillRect(40, baseY, canvas.width - 80, 16);
+
+				pillarX.forEach((x, idx) => {
+					ctx.fillStyle = selectedPillar === idx ? '#f59e0b' : '#475569';
+					ctx.fillRect(x - 6, 120, 12, baseY - 120);
+
+					// 柱子标识 A, B, C
+					ctx.fillStyle = '#94a3b8';
+					ctx.font = 'bold 16px sans-serif';
+					ctx.textAlign = 'center';
+					ctx.fillText(String.fromCharCode(65 + idx), x, baseY + 35);
+				});
+
+				// 绘制盘片
+				const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316'];
+				hanoiPillars.forEach((pillar, pIdx) => {
+					const px = pillarX[pIdx];
+					pillar.forEach((discSize, dIdx) => {
+						const discWidth = 40 + discSize * 22;
+						const dy = baseY - (dIdx + 1) * 24;
+						const color = colors[(discSize - 1) % colors.length];
+
+						ctx.fillStyle = color;
+						ctx.shadowBlur = 8;
+						ctx.shadowColor = color;
+						ctx.beginPath();
+						ctx.roundRect(px - discWidth / 2, dy, discWidth, 20, 6);
+						ctx.fill();
+						ctx.shadowBlur = 0;
+					});
+				});
+			}
+
+			async function moveDiscHanoi(from, to) {
+				if (hanoiPillars[from].length === 0) return false;
+				const disc = hanoiPillars[from].pop();
+				hanoiPillars[to].push(disc);
+				hanoiStepCount++;
+				hanoiStepsEl.textContent = String(hanoiStepCount);
+				drawHanoi();
+
+				// 检查胜利
+				if (hanoiPillars[2].length === hanoiDiscs) {
+					setMessage('🎉 恭喜成功将所有圆盘移至 C 柱！', true);
+				}
+				return true;
+			}
+
+			canvas.addEventListener('click', (e) => {
+				if (activeMode !== 'hanoi' || isAnimating) return;
+
+				const rect = canvas.getBoundingClientRect();
+				const clickX = ((e.clientX - rect.left) / rect.width) * canvas.width;
+				const pillarX = [canvas.width * 0.22, canvas.width * 0.5, canvas.width * 0.78];
+
+				let clickedPillar = -1;
+				pillarX.forEach((px, idx) => {
+					if (Math.abs(clickX - px) < 80) clickedPillar = idx;
+				});
+
+				if (clickedPillar === -1) return;
+
+				if (selectedPillar === -1) {
+					if (hanoiPillars[clickedPillar].length > 0) {
+						selectedPillar = clickedPillar;
+					}
+				} else {
+					if (selectedPillar !== clickedPillar) {
+						const fromList = hanoiPillars[selectedPillar];
+						const toList = hanoiPillars[clickedPillar];
+						const movingDisc = fromList[fromList.length - 1];
+						const targetTop = toList[toList.length - 1];
+
+						if (!targetTop || movingDisc < targetTop) {
+							moveDiscHanoi(selectedPillar, clickedPillar);
+						} else {
+							setMessage('❌ 大盘片不能叠在小盘片上面！');
+						}
+					}
+					selectedPillar = -1;
+				}
+				drawHanoi();
+			});
+
+			// AI 递归解法动画
+			async function solveHanoiRecursive(n, from, to, aux) {
+				if (!isAnimating || n <= 0) return;
+				await solveHanoiRecursive(n - 1, from, aux, to);
+				if (!isAnimating) return;
+				await moveDiscHanoi(from, to);
+				await delay(300);
+				await solveHanoiRecursive(n - 1, aux, to, from);
+			}
+
+			btnHanoiSolve.addEventListener('click', async () => {
+				if (isAnimating) return;
+				isAnimating = true;
+				btnHanoiSolve.disabled = true;
+				btnHanoiReset.disabled = true;
+				hanoiDiscSelect.disabled = true;
+
+				initHanoi();
+				setMessage('🤖 AI 算法展示递归移动中...');
+				await solveHanoiRecursive(hanoiDiscs, 0, 2, 1);
+
+				isAnimating = false;
+				btnHanoiSolve.disabled = false;
+				btnHanoiReset.disabled = false;
+				hanoiDiscSelect.disabled = false;
+			});
+
+			btnHanoiReset.addEventListener('click', () => {
+				if (isAnimating) return;
+				initHanoi();
+			});
+
+			hanoiDiscSelect.addEventListener('change', () => {
+				if (isAnimating) return;
+				initHanoi();
+			});
+
+			// ==================== 2. 排序算法部分 ====================
+			const sortAlgoSelect = document.getElementById('sortAlgoSelect');
+			const btnSortStart = document.getElementById('btnSortStart');
+			const btnSortShuffle = document.getElementById('btnSortShuffle');
+
+			function initSort() {
+				sortArray = [];
+				for (let i = 0; i < SORT_COUNT; i++) {
+					sortArray.push(Math.floor(Math.random() * 80) + 15);
+				}
+				highlightIndices = { compare: [], swap: [], sorted: [] };
+				setMessage('点击“开始排序”观察数组动态调整过程！');
+				drawSort();
+			}
+
+			function drawSort() {
+				ctx.fillStyle = '#090d16';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				const barWidth = (canvas.width - 120) / SORT_COUNT;
+				const startX = 60;
+				const baseY = canvas.height - 50;
+
+				sortArray.forEach((val, idx) => {
+					const x = startX + idx * barWidth;
+					const barHeight = val * 3.8;
+
+					let color = '#3b82f6';
+					if (highlightIndices.sorted.includes(idx)) color = '#10b981';
+					else if (highlightIndices.swap.includes(idx)) color = '#ef4444';
+					else if (highlightIndices.compare.includes(idx)) color = '#f59e0b';
+
+					ctx.fillStyle = color;
+					ctx.shadowBlur = color === '#3b82f6' ? 0 : 8;
+					ctx.shadowColor = color;
+					ctx.fillRect(x + 2, baseY - barHeight, barWidth - 4, barHeight);
+
+					// 内部数值标识
+					ctx.fillStyle = '#94a3b8';
+					ctx.font = '11px sans-serif';
+					ctx.textAlign = 'center';
+					ctx.fillText(String(val), x + barWidth / 2, baseY + 20);
+				});
+				ctx.shadowBlur = 0;
+			}
+
+			async function runBubbleSort() {
+				const len = sortArray.length;
+				for (let i = 0; i < len; i++) {
+					for (let j = 0; j < len - i - 1; j++) {
+						if (!isAnimating) return;
+						highlightIndices.compare = [j, j + 1];
+						drawSort();
+						await delay(80);
+
+						if (sortArray[j] > sortArray[j + 1]) {
+							highlightIndices.swap = [j, j + 1];
+							const temp = sortArray[j];
+							sortArray[j] = sortArray[j + 1];
+							sortArray[j + 1] = temp;
+							drawSort();
+							await delay(80);
+						}
+						highlightIndices.swap = [];
+					}
+					highlightIndices.sorted.push(len - i - 1);
+				}
+			}
+
+			async function runSelectionSort() {
+				const len = sortArray.length;
+				for (let i = 0; i < len; i++) {
+					let minIdx = i;
+					for (let j = i + 1; j < len; j++) {
+						if (!isAnimating) return;
+						highlightIndices.compare = [minIdx, j];
+						drawSort();
+						await delay(60);
+
+						if (sortArray[j] < sortArray[minIdx]) {
+							minIdx = j;
+						}
+					}
+					if (minIdx !== i) {
+						highlightIndices.swap = [i, minIdx];
+						const temp = sortArray[i];
+						sortArray[i] = sortArray[minIdx];
+						sortArray[minIdx] = temp;
+						drawSort();
+						await delay(100);
+					}
+					highlightIndices.sorted.push(i);
+				}
+			}
+
+			async function runInsertionSort() {
+				const len = sortArray.length;
+				for (let i = 1; i < len; i++) {
+					let key = sortArray[i];
+					let j = i - 1;
+					while (j >= 0 && sortArray[j] > key) {
+						if (!isAnimating) return;
+						highlightIndices.compare = [j, j + 1];
+						sortArray[j + 1] = sortArray[j];
+						highlightIndices.swap = [j, j + 1];
+						drawSort();
+						await delay(80);
+						j = j - 1;
+					}
+					sortArray[j + 1] = key;
+				}
+				highlightIndices.sorted = Array.from({ length: len }, (_, i) => i);
+			}
+
+			btnSortStart.addEventListener('click', async () => {
+				if (isAnimating) return;
+				isAnimating = true;
+				btnSortStart.disabled = true;
+				btnSortShuffle.disabled = true;
+
+				const algo = sortAlgoSelect.value;
+				setMessage('数据排列计算中...');
+
+				if (algo === 'bubble') await runBubbleSort();
+				else if (algo === 'selection') await runSelectionSort();
+				else if (algo === 'insertion') await runInsertionSort();
+
+				highlightIndices.compare = [];
+				highlightIndices.swap = [];
+				drawSort();
+
+				setMessage('🎉 排序完成！数据已按升序排列。', true);
+				isAnimating = false;
+				btnSortStart.disabled = false;
+				btnSortShuffle.disabled = false;
+			});
+
+			btnSortShuffle.addEventListener('click', () => {
+				if (isAnimating) return;
+				initSort();
+			});
+
+			// 初始化进入汉诺塔
+			initHanoi();
+		</script>
+	</body>
+</html>
