@@ -2,7 +2,6 @@
 title: "智能机器人指令画画玩法攻略：用方向与角度积木解锁几何艺术"
 description: "全网最详尽的《智能机器人指令画画（Turtle Painter）》教学指南。深入拆解动作指令队列、角度旋转逻辑与多边形绘制算法，带孩子轻松掌握少儿编程核心思维！"
 pubDate: "2026-07-27"
-heroImage: "src/assets/CleanerIllustration.svg"
 lang: "zh"
 tag: "儿童编程"
 pinned: false
