@@ -1,0 +1,496 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: '实用金融小工具：购房 vs 租房终极抉择计算器 (Rent vs. Buy Calculator)',
+	description: '免安装！综合考量首付理财机会成本、房贷利息、租金涨幅与房价升值，精确计算在当前城市居住多少年买房才比租房更划算。',
+	icon: '🏠',
+	tag: '金融理财',
+	keywords: '购房还是租房 买房划算还是租房划算 房贷计算器 机会成本 租售比 购房决策工具 资产配置',
+	pinned: false,
+	priority: 89
+};
+
+const pageTitle = `购房 vs 租房终极抉择计算器 — ${SITE_TITLE}`;
+const pageDescription = '买房还是租房？输入房屋总价、首付与租金，一键算出资产演变曲线与决策建议！';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 1120px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 2em 1em 3em;
+				box-sizing: border-box;
+			}
+
+			.tool-header {
+				text-align: center;
+				margin-bottom: 1.2em;
+			}
+
+			.tool-header h1 {
+				font-size: clamp(1.3rem, 4vw, 2.1rem);
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: clamp(0.85rem, 2.2vw, 0.95rem);
+			}
+
+			.calc-container {
+				display: grid;
+				grid-template-columns: 360px minmax(0, 1fr);
+				gap: 1.2rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 20px;
+				padding: 1.2rem;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+				backdrop-filter: blur(12px);
+				box-sizing: border-box;
+			}
+
+			.input-panel {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+			}
+
+			.input-group {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.7rem;
+				box-sizing: border-box;
+			}
+
+			.input-label {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.8rem;
+				font-weight: 700;
+				color: var(--text-muted);
+				margin-bottom: 0.3rem;
+			}
+
+			.input-val-tag {
+				color: #3b82f6;
+				font-size: 0.9rem;
+				font-weight: 800;
+			}
+
+			.range-slider {
+				width: 100%;
+				accent-color: #3b82f6;
+				cursor: pointer;
+			}
+
+			.result-panel {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				min-width: 0;
+			}
+
+			.verdict-card {
+				background: var(--search-bg);
+				border: 1.5px solid var(--card-border);
+				border-radius: 14px;
+				padding: 1rem;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+			}
+
+			.verdict-title {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				font-weight: 700;
+				margin-bottom: 0.2rem;
+			}
+
+			.verdict-main {
+				font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+				font-weight: 800;
+				color: var(--text-main);
+			}
+
+			.verdict-badge {
+				background: rgba(59, 130, 246, 0.15);
+				border: 1px solid rgba(59, 130, 246, 0.4);
+				color: #3b82f6;
+				padding: 0.4em 0.9em;
+				border-radius: 20px;
+				font-weight: 800;
+				font-size: 0.85rem;
+				white-space: nowrap;
+			}
+
+			.chart-card {
+				position: relative;
+				width: 100%;
+				aspect-ratio: 16 / 9;
+				max-height: 42vh;
+				background: #090d16;
+				border: 2px solid #334155;
+				border-radius: 16px;
+				overflow: hidden;
+				display: flex;
+				box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+			}
+
+			#chartCanvas {
+				width: 100%;
+				height: 100%;
+				display: block;
+			}
+
+			.kpi-row {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+			}
+
+			.kpi-card {
+				background: var(--search-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.7rem 0.9rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.2rem;
+			}
+
+			.kpi-title {
+				font-size: 0.78rem;
+				color: var(--text-muted);
+				font-weight: 700;
+			}
+
+			.kpi-val {
+				font-size: 1.1rem;
+				font-weight: 800;
+				color: var(--text-main);
+			}
+
+			@media (max-width: 900px) {
+				.calc-container {
+					grid-template-columns: 1fr;
+				}
+
+				.input-panel {
+					max-width: 520px;
+					margin: 0 auto;
+					width: 100%;
+				}
+			}
+
+			/* 📱 手机端视口自适应压缩 */
+			@media (max-width: 600px) {
+				main {
+					padding: 0.2em 0.5em 1em;
+				}
+
+				.tool-header p {
+					display: none;
+				}
+
+				.tool-header h1 {
+					font-size: 1.15rem;
+					margin-bottom: 0;
+				}
+
+				.calc-container {
+					padding: 0.5rem;
+					gap: 0.5rem;
+				}
+
+				.kpi-row {
+					grid-template-columns: 1fr;
+					gap: 0.4rem;
+				}
+
+				.chart-card {
+					max-height: 32vh !important;
+				}
+
+				.verdict-card {
+					flex-direction: column;
+					align-items: flex-start;
+					gap: 0.5rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="tool-header">
+				<h1>🏠 实用金融小工具：购房 vs 租房终极抉择计算器</h1>
+				<p>输入房屋总价、房贷利率、月租金与理财收益率，精准算出买房与租房理财的资产演变差距！</p>
+			</div>
+
+			<div class="calc-container">
+				<div class="input-panel">
+					<div class="input-group">
+						<div class="input-label">
+							<span>房屋总价 (万元)</span>
+							<span class="input-val-tag" id="homePriceTag">300 万元</span>
+						</div>
+						<input class="range-slider" id="homePrice" type="range" min="50" max="1500" step="10" value="300" />
+					</div>
+
+					<div class="input-group">
+						<div class="input-label">
+							<span>首付比例 (%)</span>
+							<span class="input-val-tag" id="downPaymentPctTag">30 %</span>
+						</div>
+						<input class="range-slider" id="downPaymentPct" type="range" min="15" max="80" step="5" value="30" />
+					</div>
+
+					<div class="input-group">
+						<div class="input-label">
+							<span>房贷利率 (%)</span>
+							<span class="input-val-tag" id="mortgageRateTag">3.5 %</span>
+						</div>
+						<input class="range-slider" id="mortgageRate" type="range" min="1.5" max="7.0" step="0.1" value="3.5" />
+					</div>
+
+					<div class="input-group">
+						<div class="input-label">
+							<span>每月对应租金 (元)</span>
+							<span class="input-val-tag" id="monthlyRentTag">¥ 4,500</span>
+						</div>
+						<input class="range-slider" id="monthlyRent" type="range" min="1000" max="30000" step="500" value="4500" />
+					</div>
+
+					<div class="input-group">
+						<div class="input-label">
+							<span>首付拿去理财收益率 (%)</span>
+							<span class="input-val-tag" id="investReturnRateTag">5.0 %</span>
+						</div>
+						<input class="range-slider" id="investReturnRate" type="range" min="1.0" max="10.0" step="0.5" value="5.0" />
+					</div>
+				</div>
+
+				<div class="result-panel">
+					<div class="verdict-card">
+						<div>
+							<div class="verdict-title">💡 最终决策建议</div>
+							<div class="verdict-main" id="verdictText">计算中...</div>
+						</div>
+						<div class="verdict-badge" id="verdictBadge">居住周期对比</div>
+					</div>
+
+					<div class="kpi-row">
+						<div class="kpi-card">
+							<span class="kpi-title">买房方案（预计每月供房）</span>
+							<span class="kpi-val" id="kpiMortgagePayment" style="color:#3b82f6;">¥ 0</span>
+						</div>
+						<div class="kpi-card">
+							<span class="kpi-title">租房方案（每月差额可拿去理财）</span>
+							<span class="kpi-val" id="kpiRentSavings" style="color:#10b981;">¥ 0</span>
+						</div>
+					</div>
+
+					<div class="chart-card">
+						<canvas id="chartCanvas" width="800" height="450"></canvas>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<Footer lang="zh" />
+
+		<script is:inline>
+			const homePriceInput = document.getElementById('homePrice');
+			const downPaymentPctInput = document.getElementById('downPaymentPct');
+			const mortgageRateInput = document.getElementById('mortgageRate');
+			const monthlyRentInput = document.getElementById('monthlyRent');
+			const investReturnRateInput = document.getElementById('investReturnRate');
+
+			const homePriceTag = document.getElementById('homePriceTag');
+			const downPaymentPctTag = document.getElementById('downPaymentPctTag');
+			const mortgageRateTag = document.getElementById('mortgageRateTag');
+			const monthlyRentTag = document.getElementById('monthlyRentTag');
+			const investReturnRateTag = document.getElementById('investReturnRateTag');
+
+			const verdictText = document.getElementById('verdictText');
+			const verdictBadge = document.getElementById('verdictBadge');
+			const kpiMortgagePayment = document.getElementById('kpiMortgagePayment');
+			const kpiRentSavings = document.getElementById('kpiRentSavings');
+
+			const canvas = document.getElementById('chartCanvas');
+			const ctx = canvas.getContext('2d');
+
+			function formatMoney(num) {
+				return '¥ ' + Math.round(num).toLocaleString('zh-CN');
+			}
+
+			function calculateData() {
+				const priceVal = Number.parseFloat(homePriceInput.value) * 10000; // 万元转元
+				const downPct = Number.parseFloat(downPaymentPctInput.value) / 100;
+				const mRate = Number.parseFloat(mortgageRateInput.value) / 100 / 12; // 月利率
+				const rentVal = Number.parseFloat(monthlyRentInput.value);
+				const invRate = Number.parseFloat(investReturnRateInput.value) / 100 / 12; // 理财月收益率
+
+				homePriceTag.textContent = homePriceInput.value + ' 万元';
+				downPaymentPctTag.textContent = downPaymentPctInput.value + ' %';
+				mortgageRateTag.textContent = mortgageRateInput.value + ' %';
+				monthlyRentTag.textContent = formatMoney(rentVal);
+				investReturnRateTag.textContent = investReturnRateInput.value + ' %';
+
+				const downPayment = priceVal * downPct;
+				const loanAmount = priceVal - downPayment;
+				const totalMonths = 360; // 30年期等额本息
+
+				// 计算月供 (等额本息公式)
+				const monthlyMortgage = (loanAmount * mRate * Math.pow(1 + mRate, totalMonths)) / (Math.pow(1 + mRate, totalMonths) - 1);
+				kpiMortgagePayment.textContent = formatMoney(monthlyMortgage);
+
+				const monthlyDiff = monthlyMortgage - rentVal;
+				kpiRentSavings.textContent = monthlyDiff > 0 ? formatMoney(monthlyDiff) + ' /月' : '租金高于月供';
+
+				// 30年动态模拟数据
+				const yearlyData = [];
+				let buyAsset = priceVal; // 假设房价年化增值 1.5%
+				let rentAsset = downPayment; // 租房方案：首付直接拿去理财
+
+				let breakEvenYear = -1;
+
+				for (let year = 1; year <= 30; year++) {
+					for (let month = 1; month <= 12; month++) {
+						// 买房方案：房子小幅升值
+						buyAsset *= (1 + 0.015 / 12);
+						// 租房方案：首付利滚利 + 月供差额定投
+						rentAsset = rentAsset * (1 + invRate) + (monthlyDiff > 0 ? monthlyDiff : 0);
+					}
+
+					if (buyAsset > rentAsset && breakEvenYear === -1) {
+						breakEvenYear = year;
+					}
+
+					yearlyData.push({
+						year,
+						buyNetWorth: buyAsset,
+						rentNetWorth: rentAsset
+					});
+				}
+
+				if (breakEvenYear > 0 && breakEvenYear <= 15) {
+					verdictText.textContent = `建议买房：住满 ${breakEvenYear} 年以上买房资产更优！`;
+					verdictBadge.textContent = '🏠 买房更划算';
+					verdictBadge.style.color = '#3b82f6';
+					verdictBadge.style.background = 'rgba(59, 130, 246, 0.15)';
+				} else {
+					verdictText.textContent = `建议租房：首付投资收益大于买房增值潜力！`;
+					verdictBadge.textContent = '🔑 租房理财更划算';
+					verdictBadge.style.color = '#10b981';
+					verdictBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+				}
+
+				drawChart(yearlyData);
+			}
+
+			function drawChart(data) {
+				ctx.fillStyle = '#090d16';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				if (!data || data.length === 0) return;
+
+				const padding = { top: 40, right: 30, bottom: 50, left: 70 };
+				const graphW = canvas.width - padding.left - padding.right;
+				const graphH = canvas.height - padding.top - padding.bottom;
+
+				const maxVal = Math.max(data[data.length - 1].buyNetWorth, data[data.length - 1].rentNetWorth) * 1.1;
+
+				// 网格线
+				ctx.strokeStyle = '#1e293b';
+				ctx.lineWidth = 1;
+				ctx.fillStyle = '#64748b';
+				ctx.font = '12px sans-serif';
+				ctx.textAlign = 'right';
+
+				const gridRows = 5;
+				for (let i = 0; i <= gridRows; i++) {
+					const yVal = (maxVal / gridRows) * i;
+					const yPos = canvas.height - padding.bottom - (graphH / gridRows) * i;
+
+					ctx.beginPath();
+					ctx.moveTo(padding.left, yPos);
+					ctx.lineTo(canvas.width - padding.right, yPos);
+					ctx.stroke();
+
+					ctx.fillText('¥ ' + (yVal / 10000).toFixed(0) + '万', padding.left - 10, yPos + 4);
+				}
+
+				// X 轴刻度
+				ctx.textAlign = 'center';
+				const step = Math.max(1, Math.floor(data.length / 6));
+				data.forEach((d, idx) => {
+					if (idx % step === 0 || idx === data.length - 1) {
+						const xPos = padding.left + (graphW / (data.length - 1 || 1)) * idx;
+						ctx.fillText(`${d.year}年`, xPos, canvas.height - padding.bottom + 20);
+					}
+				});
+
+				// 绘制买房资产曲线 (蓝色)
+				ctx.strokeStyle = '#3b82f6';
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				data.forEach((d, idx) => {
+					const xPos = padding.left + (graphW / (data.length - 1 || 1)) * idx;
+					const yPos = canvas.height - padding.bottom - (d.buyNetWorth / maxVal) * graphH;
+					if (idx === 0) ctx.moveTo(xPos, yPos);
+					else ctx.lineTo(xPos, yPos);
+				});
+				ctx.stroke();
+
+				// 绘制租房理财资产曲线 (绿色)
+				ctx.strokeStyle = '#10b981';
+				ctx.lineWidth = 3;
+				ctx.beginPath();
+				data.forEach((d, idx) => {
+					const xPos = padding.left + (graphW / (data.length - 1 || 1)) * idx;
+					const yPos = canvas.height - padding.bottom - (d.rentNetWorth / maxVal) * graphH;
+					if (idx === 0) ctx.moveTo(xPos, yPos);
+					else ctx.lineTo(xPos, yPos);
+				});
+				ctx.stroke();
+
+				// 图例
+				ctx.fillStyle = '#3b82f6';
+				ctx.fillRect(padding.left, 15, 12, 12);
+				ctx.fillStyle = '#e2e8f0';
+				ctx.textAlign = 'left';
+				ctx.fillText('买房净资产演变', padding.left + 18, 25);
+
+				ctx.fillStyle = '#10b981';
+				ctx.fillRect(padding.left + 140, 15, 12, 12);
+				ctx.fillStyle = '#e2e8f0';
+				ctx.fillText('租房 + 首付理财净资产演变', padding.left + 158, 25);
+			}
+
+			[homePriceInput, downPaymentPctInput, mortgageRateInput, monthlyRentInput, investReturnRateInput].forEach((input) => {
+				input.addEventListener('input', calculateData);
+			});
+
+			calculateData();
+		</script>
+	</body>
+</html>
