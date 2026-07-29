@@ -1,89 +1,59 @@
 ---
+// src/pages/admin/tools.astro
 import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 模拟前台现有的工具清单（实际项目中在此处查数据库或读取 Frontmatter 列表）
-const toolsList = [
-	{ id: 1, name: '复利与财务自由(FIRE)计算器', icon: '📈', category: '金融理财', priority: 88, pinned: true, status: 'active', url: '/zh/tools/compound-interest-fire-calculator/' },
+// 默认初始工具列表（作为 fallback）
+const defaultTools = [
+	{ id: 1, name: '复利与财务自由(FIRE)计算器', icon: '📈', category: '金融理财', priority: 90, pinned: true, status: 'active', url: '/zh/tools/compound-interest-fire-calculator/' },
 	{ id: 2, name: '购房 vs 租房终极抉择计算器', icon: '🏠', category: '金融理财', priority: 89, pinned: true, status: 'active', url: '/zh/tools/rent-vs-buy-calculator/' },
-	{ id: 3, name: '“拿铁效应”微投资模拟器', icon: '☕', category: '金融理财', priority: 90, pinned: false, status: 'active', url: '/zh/tools/latte-factor-calculator/' },
+	{ id: 3, name: '“拿铁效应”微投资模拟器', icon: '☕', category: '金融理财', priority: 88, pinned: false, status: 'active', url: '/zh/tools/latte-factor-calculator/' },
 	{ id: 4, name: '激光折射大挑战', icon: '🧭', category: '儿童编程', priority: 86, pinned: false, status: 'active', url: '/zh/tools/laser-mirror-puzzle/' },
-	{ id: 5, name: '控制台文字冒险游戏引擎', icon: '⚔️', category: 'C语言入门', priority: 87, pinned: false, status: 'active', url: '/zh/tools/c-text-adventure-builder/' }
+	{ id: 5, name: '控制台文字冒险游戏引擎', icon: '⚔️', category: 'C语言入门', priority: 85, pinned: false, status: 'active', url: '/zh/tools/c-text-adventure-builder/' }
 ];
+
+// SSR 阶段直接从 KV 获取最新排序数据
+let toolsList = defaultTools;
+
+try {
+	const runtime = (Astro.locals as any).runtime;
+	const kv = runtime?.env?.ADMIN_KV;
+
+	if (kv) {
+		const savedData = await kv.get('config_tools', { type: 'json' });
+		if (savedData && Array.isArray(savedData)) {
+			toolsList = savedData;
+		}
+	}
+} catch (e) {
+	console.error('读取 KV 失败，使用默认列表', e);
+}
+
+// 默认按 priority 倒序排列
+toolsList.sort((a, b) => b.priority - a.priority);
 ---
 
-<AdminLayout title="工具管理与排序">
+<AdminLayout title="工具与排序管理">
 	<style>
-		.tool-table-card {
-			background: var(--admin-card);
-			border: 1px solid var(--admin-border);
-			border-radius: 16px;
-			padding: 1.2rem;
-			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-		}
-
-		table {
-			width: 100%;
-			border-collapse: collapse;
-			text-align: left;
-			font-size: 0.88rem;
-		}
-
-		th {
-			color: var(--admin-muted);
-			padding: 0.8rem 0.5rem;
-			border-bottom: 1px solid var(--admin-border);
-			font-size: 0.82rem;
-		}
-
-		td {
-			padding: 0.9rem 0.5rem;
-			border-bottom: 1px solid var(--admin-border);
-			vertical-align: middle;
-		}
-
-		.tool-name-cell {
-			display: flex;
-			align-items: center;
-			gap: 0.6rem;
-			font-weight: 700;
-		}
-
-		.input-priority {
-			width: 60px;
-			background: var(--admin-bg);
-			border: 1px solid var(--admin-border);
-			color: var(--admin-text);
-			padding: 0.3em 0.5em;
-			border-radius: 6px;
-			font-weight: 700;
-			text-align: center;
-		}
-
-		.badge {
-			padding: 0.2em 0.6em;
-			border-radius: 12px;
-			font-size: 0.75rem;
-			font-weight: 800;
-		}
-
+		.tool-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 1.5rem; }
+		.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+		table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+		th { color: var(--admin-muted); padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--admin-border); font-size: 0.82rem; }
+		td { padding: 0.9rem 0.5rem; border-bottom: 1px solid var(--admin-border); vertical-align: middle; }
+		.input-priority { width: 70px; background: var(--admin-bg); border: 1px solid var(--admin-border); color: #fff; padding: 0.4em 0.6em; border-radius: 6px; font-weight: 700; text-align: center; outline: none; }
+		.input-priority:focus { border-color: var(--admin-accent); }
+		.badge { padding: 0.2em 0.6em; border-radius: 12px; font-size: 0.75rem; font-weight: 800; }
 		.badge-pinned { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-		.badge-active { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-
-		.btn-save {
-			background: var(--admin-accent);
-			border: none;
-			color: #fff;
-			padding: 0.4em 0.8em;
-			border-radius: 6px;
-			font-weight: 700;
-			cursor: pointer;
-			font-size: 0.8rem;
-		}
+		.btn-save-all { background: var(--admin-accent); border: none; color: #fff; padding: 0.6em 1.2em; border-radius: 8px; font-weight: 800; cursor: pointer; }
 	</style>
 
-	<div class="tool-table-card">
+	<div class="tool-card">
+		<div class="card-header">
+			<span style="color:var(--admin-muted); font-size:0.85rem;">权重值越高，在前台展示位置越靠前</span>
+			<button class="btn-save-all" id="btnSaveAll" type="button">💾 保存全部排序</button>
+		</div>
+
 		<table>
 			<thead>
 				<tr>
@@ -91,17 +61,16 @@ const toolsList = [
 					<th>分类</th>
 					<th>排序权重 (Priority)</th>
 					<th>置顶状态</th>
-					<th>上下架状态</th>
-					<th>操作</th>
+					<th>状态</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody id="toolsTbody">
 				{toolsList.map((tool) => (
-					<tr data-id={tool.id}>
+					<tr data-id={tool.id} data-name={tool.name} data-icon={tool.icon} data-category={tool.category} data-url={tool.url}>
 						<td>
-							<div class="tool-name-cell">
+							<div style="display:flex; align-items:center; gap:0.6rem; font-weight:700;">
 								<span>{tool.icon}</span>
-								<a href={tool.url} target="_blank" style="color:var(--admin-text); text-decoration:none;">{tool.name}</a>
+								<span>{tool.name}</span>
 							</div>
 						</td>
 						<td><span class="badge" style="background:#1e293b; color:#94a3b8;">{tool.category}</span></td>
@@ -115,10 +84,7 @@ const toolsList = [
 							</label>
 						</td>
 						<td>
-							<span class="badge badge-active">正常运行</span>
-						</td>
-						<td>
-							<button class="btn-save btn-save-tool" type="button">保存修改</button>
+							<span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);">正常运行</span>
 						</td>
 					</tr>
 				))}
@@ -127,30 +93,47 @@ const toolsList = [
 	</div>
 
 	<script is:inline>
-		document.querySelectorAll('.btn-save-tool').forEach((btn) => {
-			btn.addEventListener('click', async (e) => {
-				const tr = e.target.closest('tr');
-				const id = tr.dataset.id;
-				const priority = Number.parseInt(tr.querySelector('.input-priority').value, 10);
-				const pinned = tr.querySelector('.check-pinned').checked;
+		document.getElementById('btnSaveAll')?.addEventListener('click', async () => {
+			const btn = document.getElementById('btnSaveAll');
+			btn.textContent = '⏳ 保存中...';
+			btn.disabled = true;
 
-				try {
-					const res = await fetch('/api/admin/tools', {
-						method: 'PUT',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ id, priority, pinned, status: 'active' })
-					});
+			const rows = document.querySelectorAll('#toolsTbody tr');
+			const configData = [];
 
-					const data = await res.json();
-					if (data.success) {
-						alert('✅ 工具配置与权重保存成功！');
-					} else {
-						alert('❌ 保存失败：' + data.message);
-					}
-				} catch {
-					alert('网络请求失败');
-				}
+			rows.forEach((row) => {
+				configData.push({
+					id: Number(row.dataset.id),
+					name: row.dataset.name,
+					icon: row.dataset.icon,
+					category: row.dataset.category,
+					url: row.dataset.url,
+					priority: Number(row.querySelector('.input-priority').value),
+					pinned: row.querySelector('.check-pinned').checked,
+					status: 'active'
+				});
 			});
+
+			try {
+				const res = await fetch('/api/admin/config', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ type: 'tools', configData })
+				});
+
+				const data = await res.json();
+				if (data.success) {
+					alert('🎉 排序配置已成功写入 Cloudflare KV！前台已同步生效。');
+					window.location.reload();
+				} else {
+					alert('保存失败：' + data.message);
+				}
+			} catch (err) {
+				alert('网络同步失败，请检查登录状态或 KV 绑定');
+			} finally {
+				btn.textContent = '💾 保存全部排序';
+				btn.disabled = false;
+			}
 		});
 	</script>
 </AdminLayout>
