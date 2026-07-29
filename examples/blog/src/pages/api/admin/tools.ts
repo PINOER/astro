@@ -1,34 +1,39 @@
+// src/pages/api/admin/login.ts
 import type { APIRoute } from 'astro';
 
+// ⚠️ 关键：必须显式指定 SSR 模式，避免被打包成静态文件
 export const prerender = false;
 
-const SESSION_TOKEN = 'astro_admin_secure_session_token_2026';
-
-export const PUT: APIRoute = async ({ request, cookies }) => {
-	const session = cookies.get('admin_session')?.value;
-
-	if (session !== SESSION_TOKEN) {
-		return new Response(JSON.stringify({ success: false, message: '未授权访问' }), {
-			status: 403,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	}
-
+export const POST: APIRoute = async ({ request, cookies }) => {
 	try {
 		const body = await request.json();
-		const { id, priority, pinned, status } = body;
+		const { username, password } = body;
 
-		// 模拟更新操作，实际项目中在此更新数据库或写入配置 JSON
-		console.log(`[API Update Tool] ID: ${id}, Priority: ${priority}, Pinned: ${pinned}, Status: ${status}`);
+		// 校验账号密码
+		if (username === 'admin' && password === 'admin123') {
+			// 设置 Auth Cookie (安全鉴权)
+			cookies.set('admin_token', 'pinoer_admin_authenticated_token_2026', {
+				path: '/',
+				httpOnly: true,
+				secure: true,
+				sameSite: 'lax',
+				maxAge: 60 * 60 * 24 * 7, // 7 天有效
+			});
 
-		return new Response(JSON.stringify({ success: true, message: '工具状态与排序配置更新成功' }), {
-			status: 200,
-			headers: { 'Content-Type': 'application/json' }
-		});
-	} catch {
-		return new Response(JSON.stringify({ success: false, message: '服务器处理请求失败' }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' }
-		});
+			return new Response(
+				JSON.stringify({ success: true, message: '登录成功' }),
+				{ status: 200, headers: { 'Content-Type': 'application/json' } }
+			);
+		}
+
+		return new Response(
+			JSON.stringify({ success: false, message: '账号或密码错误' }),
+			{ status: 400, headers: { 'Content-Type': 'application/json' } }
+		);
+	} catch (error) {
+		return new Response(
+			JSON.stringify({ success: false, message: '服务端解析请求失败' }),
+			{ status: 500, headers: { 'Content-Type': 'application/json' } }
+		);
 	}
 };
