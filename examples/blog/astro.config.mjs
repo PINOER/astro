@@ -8,7 +8,6 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://helpmini.com',
-	output: 'hybrid', // 👈 2. 新增：开启混合渲染模式（前台静态加速，后台SSR鉴权）
 	adapter: cloudflare(), // 👈 3. 新增：指定部署到 Cloudflare Pages
 	integrations: [mdx(), sitemap()],
 	fonts: [
