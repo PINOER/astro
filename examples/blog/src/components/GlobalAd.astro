@@ -1,0 +1,33 @@
+---
+// src/components/GlobalAd.astro
+interface Props {
+	position: 'top_banner' | 'sidebar';
+}
+
+const { position } = Astro.props;
+
+// 读取 KV 中的广告配置
+let adContent = '';
+let isEnabled = false;
+
+try {
+	const runtime = (Astro.locals as any).runtime;
+	const kv = runtime?.env?.ADMIN_KV;
+
+	if (kv) {
+		const adsConfig = await kv.get('config_ads', { type: 'json' });
+		if (adsConfig && adsConfig[position]) {
+			adContent = adsConfig[position].code || '';
+			isEnabled = adsConfig[position].enabled ?? false;
+		}
+	}
+} catch {
+	isEnabled = false;
+}
+---
+
+{isEnabled && adContent && (
+	<div class="global-ad-wrapper" style="margin: 1.5rem 0; text-align: center;">
+		<Fragment set:html={adContent} />
+	</div>
+)}
