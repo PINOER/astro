@@ -1,0 +1,150 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+
+export const prerender = false;
+
+// 若已登录，直接跳转后台
+const session = Astro.cookies.get('admin_session')?.value;
+if (session === 'astro_admin_secure_session_token_2026') {
+	return Astro.redirect('/admin/tools');
+}
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title="管理员登录 — 后台管理系统" description="系统登录页" />
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				background: #090d16;
+				color: #f8fafc;
+				font-family: system-ui, -apple-system, sans-serif;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+			}
+
+			.login-card {
+				width: 100%;
+				max-width: 380px;
+				background: #111827;
+				border: 1px solid #1e293b;
+				border-radius: 20px;
+				padding: 2rem;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+				box-sizing: border-box;
+			}
+
+			.login-title {
+				text-align: center;
+				font-size: 1.4rem;
+				font-weight: 800;
+				margin-bottom: 1.5rem;
+				background: linear-gradient(135deg, #38bdf8, #818cf8);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+				margin-bottom: 1.2rem;
+			}
+
+			.form-label {
+				font-size: 0.82rem;
+				color: #94a3b8;
+				font-weight: 700;
+			}
+
+			.form-input {
+				background: #090d16;
+				border: 1px solid #1e293b;
+				color: #fff;
+				padding: 0.7em;
+				border-radius: 10px;
+				font-size: 0.9rem;
+				outline: none;
+			}
+
+			.form-input:focus {
+				border-color: #3b82f6;
+			}
+
+			.btn-submit {
+				width: 100%;
+				padding: 0.75em;
+				border-radius: 10px;
+				border: none;
+				background: #3b82f6;
+				color: #fff;
+				font-weight: 800;
+				font-size: 0.95rem;
+				cursor: pointer;
+				margin-top: 0.5rem;
+			}
+
+			.msg-box {
+				font-size: 0.82rem;
+				color: #ef4444;
+				text-align: center;
+				margin-top: 1rem;
+				min-height: 1.2em;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="login-card">
+			<div class="login-title">🔐 控制台管理员登录</div>
+
+			<form id="loginForm">
+				<div class="form-group">
+					<label class="form-label" for="username">管理员账号</label>
+					<input class="form-input" id="username" type="text" value="admin" required />
+				</div>
+
+				<div class="form-group">
+					<label class="form-label" for="password">密码</label>
+					<input class="form-input" id="password" type="password" placeholder="默认密码 admin123" required />
+				</div>
+
+				<button class="btn-submit" type="submit">立即登录</button>
+				<div class="msg-box" id="msgBox"></div>
+			</form>
+		</div>
+
+		<script is:inline>
+			const loginForm = document.getElementById('loginForm');
+			const msgBox = document.getElementById('msgBox');
+
+			loginForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				msgBox.textContent = '';
+
+				const username = document.getElementById('username').value;
+				const password = document.getElementById('password').value;
+
+				try {
+					const res = await fetch('/api/admin/auth', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ username, password })
+					});
+
+					const data = await res.json();
+					if (data.success) {
+						window.location.href = '/admin/tools';
+					} else {
+						msgBox.textContent = data.message || '登录失败';
+					}
+				} catch {
+					msgBox.textContent = '网络请求异常，请稍后重试';
+				}
+			});
+		</script>
+	</body>
+</html>
