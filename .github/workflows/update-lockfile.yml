@@ -1,11 +1,13 @@
 name: 云端更新 pnpm-lock.yaml
 
 on:
-  workflow_dispatch: # 支持在 GitHub 网页上一键手动点击触发
+  workflow_dispatch:
 
 jobs:
   update-lockfile:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
     steps:
       - name: 拉取代码
         uses: actions/checkout@v4
