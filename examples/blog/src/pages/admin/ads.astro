@@ -3,62 +3,106 @@
 import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
+
+// 读取 KV 中已保存的广告配置
+let adsConfig = {
+	top_banner: { code: '', enabled: false },
+	sidebar: { code: '', enabled: false }
+};
+
+try {
+	const runtime = (Astro.locals as any).runtime;
+	const kv = runtime?.env?.ADMIN_KV;
+
+	if (kv) {
+		const saved = await kv.get('config_ads', { type: 'json' });
+		if (saved) {
+			adsConfig = { ...adsConfig, ...saved };
+		}
+	}
+} catch (e) {
+	console.error('读取广告 KV 失败', e);
+}
 ---
 
-<AdminLayout title="全局广告位配置" currentNav="ads">
+<AdminLayout title="全局广告配置">
 	<style>
 		.ad-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
 		.ad-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; }
-		.ad-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
+		.ad-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.5rem; }
 		.ad-desc { font-size: 0.82rem; color: var(--admin-muted); margin-bottom: 1rem; }
-		.form-textarea { width: 100%; height: 100px; background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 10px; color: #fff; padding: 0.7em; font-family: monospace; font-size: 0.82rem; box-sizing: border-box; outline: none; margin-bottom: 1rem; }
+		.form-textarea { width: 100%; height: 110px; background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 10px; color: #fff; padding: 0.7em; font-family: monospace; font-size: 0.82rem; box-sizing: border-box; outline: none; margin-bottom: 1rem; }
+		.form-textarea:focus { border-color: var(--admin-accent); }
 		.switch-wrapper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; font-size: 0.85rem; font-weight: 700; }
-		.btn-save { background: var(--admin-accent); color: #fff; border: none; padding: 0.6em 1em; border-radius: 8px; font-weight: 800; cursor: pointer; }
+		.btn-save { background: var(--admin-accent); color: #fff; border: none; padding: 0.6em 1em; border-radius: 8px; font-weight: 800; cursor: pointer; width: 100%; }
 	</style>
 
 	<div class="ad-grid">
-		<!-- 广告位 1 -->
+		<!-- 广告位 1：顶部 Banner -->
 		<div class="ad-card">
 			<div>
-				<div class="ad-title">
-					<span>📢 全局顶部通栏 Banner</span>
-				</div>
+				<div class="ad-title">📢 全局顶部通栏 Banner</div>
 				<div class="ad-desc">展示在前台所有工具和博客页面顶部的宣发位。</div>
-				<textarea class="form-textarea" placeholder="输入 HTML 广告代码或 <img> 图片标签..."></textarea>
+				<textarea id="topBannerCode" class="form-textarea" placeholder="输入 HTML 广告代码或 <img> 图片链接...">{adsConfig.top_banner.code}</textarea>
 			</div>
 			<div>
 				<div class="switch-wrapper">
 					<span>广告位状态</span>
-					<label><input type="checkbox" checked /> 启用中</label>
+					<label style="cursor:pointer;"><input id="topBannerEnabled" type="checkbox" checked={adsConfig.top_banner.enabled} /> 启用中</label>
 				</div>
-				<button class="btn-save btn-save-ad" type="button">保存设置</button>
+				<button class="btn-save" id="btnSaveTopBanner" type="button">保存顶部 Banner 配置</button>
 			</div>
 		</div>
 
-		<!-- 广告位 2 -->
+		<!-- 广告位 2：侧边栏推荐 -->
 		<div class="ad-card">
 			<div>
-				<div class="ad-title">
-					<span>📌 工具详情页侧边栏推荐</span>
-				</div>
+				<div class="ad-title">📌 工具详情页侧边栏推荐</div>
 				<div class="ad-desc">展示在右侧侧边栏推荐区域，适合推荐独立站高利润产品。</div>
-				<textarea class="form-textarea" placeholder="输入推荐代码或 Shopify 产品图片链接..."></textarea>
+				<textarea id="sidebarCode" class="form-textarea" placeholder="输入推荐代码或 Shopify 产品图片链接...">{adsConfig.sidebar.code}</textarea>
 			</div>
 			<div>
 				<div class="switch-wrapper">
 					<span>广告位状态</span>
-					<label><input type="checkbox" checked /> 启用中</label>
+					<label style="cursor:pointer;"><input id="sidebarEnabled" type="checkbox" checked={adsConfig.sidebar.enabled} /> 启用中</label>
 				</div>
-				<button class="btn-save btn-save-ad" type="button">保存设置</button>
+				<button class="btn-save" id="btnSaveSidebar" type="button">保存侧边栏推荐配置</button>
 			</div>
 		</div>
 	</div>
 
 	<script is:inline>
-		document.querySelectorAll('.btn-save-ad').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				alert('✅ 广告配置更新成功！');
-			});
-		});
+		async function saveAdsConfig() {
+			const configData = {
+				top_banner: {
+					code: document.getElementById('topBannerCode').value,
+					enabled: document.getElementById('topBannerEnabled').checked
+				},
+				sidebar: {
+					code: document.getElementById('sidebarCode').value,
+					enabled: document.getElementById('sidebarEnabled').checked
+				}
+			};
+
+			try {
+				const res = await fetch('/api/admin/config', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ type: 'ads', configData })
+				});
+
+				const data = await res.json();
+				if (data.success) {
+					alert('🎉 广告配置已同步更新至 Cloudflare KV！');
+				} else {
+					alert('保存失败：' + data.message);
+				}
+			} catch (err) {
+				alert('网络错误，请稍后重试');
+			}
+		}
+
+		document.getElementById('btnSaveTopBanner')?.addEventListener('click', saveAdsConfig);
+		document.getElementById('btnSaveSidebar')?.addEventListener('click', saveAdsConfig);
 	</script>
 </AdminLayout>
