@@ -114,6 +114,11 @@ if (session !== 'astro_admin_secure_session_token_2026') {
 				cursor: pointer;
 				font-weight: 700;
 				font-size: 0.82rem;
+				transition: background 0.2s;
+			}
+
+			.btn-logout:hover {
+				background: rgba(239, 68, 68, 0.25);
 			}
 
 			@media (max-width: 768px) {
@@ -136,14 +141,11 @@ if (session !== 'astro_admin_secure_session_token_2026') {
 					<li class={`nav-item ${currentPath.includes('/admin/tools') ? 'active' : ''}`}>
 						<a href="/admin/tools">🛠️ 工具与排序管理</a>
 					</li>
-					<li class="nav-item">
-						<a href="#" style="opacity: 0.5;">🏷️ 分类管理 (第二阶段)</a>
+					<li class={`nav-item ${currentPath.includes('/admin/posts') ? 'active' : ''}`}>
+						<a href="/admin/posts">📝 博客文章管理</a>
 					</li>
-					<li class="nav-item">
-						<a href="#" style="opacity: 0.5;">📝 博客管理 (第二阶段)</a>
-					</li>
-					<li class="nav-item">
-						<a href="#" style="opacity: 0.5;">📢 广告管理 (第二阶段)</a>
+					<li class={`nav-item ${currentPath.includes('/admin/ads') ? 'active' : ''}`}>
+						<a href="/admin/ads">📢 全局广告配置</a>
 					</li>
 				</ul>
 			</div>
