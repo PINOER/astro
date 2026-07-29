@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 // ⚠️ 必须声明：确保 Cloudflare/Astro 按动态 API 运行
 export const prerender = false;
 
+// 1. 管理员登录接口
 export const POST: APIRoute = async ({ request, cookies }) => {
 	try {
 		const body = await request.json();
@@ -33,6 +34,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	} catch (error) {
 		return new Response(
 			JSON.stringify({ success: false, message: '请求解析异常' }),
+			{ status: 500, headers: { 'Content-Type': 'application/json' } }
+		);
+	}
+};
+
+// 2. 退出登录接口（清除 Cookie）
+export const DELETE: APIRoute = async ({ cookies }) => {
+	try {
+		cookies.delete('admin_session', { path: '/' });
+
+		return new Response(
+			JSON.stringify({ success: true, message: '已安全退出登录' }),
+			{ status: 200, headers: { 'Content-Type': 'application/json' } }
+		);
+	} catch (error) {
+		return new Response(
+			JSON.stringify({ success: false, message: '退出登录失败' }),
 			{ status: 500, headers: { 'Content-Type': 'application/json' } }
 		);
 	}
