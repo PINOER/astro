@@ -1,0 +1,61 @@
+---
+// src/pages/admin/posts.astro
+import { getCollection } from 'astro:content';
+import AdminLayout from 'src/layouts/AdminLayout.astro';
+
+export const prerender = false;
+
+// 获取当前所有文章
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<AdminLayout title="博客文章管理" currentNav="posts">
+	<style>
+		.card-panel { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 1.2rem; }
+		.header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+		.stats-badge { font-size: 0.85rem; color: var(--admin-muted); }
+		table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+		th { color: var(--admin-muted); padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--admin-border); font-size: 0.82rem; }
+		td { padding: 0.9rem 0.5rem; border-bottom: 1px solid var(--admin-border); vertical-align: middle; }
+		.post-title-link { color: var(--admin-text); text-decoration: none; font-weight: 700; transition: color 0.2s; }
+		.post-title-link:hover { color: var(--admin-accent); }
+		.badge { padding: 0.2em 0.6em; border-radius: 12px; font-size: 0.75rem; font-weight: 800; }
+		.badge-lang { background: #1e293b; color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+	</style>
+
+	<div class="card-panel">
+		<div class="header-actions">
+			<span class="stats-badge">共收录文章 <strong>{sortedPosts.length}</strong> 篇</span>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>文章标题</th>
+					<th>标识符 (Slug)</th>
+					<th>发布日期</th>
+					<th>预览操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{sortedPosts.map((post) => (
+					<tr>
+						<td>
+							<a class="post-title-link" href={`/blog/${post.slug}`} target="_blank">
+								{post.data.title}
+							</a>
+						</td>
+						<td><code style="color:#94a3b8; font-size:0.8rem;">{post.slug}</code></td>
+						<td>{post.data.pubDate.toISOString().slice(0, 10)}</td>
+						<td>
+							<a href={`/blog/${post.slug}`} target="_blank" style="color: var(--admin-accent); font-weight: 700; text-decoration: none; font-size: 0.82rem;">
+								🔗 网页预览
+							</a>
+						</td>
+					</tr>
+				))}
+			</tbody>
+		</table>
+	</div>
+</AdminLayout>
