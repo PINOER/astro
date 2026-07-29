@@ -1,0 +1,30 @@
+name: 云端更新 pnpm-lock.yaml
+
+on:
+  workflow_dispatch: # 支持在 GitHub 网页上一键手动点击触发
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.13.1
+
+      - name: 配置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 执行 pnpm install 更新锁文件
+        run: pnpm install --no-frozen-lockfile
+
+      - name: 自动提交更新后的 pnpm-lock.yaml
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: 自动化更新 pnpm-lock.yaml"
+          file_pattern: "pnpm-lock.yaml"
