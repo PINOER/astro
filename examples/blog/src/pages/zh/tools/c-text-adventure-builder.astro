@@ -4,14 +4,30 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
-export const frontmatter = {
-	title: '儿童 C 语言入门：控制台文字冒险游戏引擎（C Text Adventure Builder）',
-	description: '免安装！通过玩文字冒险地牢游戏，实时对照学习 C 语言的变量声明、printf/scanf 输入输出以及 if-else 条件分支结构，轻松开启文本编程第一课。',
+export const prerender = false;
+
+// 1. 声明给后台大联动扫描的核心元数据
+export const toolInfo = {
+	id: 'c-text-adventure-builder',
+	name: '控制台文字冒险游戏引擎',
 	icon: '⚔️',
-	tag: 'C语言入门',
+	category: 'C语言入门',
+	description: '免安装！通过玩文字冒险地牢游戏，实时对照学习 C 语言的变量声明、printf/scanf 输入输出以及 if-else 条件分支结构。',
+	url: '/zh/tools/c-text-adventure-builder/',
+	defaultPriority: 75,
 	keywords: 'C语言入门 少儿C语言 C语言控制台游戏 if-else分支结构 C语言变量 编程启蒙',
-	pinned: false,
-	priority: 87
+	pinned: false
+};
+
+// 2. 直接引用 toolInfo，彻底消除重复代码！
+export const frontmatter = {
+	title: `儿童 C 语言入门：${toolInfo.name}`,
+	description: toolInfo.description,
+	icon: toolInfo.icon,
+	tag: toolInfo.category,
+	keywords: toolInfo.keywords,
+	pinned: toolInfo.pinned,
+	priority: toolInfo.defaultPriority
 };
 
 const pageTitle = `儿童 C 语言入门：控制台文字冒险游戏引擎 — ${SITE_TITLE}`;
