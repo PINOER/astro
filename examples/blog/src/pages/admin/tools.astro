@@ -1,90 +1,220 @@
 ---
 // src/pages/admin/tools.astro
 import AdminLayout from 'src/layouts/AdminLayout.astro';
+import { getAllScannedTools, type ToolItem } from 'src/data/toolsData';
 
 export const prerender = false;
 
-// 默认初始工具列表（作为 fallback）
-const defaultTools = [
-	{ id: 1, name: '复利与财务自由(FIRE)计算器', icon: '📈', category: '金融理财', priority: 90, pinned: true, status: 'active', url: '/zh/tools/compound-interest-fire-calculator/' },
-	{ id: 2, name: '购房 vs 租房终极抉择计算器', icon: '🏠', category: '金融理财', priority: 89, pinned: true, status: 'active', url: '/zh/tools/rent-vs-buy-calculator/' },
-	{ id: 3, name: '“拿铁效应”微投资模拟器', icon: '☕', category: '金融理财', priority: 88, pinned: false, status: 'active', url: '/zh/tools/latte-factor-calculator/' },
-	{ id: 4, name: '激光折射大挑战', icon: '🧭', category: '儿童编程', priority: 86, pinned: false, status: 'active', url: '/zh/tools/laser-mirror-puzzle/' },
-	{ id: 5, name: '控制台文字冒险游戏引擎', icon: '⚔️', category: 'C语言入门', priority: 85, pinned: false, status: 'active', url: '/zh/tools/c-text-adventure-builder/' }
-];
+// 1. 全自动扫描当前项目所有 .astro 文件里导出的 toolInfo
+const masterTools = await getAllScannedTools();
 
-// SSR 阶段直接从 KV 获取最新排序数据
-let toolsList = defaultTools;
+// 2. 从 Cloudflare KV 读取管理员修改过的动态配置（权重、置顶、上下架）
+let kvToolsConfig: Record<string, { priority: number; pinned: boolean; status: 'active' | 'disabled' }> = {};
 
 try {
 	const runtime = (Astro.locals as any).runtime;
 	const kv = runtime?.env?.ADMIN_KV;
 
 	if (kv) {
-		const savedData = await kv.get('config_tools', { type: 'json' });
-		if (savedData && Array.isArray(savedData)) {
-			toolsList = savedData;
+		const saved = await kv.get('config_tools_v2', { type: 'json' });
+		if (saved) {
+			kvToolsConfig = saved as typeof kvToolsConfig;
 		}
 	}
 } catch (e) {
-	console.error('读取 KV 失败，使用默认列表', e);
+	console.error('读取 Cloudflare KV 失败，回退使用工具默认配置', e);
 }
 
-// 默认按 priority 倒序排列
-toolsList.sort((a, b) => b.priority - a.priority);
+// 3. 将扫描到的真实工具与 KV 数据库合并
+const mergedTools = masterTools.map((tool) => {
+	const kvData = kvToolsConfig[tool.id];
+	return {
+		...tool,
+		priority: kvData?.priority ?? tool.defaultPriority,
+		pinned: kvData?.pinned ?? (tool as any).pinned ?? false,
+		status: kvData?.status ?? 'active',
+	};
+});
+
+// 4. 按 (置顶优先 -> 权重降序) 排序
+mergedTools.sort((a, b) => {
+	if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+	return b.priority - a.priority;
+});
 ---
 
-<AdminLayout title="工具与排序管理">
+<AdminLayout title="工具管理与排序">
 	<style>
-		.tool-card { background: var(--admin-card); border: 1px solid var(--admin-border); border-radius: 16px; padding: 1.5rem; }
-		.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-		table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
-		th { color: var(--admin-muted); padding: 0.8rem 0.5rem; border-bottom: 1px solid var(--admin-border); font-size: 0.82rem; }
-		td { padding: 0.9rem 0.5rem; border-bottom: 1px solid var(--admin-border); vertical-align: middle; }
-		.input-priority { width: 70px; background: var(--admin-bg); border: 1px solid var(--admin-border); color: #fff; padding: 0.4em 0.6em; border-radius: 6px; font-weight: 700; text-align: center; outline: none; }
-		.input-priority:focus { border-color: var(--admin-accent); }
-		.badge { padding: 0.2em 0.6em; border-radius: 12px; font-size: 0.75rem; font-weight: 800; }
-		.badge-pinned { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-		.btn-save-all { background: var(--admin-accent); border: none; color: #fff; padding: 0.6em 1.2em; border-radius: 8px; font-weight: 800; cursor: pointer; }
+		.tool-card {
+			background: var(--admin-card);
+			border: 1px solid var(--admin-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+		}
+
+		.card-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1.2rem;
+		}
+
+		.header-info h3 {
+			margin: 0 0 0.3rem 0;
+			font-size: 1.1rem;
+		}
+
+		.header-info p {
+			margin: 0;
+			color: var(--admin-muted);
+			font-size: 0.82rem;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			text-align: left;
+			font-size: 0.88rem;
+		}
+
+		th {
+			color: var(--admin-muted);
+			padding: 0.8rem 0.5rem;
+			border-bottom: 1px solid var(--admin-border);
+			font-size: 0.82rem;
+		}
+
+		td {
+			padding: 0.9rem 0.5rem;
+			border-bottom: 1px solid var(--admin-border);
+			vertical-align: middle;
+		}
+
+		.input-priority {
+			width: 75px;
+			background: var(--admin-bg);
+			border: 1px solid var(--admin-border);
+			color: #fff;
+			padding: 0.4em 0.6em;
+			border-radius: 6px;
+			font-weight: 700;
+			text-align: center;
+			outline: none;
+		}
+
+		.input-priority:focus {
+			border-color: var(--admin-accent);
+		}
+
+		.select-status {
+			background: var(--admin-bg);
+			border: 1px solid var(--admin-border);
+			color: #fff;
+			padding: 0.35em 0.6em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			outline: none;
+		}
+
+		.badge {
+			padding: 0.2em 0.6em;
+			border-radius: 12px;
+			font-size: 0.75rem;
+			font-weight: 800;
+		}
+
+		.badge-pinned {
+			background: rgba(245, 158, 11, 0.15);
+			color: #f59e0b;
+			border: 1px solid rgba(245, 158, 11, 0.3);
+		}
+
+		.badge-category {
+			background: #1e293b;
+			color: #94a3b8;
+		}
+
+		.btn-save-all {
+			background: var(--admin-accent);
+			border: none;
+			color: #fff;
+			padding: 0.65em 1.3em;
+			border-radius: 8px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: opacity 0.2s;
+		}
+
+		.btn-save-all:hover {
+			opacity: 0.9;
+		}
+
+		.btn-save-all:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 	</style>
 
 	<div class="tool-card">
 		<div class="card-header">
-			<span style="color:var(--admin-muted); font-size:0.85rem;">权重值越高，在前台展示位置越靠前</span>
-			<button class="btn-save-all" id="btnSaveAll" type="button">💾 保存全部排序</button>
+			<div class="header-info">
+				<h3>扫描到全站真实工具 ({mergedTools.length} 个)</h3>
+				<p>修改权重值后点击保存，前台页面排序将自动同步刷新</p>
+			</div>
+			<button class="btn-save-all" id="btnSaveTools" type="button">💾 保存全部配置</button>
 		</div>
 
 		<table>
 			<thead>
 				<tr>
-					<th>工具名称</th>
+					<th>工具名称与路径</th>
 					<th>分类</th>
 					<th>排序权重 (Priority)</th>
-					<th>置顶状态</th>
-					<th>状态</th>
+					<th>置顶推荐</th>
+					<th>上下架状态</th>
+					<th>前台测试</th>
 				</tr>
 			</thead>
 			<tbody id="toolsTbody">
-				{toolsList.map((tool) => (
-					<tr data-id={tool.id} data-name={tool.name} data-icon={tool.icon} data-category={tool.category} data-url={tool.url}>
+				{mergedTools.map((tool) => (
+					<tr data-id={tool.id}>
 						<td>
-							<div style="display:flex; align-items:center; gap:0.6rem; font-weight:700;">
+							<div style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
 								<span>{tool.icon}</span>
 								<span>{tool.name}</span>
 							</div>
+							<div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.2rem;">
+								<code>{tool.url}</code>
+							</div>
 						</td>
-						<td><span class="badge" style="background:#1e293b; color:#94a3b8;">{tool.category}</span></td>
+						<td>
+							<span class="badge badge-category">{tool.category}</span>
+						</td>
 						<td>
 							<input class="input-priority" type="number" value={tool.priority} />
 						</td>
 						<td>
-							<label style="cursor:pointer; display:flex; align-items:center; gap:0.3rem;">
+							<label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
 								<input class="check-pinned" type="checkbox" checked={tool.pinned} />
-								<span class={tool.pinned ? 'badge badge-pinned' : ''}>{tool.pinned ? '已置顶' : '普通'}</span>
+								<span class={tool.pinned ? 'badge badge-pinned' : ''}>
+									{tool.pinned ? '📌 已置顶' : '普通'}
+								</span>
 							</label>
 						</td>
 						<td>
-							<span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);">正常运行</span>
+							<select class="select-status">
+								<option value="active" selected={tool.status === 'active'}>✅ 正常上架</option>
+								<option value="disabled" selected={tool.status === 'disabled'}>🚫 临时下架</option>
+							</select>
+						</td>
+						<td>
+							<a
+								href={tool.url}
+								target="_blank"
+								style="color: var(--admin-accent); font-weight: 700; text-decoration: none; font-size: 0.82rem;"
+							>
+								🔗 打开预览
+							</a>
 						</td>
 					</tr>
 				))}
@@ -93,45 +223,41 @@ toolsList.sort((a, b) => b.priority - a.priority);
 	</div>
 
 	<script is:inline>
-		document.getElementById('btnSaveAll')?.addEventListener('click', async () => {
-			const btn = document.getElementById('btnSaveAll');
+		document.getElementById('btnSaveTools')?.addEventListener('click', async () => {
+			const btn = document.getElementById('btnSaveTools');
 			btn.textContent = '⏳ 保存中...';
 			btn.disabled = true;
 
 			const rows = document.querySelectorAll('#toolsTbody tr');
-			const configData = [];
+			const configData = {};
 
 			rows.forEach((row) => {
-				configData.push({
-					id: Number(row.dataset.id),
-					name: row.dataset.name,
-					icon: row.dataset.icon,
-					category: row.dataset.category,
-					url: row.dataset.url,
-					priority: Number(row.querySelector('.input-priority').value),
-					pinned: row.querySelector('.check-pinned').checked,
-					status: 'active'
-				});
+				const id = row.dataset.id;
+				const priority = Number(row.querySelector('.input-priority').value);
+				const pinned = row.querySelector('.check-pinned').checked;
+				const status = row.querySelector('.select-status').value;
+
+				configData[id] = { priority, pinned, status };
 			});
 
 			try {
 				const res = await fetch('/api/admin/config', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ type: 'tools', configData })
+					body: JSON.stringify({ type: 'tools_v2', configData })
 				});
 
 				const data = await res.json();
 				if (data.success) {
-					alert('🎉 排序配置已成功写入 Cloudflare KV！前台已同步生效。');
+					alert('🎉 排序与状态已写入 Cloudflare KV，前台受控列表将实时更新！');
 					window.location.reload();
 				} else {
-					alert('保存失败：' + data.message);
+					alert('保存失败：' + (data.message || '未知错误'));
 				}
 			} catch (err) {
-				alert('网络同步失败，请检查登录状态或 KV 绑定');
+				alert('网络同步失败，请检查 API 或 KV 绑定状态');
 			} finally {
-				btn.textContent = '💾 保存全部排序';
+				btn.textContent = '💾 保存全部配置';
 				btn.disabled = false;
 			}
 		});
