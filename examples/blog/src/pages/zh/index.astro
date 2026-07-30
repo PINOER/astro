@@ -11,18 +11,19 @@ const toolFiles = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true 
 
 const zhTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
 	const slug = path.split('/').pop().replace('.astro', '');
-	const fm = file.frontmatter || {};
+	const fm = file.frontmatter || file.toolInfo || {};
 	
 	return {
-		title: fm.title || slug,
+		id: fm.id || slug,
+		title: fm.title || fm.name || slug,
 		desc: fm.description || '',
 		url: `/zh/tools/${slug}/`,
 		type: 'tool',
 		icon: fm.icon || '⚡',
-		tag: fm.tag || '工具',
+		tag: fm.tag || fm.category || '工具',
 		keywords: `${fm.title || ''} ${fm.keywords || ''}`,
 		pinned: fm.pinned || false,
-		priority: fm.priority || 0
+		priority: fm.priority || fm.defaultPriority || 0
 	};
 });
 
@@ -34,6 +35,7 @@ const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.st
 const rawItems = [
 	...zhTools,
 	...zhPosts.map((post) => ({
+		id: post.id,
 		title: post.data.title,
 		desc: post.data.description,
 		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
@@ -45,6 +47,7 @@ const rawItems = [
 		priority: (post.data as any).priority || 0
 	})),
 	...(sponsorItems.zh || []).map((sponsor) => ({
+		id: sponsor.url,
 		title: sponsor.title,
 		desc: sponsor.desc,
 		url: sponsor.url,
@@ -57,7 +60,7 @@ const rawItems = [
 	}))
 ];
 
-// 统一排序：置顶优先 -> 权重高的靠前
+// 统一静态初始排序：置顶优先 -> 权重高的靠前
 const allSearchableItems = rawItems.sort((a, b) => {
 	if (a.pinned && !b.pinned) return -1;
 	if (!a.pinned && b.pinned) return 1;
@@ -337,13 +340,16 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						<a 
 							href={item.url} 
 							class="tool-card searchable-item"
+							data-id={item.id}
+							data-priority={item.priority}
+							data-pinned={item.pinned ? 'true' : 'false'}
 							data-title={item.title.toLowerCase()}
 							data-desc={item.desc.toLowerCase()}
 							data-keywords={item.keywords.toLowerCase()}
 							target={item.url.startsWith('http') ? '_blank' : '_self'}
 							rel={item.url.startsWith('http') ? 'noopener' : ''}
 						>
-							{item.pinned && <span class="pinned-icon" title="已置顶">📌</span>}
+							<span class="pinned-icon" style={item.pinned ? 'display:block' : 'display:none'} title="已置顶">📌</span>
 							<div class="tool-icon">{item.icon}</div>
 							<h3>{item.title}</h3>
 							<p>{item.desc}</p>
@@ -375,7 +381,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer lang="zh" />
 
-		<!-- 极简客户端 JS：控制 21 条/页 分页与搜索过滤 -->
+		<!-- 极简客户端 JS：控制 21 条/页 分页、搜索过滤与 Cloudflare KV 动态排序大联动 -->
 		<script is:inline>
 			const ITEMS_PER_PAGE = 21; // 单页最多显示 21 条卡片
 			let currentPage = 1;
@@ -384,7 +390,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 			const searchInput = document.getElementById('searchInput');
 			const sectionTitle = document.getElementById('sectionTitle');
 			const resultCount = document.getElementById('resultCount');
-			const items = Array.from(document.querySelectorAll('.searchable-item'));
+			let items = Array.from(document.querySelectorAll('.searchable-item'));
 			const noResults = document.getElementById('noResults');
 
 			const pagination = document.getElementById('pagination');
@@ -432,19 +438,74 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				}
 			}
 
-			// 搜素过滤逻辑
+			// 搜索过滤逻辑
 			function handleSearch() {
 				const query = searchInput?.value.toLowerCase().trim() || '';
 
 				filteredItems = items.filter(item => {
+					// 已被后台下架的工具不参与搜索和展示
+					if (item.dataset.disabled === 'true') return false;
+
 					const title = item.getAttribute('data-title') || '';
 					const desc = item.getAttribute('data-desc') || '';
 					const keywords = item.getAttribute('data-keywords') || '';
 					return title.includes(query) || desc.includes(query) || keywords.includes(query);
 				});
 
-				currentPage = 1; // 搜素时重置为第 1 页
+				currentPage = 1; // 搜索时重置为第 1 页
 				renderPage();
+			}
+
+			// ⚡ 核心联动逻辑：动态从 Cloudflare KV API 读取后台配置并重新倒序排列 DOM
+			async function syncKvSorting() {
+				try {
+					const res = await fetch('/api/admin/config?type=tools_v2');
+					const result = await res.json();
+
+					if (result.success && result.data) {
+						const kvConfig = result.data;
+						const grid = document.getElementById('contentGrid');
+
+						items.forEach((card) => {
+							const id = card.dataset.id;
+							const conf = kvConfig[id];
+
+							if (conf) {
+								if (conf.status === 'disabled') {
+									card.dataset.disabled = 'true';
+								} else {
+									card.dataset.disabled = 'false';
+									card.dataset.priority = conf.priority;
+									card.dataset.pinned = conf.pinned ? 'true' : 'false';
+
+									const pinnedIcon = card.querySelector('.pinned-icon');
+									if (pinnedIcon) {
+										pinnedIcon.style.display = conf.pinned ? 'block' : 'none';
+									}
+								}
+							}
+						});
+
+						// 重新按 (置顶 -> Priority 降序) 重排 DOM 顺序
+						items.sort((a, b) => {
+							const isPinnedA = a.dataset.pinned === 'true';
+							const isPinnedB = b.dataset.pinned === 'true';
+
+							if (isPinnedA !== isPinnedB) return isPinnedA ? -1 : 1;
+							return Number(b.dataset.priority || 0) - Number(a.dataset.priority || 0);
+						});
+
+						// 重新将排序后的 DOM 节点挂载回网格
+						items.forEach((card) => {
+							if (noResults) grid.insertBefore(card, noResults);
+						});
+
+						// 过滤并重新刷新页面渲染
+						handleSearch();
+					}
+				} catch (e) {
+					console.warn('读取后台 KV 排序失败，回退使用静态预设顺序');
+				}
 			}
 
 			// 分页按钮事件监听
@@ -468,9 +529,12 @@ const allSearchableItems = rawItems.sort((a, b) => {
 			// 搜索框输入事件监听
 			searchInput?.addEventListener('input', handleSearch);
 
-			// 页面首次加载初始化数据
+			// 页面首次加载初始化
 			filteredItems = [...items];
 			renderPage();
+
+			// 执行后台 KV 动态大联动
+			syncKvSorting();
 		</script>
 	</body>
 </html>
