@@ -1,0 +1,99 @@
+---
+// src/pages/blog/[lang]/[...slug].astro
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import BlogPost from '../../../layouts/BlogPost.astro';
+
+// ⚡ 核心：开启 SSR 动态渲染，确保每次访问实时拉取 Cloudflare KV 的最新正文与图片
+export const prerender = false;
+
+type Props = CollectionEntry<'blog'>;
+
+// 提取 URL 参数：访问 /blog/zh/fire 时，lang = "zh", slug = "fire"
+const { lang = 'zh', slug = '' } = Astro.params;
+
+// 1. 读取 Content Collections 下的文章
+const posts = await getCollection('blog');
+let post = posts.find((p) => {
+	const rawPath = p.slug || p.id.replace(/\.(md|mdx)$/, '');
+	return rawPath === `${lang}/${slug}` || p.id === `${lang}/${slug}.md` || p.id.endsWith(`/${slug}.md`);
+});
+
+if (!post) {
+	return Astro.redirect('/404');
+}
+
+// 2. 动态查询 Cloudflare KV 覆盖层
+let updatedContent: string | null = null;
+let updatedTitle = post.data.title;
+let updatedHeroImage = post.data.heroImage;
+
+try {
+	const locals = Astro.locals as any;
+	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+	if (kv) {
+		const rawList = await kv.get(`articles_v1_${lang}`);
+		if (rawList) {
+			const articlesList = JSON.parse(rawList);
+			
+			// 模糊 + 完全匹配 KV 数据
+			const kvArticle = articlesList.find(
+				(item: any) =>
+					item.id === post.id ||
+					item.id === `${lang}/${slug}.md` ||
+					item.slug === slug ||
+					(item.id && item.id.includes(slug))
+			);
+
+			if (kvArticle) {
+				if (kvArticle.title) updatedTitle = kvArticle.title;
+				if (kvArticle.heroImage) updatedHeroImage = kvArticle.heroImage;
+				if (kvArticle.content && kvArticle.content.trim() !== '') {
+					updatedContent = kvArticle.content;
+				}
+			}
+		}
+	}
+} catch (e) {
+	console.warn('SSR 读取 KV 失败，回退使用本地 MD:', e);
+}
+
+// 3. 原生 Markdown 转 HTML（零依赖支持 Base64 图片与 Markdown 语法）
+function renderMarkdownToHtml(md: string): string {
+	if (!md) return '';
+	return md
+		.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%; height:auto; border-radius:8px; display:block; margin:1.2rem 0;" />')
+		.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">$1</a>')
+		.replace(/^### (.*$)/gim, '<h3 style="margin-top:1.5em; font-size:1.25rem;">$1</h3>')
+		.replace(/^## (.*$)/gim, '<h2 style="margin-top:1.8em; font-size:1.5rem;">$1</h2>')
+		.replace(/^# (.*$)/gim, '<h1 style="margin-top:2em; font-size:1.75rem;">$1</h1>')
+		.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+		.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1); padding:0.2em 0.4em; border-radius:4px;">$1</code>')
+		.split('\n\n')
+		.map((p) => {
+			const trimmed = p.trim();
+			if (!trimmed) return '';
+			if (trimmed.startsWith('<h') || trimmed.startsWith('<img')) return trimmed;
+			return `<p style="line-height:1.75; margin-bottom:1.2em;">${trimmed.replace(/\n/g, '<br/>')}</p>`;
+		})
+		.join('');
+}
+
+const { Content } = await render(post);
+const renderedKvHtml = updatedContent ? renderMarkdownToHtml(updatedContent) : null;
+const finalPostData = { 
+	...post.data, 
+	title: updatedTitle, 
+	heroImage: updatedHeroImage 
+};
+---
+
+<BlogPost {...finalPostData}>
+	{
+		renderedKvHtml ? (
+			<div class="markdown-body" set:html={renderedKvHtml} />
+		) : (
+			<Content />
+		)
+	}
+</BlogPost>
