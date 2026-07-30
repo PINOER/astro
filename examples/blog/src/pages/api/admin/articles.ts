@@ -4,15 +4,18 @@ import { getCollection } from 'astro:content';
 
 export const prerender = false;
 
+// ⚡ 自动化扫描原生 MD/MDX 文件内容
+const rawBlogFiles = import.meta.glob('/src/content/blog/**/*.{md,mdx}', { query: '?raw', eager: true });
+
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
     const url = new URL(request.url);
     const lang = url.searchParams.get('lang') || 'zh';
 
-    // 1. 读取 Content Collection 博客数据
+    // 1. 读取 Astro Content Collection 博客数据
     const allPosts = await getCollection('blog');
     
-    // 2. 匹配指定语言目录下的文章 (例如 id 为 "zh/seo-tools.md" 或 "en/seo-tools.md")
+    // 2. 匹配对应语言目录下的文章 (例如 id 为 "zh/seo-tools.md" 或 "en/seo-tools.md")
     const filteredPosts = allPosts.filter((post) => {
       return post.id.startsWith(`${lang}/`) || post.data?.lang === lang;
     });
@@ -32,17 +35,27 @@ export const GET: APIRoute = async ({ request, locals }) => {
       }
     }
 
-    // 4. 计算标准化的路径与 URL
+    // 4. 组装文章完整属性（含 Markdown 真实正文）
     const articles = filteredPosts.map((post) => {
       const kvData = kvMap.get(post.id) || {};
       
-      // 提取纯字符 Slug，去除 "zh/" 或 "en/" 前缀以及 ".md" 扩展名
+      // 提取纯字符 Slug (例如 "zh/seo-tools.md" -> "seo-tools")
       const cleanSlug = post.id
         .replace(new RegExp(`^${lang}/`), '')
         .replace(/\.(md|mdx)$/, '')
         .replace(/\/index$/, '');
       
-      // ⚡ 修正：准确构造前台带语言前缀的预览 URL (例如 /zh/blog/seo-tools/ 或 /en/blog/seo-tools/)
+      // ⚡ 核心修复：获取完整的 Markdown Raw 源码正文
+      let rawContent = post.body || '';
+      
+      // 如果 post.body 缺失，通过 import.meta.glob 读取绝对文件内容
+      if (!rawContent) {
+        const matchingPath = Object.keys(rawBlogFiles).find(p => p.includes(post.id));
+        if (matchingPath && (rawBlogFiles[matchingPath] as any)?.default) {
+          rawContent = (rawBlogFiles[matchingPath] as any).default;
+        }
+      }
+
       const previewUrl = `/${lang}/blog/${cleanSlug}/`;
 
       return {
@@ -57,6 +70,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         pinned: kvData.pinned !== undefined ? Boolean(kvData.pinned) : Boolean((post.data as any).pinned || false),
         views: kvData.views !== undefined ? Number(kvData.views) : (kvData.views || 0),
         status: kvData.status || 'active',
+        content: rawContent, // 👈 关键修复：传输完整正文给编辑器
         url: previewUrl
       };
     });
