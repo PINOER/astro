@@ -1,49 +1,83 @@
 ---
 // src/pages/admin/tools.astro
 import AdminLayout from 'src/layouts/AdminLayout.astro';
-import { getAllScannedTools, type ToolItem } from 'src/data/toolsData';
+import { getAllScannedTools, type ItemSortingConfig } from 'src/data/toolsData';
+import { sponsorItems } from 'src/data/tools';
 
 export const prerender = false;
 
 // 1. 全自动扫描当前项目所有 .astro 文件里导出的 toolInfo
 const masterTools = await getAllScannedTools();
 
-// 2. 从 Cloudflare KV 读取管理员修改过的动态配置（权重、置顶、上下架）
-let kvToolsConfig: Record<string, { priority: number; pinned: boolean; status: 'active' | 'disabled' }> = {};
+// 2. 提取赞助广告项 (从 src/data/tools.ts 读取)
+const rawSponsors = (sponsorItems.zh || []).map((item) => ({
+	id: item.url, // 以 URL 作为赞助项的唯一 ID
+	name: item.title,
+	icon: item.icon,
+	category: item.tag || '赞助推广',
+	description: item.desc,
+	url: item.url,
+	defaultPriority: item.priority || 0,
+	defaultPinned: item.pinned || false,
+	type: 'sponsor' as const,
+}));
+
+// 3. 组装为包含“在线工具”与“赞助广告”的全域管理集合
+const fullMasterList = [
+	...masterTools.map((t) => ({ ...t, defaultPinned: false, type: 'tool' as const })),
+	...rawSponsors,
+];
+
+// 4. 从 Cloudflare KV 读取最新综合排序与到期规则 (使用 v3 Key)
+let kvSortingConfig: Record<string, ItemSortingConfig> = {};
 
 try {
 	const runtime = (Astro.locals as any).runtime;
 	const kv = runtime?.env?.ADMIN_KV;
 
 	if (kv) {
-		const saved = await kv.get('config_tools_v2', { type: 'json' });
+		const saved = await kv.get('config_sorting_v3', { type: 'json' });
 		if (saved) {
-			kvToolsConfig = saved as typeof kvToolsConfig;
+			kvSortingConfig = saved as typeof kvSortingConfig;
 		}
 	}
 } catch (e) {
 	console.error('读取 Cloudflare KV 失败，回退使用工具默认配置', e);
 }
 
-// 3. 将扫描到的真实工具与 KV 数据库合并
-const mergedTools = masterTools.map((tool) => {
-	const kvData = kvToolsConfig[tool.id];
+// 5. 检查与比对过期时间
+const now = new Date().getTime();
+
+const mergedList = fullMasterList.map((item) => {
+	const conf = kvSortingConfig[item.id];
+	let isExpired = false;
+
+	if (conf?.expiresAt) {
+		const expTime = new Date(conf.expiresAt).getTime();
+		if (now > expTime) {
+			isExpired = true; // 判定为已到期
+		}
+	}
+
 	return {
-		...tool,
-		priority: kvData?.priority ?? tool.defaultPriority,
-		pinned: kvData?.pinned ?? (tool as any).pinned ?? false,
-		status: kvData?.status ?? 'active',
+		...item,
+		// 如果已过期，自动恢复为原始默认权重，并取消置顶
+		priority: (isExpired || !conf) ? item.defaultPriority : Number(conf.priority),
+		pinned: (isExpired || !conf) ? item.defaultPinned : Boolean(conf.pinned),
+		status: conf?.status || 'active',
+		expiresAt: conf?.expiresAt || '',
+		isExpired,
 	};
 });
 
-// 4. 按 (置顶优先 -> 权重降序) 排序
-mergedTools.sort((a, b) => {
+// 6. 统一排序：(置顶优先 -> 权重降序)
+mergedList.sort((a, b) => {
 	if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
 	return b.priority - a.priority;
 });
 ---
 
-<AdminLayout title="工具管理与排序">
+<AdminLayout title="综合排序与广告到期管理">
 	<style>
 		.tool-card {
 			background: var(--admin-card);
@@ -106,6 +140,16 @@ mergedTools.sort((a, b) => {
 			border-color: var(--admin-accent);
 		}
 
+		.input-date {
+			background: var(--admin-bg);
+			border: 1px solid var(--admin-border);
+			color: #fff;
+			padding: 0.35em 0.5em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			outline: none;
+		}
+
 		.select-status {
 			background: var(--admin-bg);
 			border: 1px solid var(--admin-border);
@@ -123,15 +167,28 @@ mergedTools.sort((a, b) => {
 			font-weight: 800;
 		}
 
-		.badge-pinned {
+		.badge-tool {
+			background: rgba(56, 189, 248, 0.15);
+			color: #38bdf8;
+			border: 1px solid rgba(56, 189, 248, 0.3);
+		}
+
+		.badge-sponsor {
 			background: rgba(245, 158, 11, 0.15);
 			color: #f59e0b;
 			border: 1px solid rgba(245, 158, 11, 0.3);
 		}
 
-		.badge-category {
-			background: #1e293b;
-			color: #94a3b8;
+		.badge-pinned {
+			background: rgba(245, 158, 11, 0.2);
+			color: #f59e0b;
+			border: 1px solid rgba(245, 158, 11, 0.4);
+		}
+
+		.badge-expired {
+			background: rgba(239, 68, 68, 0.15);
+			color: #ef4444;
+			border: 1px solid rgba(239, 68, 68, 0.3);
 		}
 
 		.btn-save-all {
@@ -158,62 +215,77 @@ mergedTools.sort((a, b) => {
 	<div class="tool-card">
 		<div class="card-header">
 			<div class="header-info">
-				<h3>扫描到全站真实工具 ({mergedTools.length} 个)</h3>
-				<p>修改权重值后点击保存，前台页面排序将自动同步刷新</p>
+				<h3>全域综合排序与广告到期规则 ({mergedList.length} 个条目)</h3>
+				<p>设置“到期恢复时间”后，超过该日期系统将自动取消置顶并恢复默认权重</p>
 			</div>
-			<button class="btn-save-all" id="btnSaveTools" type="button">💾 保存全部配置</button>
+			<button class="btn-save-all" id="btnSaveSorting" type="button">💾 保存综合排序</button>
 		</div>
 
 		<table>
 			<thead>
 				<tr>
-					<th>工具名称与路径</th>
-					<th>分类</th>
+					<th>卡片名称与路径</th>
+					<th>类型</th>
 					<th>排序权重 (Priority)</th>
-					<th>置顶推荐</th>
+					<th>置顶状态</th>
+					<th>到期恢复日期 (Expires)</th>
 					<th>上下架状态</th>
-					<th>前台测试</th>
+					<th>预览测试</th>
 				</tr>
 			</thead>
-			<tbody id="toolsTbody">
-				{mergedTools.map((tool) => (
-					<tr data-id={tool.id}>
+			<tbody id="sortingTbody">
+				{mergedList.map((item) => (
+					<tr data-id={item.id} data-type={item.type}>
 						<td>
 							<div style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-								<span>{tool.icon}</span>
-								<span>{tool.name}</span>
+								<span>{item.icon}</span>
+								<span>{item.name}</span>
 							</div>
 							<div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.2rem;">
-								<code>{tool.url}</code>
+								<code>{item.url}</code>
 							</div>
 						</td>
 						<td>
-							<span class="badge badge-category">{tool.category}</span>
+							<span class={item.type === 'sponsor' ? 'badge badge-sponsor' : 'badge badge-tool'}>
+								{item.type === 'sponsor' ? '💎 赞助广告' : '🛠️ 在线工具'}
+							</span>
 						</td>
 						<td>
-							<input class="input-priority" type="number" value={tool.priority} />
+							<input class="input-priority" type="number" value={item.priority} />
 						</td>
 						<td>
 							<label style="cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
-								<input class="check-pinned" type="checkbox" checked={tool.pinned} />
-								<span class={tool.pinned ? 'badge badge-pinned' : ''}>
-									{tool.pinned ? '📌 已置顶' : '普通'}
+								<input class="check-pinned" type="checkbox" checked={item.pinned} />
+								<span class={item.pinned ? 'badge badge-pinned' : ''}>
+									{item.pinned ? '📌 已置顶' : '普通'}
 								</span>
 							</label>
 						</td>
 						<td>
+							<input
+								class="input-date"
+								type="date"
+								value={item.expiresAt ? item.expiresAt.slice(0, 10) : ''}
+							/>
+							{item.isExpired && (
+								<span class="badge badge-expired" style="margin-left: 0.3rem;">
+									⏰ 已过期恢复
+								</span>
+							)}
+						</td>
+						<td>
 							<select class="select-status">
-								<option value="active" selected={tool.status === 'active'}>✅ 正常上架</option>
-								<option value="disabled" selected={tool.status === 'disabled'}>🚫 临时下架</option>
+								<option value="active" selected={item.status === 'active'}>✅ 正常展示</option>
+								<option value="disabled" selected={item.status === 'disabled'}>🚫 临时下架</option>
 							</select>
 						</td>
 						<td>
 							<a
-								href={tool.url}
+								href={item.url}
 								target="_blank"
 								style="color: var(--admin-accent); font-weight: 700; text-decoration: none; font-size: 0.82rem;"
 							>
-								🔗 打开预览
+								🔗 打开
 							</a>
 						</td>
 					</tr>
@@ -223,41 +295,46 @@ mergedTools.sort((a, b) => {
 	</div>
 
 	<script is:inline>
-		document.getElementById('btnSaveTools')?.addEventListener('click', async () => {
-			const btn = document.getElementById('btnSaveTools');
+		document.getElementById('btnSaveSorting')?.addEventListener('click', async () => {
+			const btn = document.getElementById('btnSaveSorting');
 			btn.textContent = '⏳ 保存中...';
 			btn.disabled = true;
 
-			const rows = document.querySelectorAll('#toolsTbody tr');
+			const rows = document.querySelectorAll('#sortingTbody tr');
 			const configData = {};
 
 			rows.forEach((row) => {
 				const id = row.dataset.id;
+				const type = row.dataset.type;
 				const priority = Number(row.querySelector('.input-priority').value);
 				const pinned = row.querySelector('.check-pinned').checked;
+				const dateVal = row.querySelector('.input-date').value;
 				const status = row.querySelector('.select-status').value;
 
-				configData[id] = { priority, pinned, status };
+				// 如果指定了到期日期，转为当日 23:59:59 的 ISO 时间戳
+				const expiresAt = dateVal ? new Date(`${dateVal}T23:59:59Z`).toISOString() : null;
+
+				configData[id] = { priority, pinned, status, expiresAt, type };
 			});
 
 			try {
 				const res = await fetch('/api/admin/config', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ type: 'tools_v2', configData })
+					body: JSON.stringify({ type: 'sorting_v3', configData })
 				});
 
 				const data = await res.json();
 				if (data.success) {
-					alert('🎉 排序与状态已写入 Cloudflare KV，前台受控列表将实时更新！');
+					alert('🎉 综合排序与广告到期控制已成功保存至 Cloudflare KV！');
 					window.location.reload();
 				} else {
 					alert('保存失败：' + (data.message || '未知错误'));
 				}
 			} catch (err) {
-				alert('网络同步失败，请检查 API 或 KV 绑定状态');
+				alert('网络同步失败，请检查登录状态或 KV 绑定');
 			} finally {
-				btn.textContent = '💾 保存全部配置';
+				btn.textContent = '💾 保存综合排序';
 				btn.disabled = false;
 			}
 		});
