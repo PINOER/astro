@@ -2,8 +2,7 @@ name = "astro"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-07-29"
 
-# 🔑 开启 Node.js 原生模块兼容（解决 node:stream 报错）
-node_compat = true
+# 🔑 仅使用 compatibility_flags，不要加 node_compat
 compatibility_flags = [ "nodejs_compat" ]
 
 # KV 命名空间绑定
