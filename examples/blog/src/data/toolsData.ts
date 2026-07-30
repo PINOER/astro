@@ -10,17 +10,32 @@ export interface ToolItem {
 	defaultPriority: number;
 }
 
-// 1. 全局自动扫描所有工具页面文件的元数据
+// 1. 全局自动扫描所有工具页面文件的元数据（多重安全兼容）
 export async function getAllScannedTools(): Promise<ToolItem[]> {
-	// 使用 Vite 的 import.meta.glob 自动读取 /src/pages/zh/tools/ 目录下的所有 .astro 文件
+	// 自动读取 /src/pages/zh/tools/ 目录下的所有 .astro 文件
 	const modules = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true });
 	const tools: ToolItem[] = [];
 
 	for (const path in modules) {
 		const mod = modules[path] as any;
-		// 如果该文件导出了 toolInfo，则自动计入真实工具库
-		if (mod.toolInfo) {
-			tools.push(mod.toolInfo);
+		
+		// 兼容性检测：优先读取 toolInfo，其次读取 frontmatter
+		const info = mod.toolInfo || mod.frontmatter || mod.default?.frontmatter;
+
+		if (info && (info.id || info.name)) {
+			// 自动解析文件路径作为 URL 兜底
+			const fileName = path.split('/').pop()?.replace('.astro', '') || '';
+			const fallbackUrl = `/zh/tools/${fileName}/`;
+
+			tools.push({
+				id: info.id || fileName,
+				name: info.name || info.title || fileName,
+				icon: info.icon || '🛠️',
+				category: info.category || info.tag || '默认分类',
+				description: info.description || '',
+				url: info.url || fallbackUrl,
+				defaultPriority: Number(info.defaultPriority || info.priority || 50),
+			});
 		}
 	}
 
@@ -55,12 +70,12 @@ export async function getOrderedTools(locals: any): Promise<ToolItem[]> {
 			const kvData = kvToolsConfig[tool.id];
 			return {
 				...tool,
-				priority: kvData?.priority ?? tool.defaultPriority,
-				pinned: kvData?.pinned ?? false,
-				status: kvData?.status ?? 'active',
+				priority: kvData?.priority !== undefined ? Number(kvData.priority) : tool.defaultPriority,
+				pinned: kvData?.pinned !== undefined ? Boolean(kvData.pinned) : false,
+				status: kvData?.status || 'active',
 			};
 		})
-		.filter((tool) => tool.status === 'active'); // 过滤掉已下架的
+		.filter((tool) => tool.status === 'active'); // 过滤已下架的工具
 
 	// 按 (置顶优先 -> 权重降序) 进行最终排序
 	return mergedTools.sort((a, b) => {
