@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     let kvMap = new Map();
     const runtime = (locals as any).runtime;
-    const kv = runtime?.env?.ADMIN_KV;
+    const kv = runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
     
     if (kv) {
       const raw = await kv.get(`articles_v1_${lang}`);
@@ -26,23 +26,26 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const list = JSON.parse(raw);
         list.forEach((item: any) => {
           if (item.id) kvMap.set(item.id, item);
+          if (item.slug) kvMap.set(item.slug, item);
         });
       }
     }
 
     const articles = filteredPosts.map((post) => {
-      const kvData = kvMap.get(post.id) || {};
-      
       // 提取纯 Slug (例如 "zh/compound-interest-fire-calculator.md" -> "compound-interest-fire-calculator")
       const cleanSlug = post.id
         .replace(new RegExp(`^${lang}/`), '')
         .replace(/\.(md|mdx)$/, '')
         .replace(/\/index$/, '');
-      
-      // ⚡ 修正：统一前台预览 URL 为你项目的实际格式 /blog/${lang}/${slug}/
+
+      // 优先根据 id 查找，退而求其次用 cleanSlug
+      const kvData = kvMap.get(post.id) || kvMap.get(cleanSlug) || {};
+
+      // 前台预览 URL 统一使用标准的 /blog/${lang}/${cleanSlug}/
       const previewUrl = `/blog/${lang}/${cleanSlug}/`;
 
-      let rawContent = post.body || '';
+      // ⚡ 核心修复：优先使用 KV 存储的最新正文（含图片 Base64），其次使用本地 Markdown 正文
+      let rawContent = kvData.content || post.body || '';
 
       return {
         id: post.id,
@@ -50,6 +53,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         title: kvData.title || post.data.title || cleanSlug,
         description: kvData.description || post.data.description || '',
         category: kvData.category || post.data.category || '教程指南',
+        heroImage: kvData.heroImage || post.data.heroImage || '',
         relatedTool: kvData.relatedTool || (post.data as any).relatedTool || '',
         pubDate: post.data.pubDate ? new Date(post.data.pubDate).toISOString().slice(0, 10) : '',
         priority: kvData.priority !== undefined ? Number(kvData.priority) : ((post.data as any).priority || 0),
