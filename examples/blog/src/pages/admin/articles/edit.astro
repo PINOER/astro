@@ -237,6 +237,7 @@ export const prerender = false;
 
     mdInput.addEventListener('input', updatePreview);
 
+    // ⚡ 核心提升：采用 JSON Base64 直传模式，全面兼容多端 Node/Vite 上传
     async function processAndUploadImage(file) {
       if (!file.type.startsWith('image/')) return;
 
@@ -245,38 +246,45 @@ export const prerender = false;
       mdInput.value = mdInput.value.slice(0, cursorPos) + placeholder + mdInput.value.slice(cursorPos);
       updatePreview();
 
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      await img.decode();
+      try {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        await img.decode();
 
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
 
-      canvas.toBlob(async (blob) => {
-        const formData = new FormData();
-        formData.append('file', blob, `${Date.now()}.webp`);
+        const base64Data = canvas.toDataURL('image/webp', 0.85);
+        const fileName = `${Date.now()}.webp`;
 
-        try {
-          const res = await fetch('/api/admin/media/upload', {
-            method: 'POST',
-            body: formData
-          });
-          const data = await res.json();
+        const res = await fetch('/api/admin/media/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64: base64Data,
+            filename: fileName
+          })
+        });
 
-          if (data.success && data.url) {
-            const imgMarkdown = `\n![${file.name}](${data.url})\n`;
-            mdInput.value = mdInput.value.replace(placeholder, imgMarkdown);
-            updatePreview();
-          } else {
-            alert('图片上传失败');
-          }
-        } catch (e) {
-          alert('上传请求异常');
+        const data = await res.json();
+
+        if (data.success && data.url) {
+          const imgMarkdown = `\n![${file.name || 'image'}](${data.url})\n`;
+          mdInput.value = mdInput.value.replace(placeholder, imgMarkdown);
+          updatePreview();
+        } else {
+          alert('图片上传失败: ' + (data.message || '服务端未知错误'));
+          mdInput.value = mdInput.value.replace(placeholder, '');
+          updatePreview();
         }
-      }, 'image/webp', 0.85);
+      } catch (e) {
+        alert('图片处理或网络传输失败: ' + e.message);
+        mdInput.value = mdInput.value.replace(placeholder, '');
+        updatePreview();
+      }
     }
 
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
@@ -294,7 +302,6 @@ export const prerender = false;
       }
     });
 
-    // ⚡ 修复正文拉取与回填逻辑
     async function loadArticleData() {
       await initToolsDropdown();
       document.getElementById('artLang').value = urlLang;
