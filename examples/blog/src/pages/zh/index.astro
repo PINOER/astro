@@ -130,23 +130,30 @@ const allSearchableItems = rawItems.sort((a, b) => {
 	<head>
 		<BaseHead title={`微帮工具箱 - 免费在线高效 AI 工具箱 | 提示词、创作者、站长 SEO & 金融计算工具 - HelpMini`} description={'HelpMini 是专为跨境卖家、内容创作者与开发者打造的免费在线 AI 工具箱。提供专业级男装/女装 AI 商拍提示词生成器、社媒文案生成、Google SEO 与 GEO 结构化代码工具、以及跨境电商利润与金融计算器。无需注册，即用即走，为你提升数倍生产力效率！'} />
 		<style>
-			/* 🛠️ SSR 模式救命防重叠/挤压规则 */
-			:global(html) {
-				height: 100%;
+			/* 🛡️ 强制全屏盒模型，防止横向或纵向坍塌 */
+			:global(html, body) {
+				width: 100% !important;
+				min-height: 100vh !important;
+				margin: 0 !important;
+				padding: 0 !important;
+				box-sizing: border-box !important;
 			}
 
 			:global(body) {
-				min-height: 100vh;
 				display: flex !important;
 				flex-direction: column !important;
-				margin: 0;
-				padding: 0;
+				align-items: center !important; /* 保持子元素居中对齐 */
 			}
 
+			/* ⚡ 核心修复：强制 Header 和 Footer 宽度 100% 占满全屏，禁止缩小 */
 			:global(header), :global(footer) {
-				flex-shrink: 0;
+				width: 100% !important;
+				max-width: 100% !important;
+				flex-shrink: 0 !important;
+				box-sizing: border-box !important;
 			}
 
+			/* 🛡️ 限定 Main 内容区居中并占据剩余高度 */
 			main {
 				flex: 1 0 auto;
 				width: 1000px;
@@ -250,7 +257,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				border: 1px solid var(--card-border);
 			}
 
-			/* ⚡ 还原原生 3 列网格 */
+			/* ⚡ 3列网格 */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -453,7 +460,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer lang="zh" />
 
-		<!-- 客户端 JS：处理分页、动态搜索与精准覆盖 -->
+		<!-- 客户端 JS -->
 		<script is:inline>
 			const ITEMS_PER_PAGE = 21;
 			let currentPage = 1;
@@ -521,10 +528,8 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				renderPage();
 			}
 
-			// ⚡ 客户端大联动：精准判空覆盖，未显式修改的不做盲目替换
 			async function syncKvManagementAndSorting() {
 				try {
-					// 1. 同步后台“工具管理” KV (tools_v2_zh)
 					const toolsRes = await fetch('/api/admin/config?type=tools_v2_zh');
 					const toolsJson = await toolsRes.json();
 					
@@ -543,7 +548,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 									} else {
 										card.dataset.disabled = 'false';
 										
-										// 只有当后台显式修改过且不为空时，才替换原生 DOM
 										if (conf.name && conf.name.trim() !== '' && conf.name !== slug) {
 											const h3 = card.querySelector('h3');
 											if (h3) h3.textContent = conf.name;
@@ -568,7 +572,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						});
 					}
 
-					// 2. 同步后台“综合排序” KV (sorting_v3)
 					const res = await fetch('/api/admin/config?type=sorting_v3');
 					const result = await res.json();
 
