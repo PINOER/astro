@@ -185,10 +185,8 @@ export const prerender = false;
 
     window.switchLanguage = function(lang) {
       currentLang = lang;
-      // 动态修改新建按钮的跳转参数
       const btnNew = document.getElementById('btnNewArticle');
       if (btnNew) btnNew.href = `/admin/articles/edit?lang=${lang}`;
-      
       fetchArticles();
     };
 
@@ -223,7 +221,7 @@ export const prerender = false;
               📝 ${item.title}
             </div>
             <div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.2rem;">
-              <code>/blog/${currentLang}/${item.slug}</code>
+              <code>/${currentLang}/blog/${item.slug}</code>
             </div>
           </td>
           <td>
@@ -252,9 +250,7 @@ export const prerender = false;
             </select>
           </td>
           <td>
-            <!-- ⚡ 修正编辑链接：传递 id 和 lang -->
             <a href="/admin/articles/edit?id=${encodeURIComponent(item.id)}&slug=${encodeURIComponent(item.slug)}&lang=${currentLang}" class="btn-action-edit">✏️ 编辑</a>
-            <!-- ⚡ 修正预览链接：使用标准的完整路径 -->
             <a href="${item.url}" target="_blank" style="color: var(--admin-accent); font-weight: 700; text-decoration: none; font-size: 0.82rem;">🔗 预览</a>
           </td>
         </tr>
