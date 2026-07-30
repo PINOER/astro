@@ -6,36 +6,62 @@ import { SITE_DESCRIPTION } from 'src/consts';
 import { getCollection } from 'astro:content';
 import { sponsorItems } from 'src/data/tools'; // 专门用于广告赞助卡片
 
-// 1. ⚡ 自动化魔法：批量自动扫描 src/pages/zh/tools/ 下的所有 .astro 工具页面
+export const prerender = false;
+
+// 1. ⚡ SSR 阶段：从 Cloudflare KV 读取后台工具管理配置 (type=tools_v2_zh)
+let kvToolsConfigMap = new Map();
+try {
+	const runtime = (Astro.locals as any).runtime;
+	const kv = runtime?.env?.ADMIN_KV;
+	if (kv) {
+		const raw = await kv.get('config_tools_v2_zh');
+		if (raw) {
+			const list = JSON.parse(raw);
+			list.forEach((item: any) => {
+				if (item.slug) kvToolsConfigMap.set(item.slug, item);
+			});
+		}
+	}
+} catch (e) {
+	console.warn('SSR 读取 Cloudflare KV 工具自定义配置失败:', e);
+}
+
+// 2. 自动化魔法：批量自动扫描 src/pages/zh/tools/ 下的所有 .astro 工具页面，并合并后台修改
 const toolFiles = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true });
 
 const zhTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
 	const slug = path.split('/').pop().replace('.astro', '');
-	const fm = file.frontmatter || file.toolInfo || {};
+	const fm = file.frontmatter || file.toolInfo || file.toolMeta || {};
 	
+	// 读取 KV 中可能覆盖的自定义工具配置（名称、描述、图标、分类、状态）
+	const kvConfig = kvToolsConfigMap.get(slug) || {};
+
 	return {
-		id: fm.id || slug,
-		title: fm.title || fm.name || slug,
-		desc: fm.description || '',
+		id: kvConfig.id || fm.id || slug,
+		slug: slug,
+		title: kvConfig.name || fm.title || fm.name || slug, // 优先显示后台修改的名称
+		desc: kvConfig.description || fm.description || '', // 优先显示后台修改的描述
 		url: `/zh/tools/${slug}/`,
 		type: 'tool',
-		icon: fm.icon || '⚡',
-		tag: fm.tag || fm.category || '工具',
-		keywords: `${fm.title || ''} ${fm.keywords || ''}`,
-		pinned: fm.pinned || false,
-		priority: fm.priority || fm.defaultPriority || 0
+		icon: kvConfig.icon || fm.icon || '⚡',               // 优先显示后台修改的图标
+		tag: kvConfig.category || fm.tag || fm.category || '工具', // 优先显示后台修改的分类
+		keywords: `${kvConfig.name || fm.title || ''} ${fm.keywords || ''}`,
+		pinned: kvConfig.isFeatured || fm.pinned || false,
+		priority: kvConfig.priority ?? fm.priority ?? fm.defaultPriority ?? 0,
+		status: kvConfig.status || 'active'
 	};
-});
+}).filter(t => t.status !== 'disabled'); // 排除禁用工具
 
-// 2. 自动从 Content Collection 获取所有中文博客
+// 3. 自动从 Content Collection 获取所有中文博客
 const allPosts = await getCollection('blog');
 const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
 
-// 3. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序
+// 4. 组装统一数据集 (Tools + Blogs + Sponsors) 并排序
 const rawItems = [
 	...zhTools,
 	...zhPosts.map((post) => ({
 		id: post.id,
+		slug: post.id,
 		title: post.data.title,
 		desc: post.data.description,
 		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
@@ -44,10 +70,12 @@ const rawItems = [
 		tag: '教程指南',
 		keywords: `${post.data.title} ${post.data.description}`,
 		pinned: (post.data as any).pinned || false,
-		priority: (post.data as any).priority || 0
+		priority: (post.data as any).priority || 0,
+		status: 'active'
 	})),
 	...(sponsorItems.zh || []).map((sponsor) => ({
 		id: sponsor.url,
+		slug: sponsor.url,
 		title: sponsor.title,
 		desc: sponsor.desc,
 		url: sponsor.url,
@@ -56,7 +84,8 @@ const rawItems = [
 		tag: sponsor.tag,
 		keywords: sponsor.keywords,
 		pinned: sponsor.pinned,
-		priority: sponsor.priority
+		priority: sponsor.priority,
+		status: 'active'
 	}))
 ];
 
@@ -173,14 +202,14 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				border: 1px solid var(--card-border);
 			}
 
-			/* ⚡ 还原原生 3 列极客标准网格 */
+			/* ⚡ 还原原生 3 列网格 */
 			.tool-grid {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 				gap: 1.5rem;
 			}
 
-			/* 💎 Astro 原生渲染的纯正卡片 (.tool-card) */
+			/* 💎 Astro 原生渲染的卡片 (.tool-card) */
 			.tool-card {
 				background: var(--bg-card);
 				backdrop-filter: blur(12px);
@@ -264,7 +293,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				opacity: 0.8;
 			}
 
-			/* 📄 纯代码 UI 分页控件器 */
+			/* 分页控件器 */
 			.pagination-wrapper {
 				display: flex;
 				justify-content: center;
@@ -298,7 +327,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				color: var(--text-muted);
 			}
 
-			/* 搜索无匹配提示 */
 			.no-results {
 				text-align: center;
 				padding: 4em 1em;
@@ -341,6 +369,8 @@ const allSearchableItems = rawItems.sort((a, b) => {
 							href={item.url} 
 							class="tool-card searchable-item"
 							data-id={item.id}
+							data-slug={item.slug}
+							data-type={item.type}
 							data-priority={item.priority}
 							data-pinned={item.pinned ? 'true' : 'false'}
 							data-title={item.title.toLowerCase()}
@@ -381,9 +411,9 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer lang="zh" />
 
-		<!-- 极简客户端 JS：控制 21 条/页 分页、搜索过滤与 Cloudflare KV 动态排序大联动 -->
+		<!-- 极简客户端 JS：控制分页、搜索过滤与 Cloudflare KV 动态管理/排序大联动 -->
 		<script is:inline>
-			const ITEMS_PER_PAGE = 21; // 单页最多显示 21 条卡片
+			const ITEMS_PER_PAGE = 21;
 			let currentPage = 1;
 			let filteredItems = [];
 
@@ -398,7 +428,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 			const nextBtn = document.getElementById('nextBtn');
 			const pageInfo = document.getElementById('pageInfo');
 
-			// 渲染当前页面的卡片
 			function renderPage() {
 				const query = searchInput?.value.toLowerCase().trim() || '';
 				const totalItems = filteredItems.length;
@@ -410,25 +439,21 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 				const endIndex = startIndex + ITEMS_PER_PAGE;
 
-				// 隐藏所有卡片，仅显示当前页匹配的卡片
 				items.forEach(item => item.style.display = 'none');
 				
 				const visibleItems = filteredItems.slice(startIndex, endIndex);
 				visibleItems.forEach(item => item.style.display = 'flex');
 
-				// 更新标题与数量提示
 				if (sectionTitle) sectionTitle.textContent = query ? '搜索结果' : '精选微工具';
 				if (resultCount) resultCount.textContent = `共 ${totalItems} 个工具/文档`;
 
-				// 控制无结果展示
 				if (noResults) {
 					noResults.style.display = totalItems === 0 ? 'block' : 'none';
 				}
 
-				// 控制分页按钮状态
 				if (pagination) {
 					if (totalItems <= ITEMS_PER_PAGE) {
-						pagination.style.display = 'none'; // 少于等于 21 条时隐藏分页
+						pagination.style.display = 'none';
 					} else {
 						pagination.style.display = 'flex';
 						if (pageInfo) pageInfo.textContent = `第 ${currentPage} / ${totalPages} 页`;
@@ -438,12 +463,10 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				}
 			}
 
-			// 搜索过滤逻辑
 			function handleSearch() {
 				const query = searchInput?.value.toLowerCase().trim() || '';
 
 				filteredItems = items.filter(item => {
-					// 已被后台下架的工具不参与搜索和展示
 					if (item.dataset.disabled === 'true') return false;
 
 					const title = item.getAttribute('data-title') || '';
@@ -452,13 +475,59 @@ const allSearchableItems = rawItems.sort((a, b) => {
 					return title.includes(query) || desc.includes(query) || keywords.includes(query);
 				});
 
-				currentPage = 1; // 搜索时重置为第 1 页
+				currentPage = 1;
 				renderPage();
 			}
 
-			// ⚡ 核心大联动：读取后台 KV 排序，并自动判定过期恢复
-			async function syncKvSorting() {
+			// ⚡ 核心大联动：调取工具管理 KV (tools_v2_zh) & 排序 KV (sorting_v3)
+			async function syncKvManagementAndSorting() {
 				try {
+					// 1. 同步后台“工具管理”中的工具名称、图标、简介与分类修改
+					const toolsRes = await fetch('/api/admin/config?type=tools_v2_zh');
+					const toolsJson = await toolsRes.json();
+					
+					if (toolsJson.success && Array.isArray(toolsJson.data)) {
+						const kvToolMap = new Map();
+						toolsJson.data.forEach(t => kvToolMap.set(t.slug, t));
+
+						items.forEach(card => {
+							if (card.dataset.type === 'tool') {
+								const slug = card.dataset.slug;
+								const conf = kvToolMap.get(slug);
+
+								if (conf) {
+									// 如果工具被设为禁用，隐去
+									if (conf.status === 'disabled') {
+										card.dataset.disabled = 'true';
+									} else {
+										card.dataset.disabled = 'false';
+										
+										// 动态更新前端 DOM 中的名称、图标、简短描述与分类
+										if (conf.name) {
+											const h3 = card.querySelector('h3');
+											if (h3) h3.textContent = conf.name;
+											card.setAttribute('data-title', conf.name.toLowerCase());
+										}
+										if (conf.icon) {
+											const iconEl = card.querySelector('.tool-icon');
+											if (iconEl) iconEl.textContent = conf.icon;
+										}
+										if (conf.description !== undefined) {
+											const p = card.querySelector('p');
+											if (p) p.textContent = conf.description;
+											card.setAttribute('data-desc', conf.description.toLowerCase());
+										}
+										if (conf.category) {
+											const tagEl = card.querySelector('.tool-tag');
+											if (tagEl) tagEl.textContent = conf.category;
+										}
+									}
+								}
+							}
+						});
+					}
+
+					// 2. 同步后台“综合排序” KV (sorting_v3)
 					const res = await fetch('/api/admin/config?type=sorting_v3');
 					const result = await res.json();
 
@@ -472,21 +541,15 @@ const allSearchableItems = rawItems.sort((a, b) => {
 							const conf = kvConfig[id];
 
 							if (conf) {
-								// 1. 检查是否设置了到期时间，且当前时间已超过到期时间
 								let isExpired = false;
 								if (conf.expiresAt) {
 									const expTime = new Date(conf.expiresAt).getTime();
-									if (now > expTime) {
-										isExpired = true; // 已经过期！
-									}
+									if (now > expTime) isExpired = true;
 								}
 
 								if (conf.status === 'disabled') {
 									card.dataset.disabled = 'true';
 								} else {
-									card.dataset.disabled = 'false';
-
-									// 2. 如果过期了，恢复 Card 自身的默认 priority，并移除置顶标记
 									if (isExpired) {
 										card.dataset.pinned = 'false';
 									} else {
@@ -514,15 +577,14 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						items.forEach((card) => {
 							if (noResults) grid.insertBefore(card, noResults);
 						});
-
-						handleSearch();
 					}
+
+					handleSearch();
 				} catch (e) {
-					console.warn('读取后台 KV 排序失败，回退使用默认规则');
+					console.warn('读取后台 KV 同步失败，保持默认布局');
 				}
 			}
 
-			// 分页按钮事件监听
 			prevBtn?.addEventListener('click', () => {
 				if (currentPage > 1) {
 					currentPage--;
@@ -540,15 +602,13 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				}
 			});
 
-			// 搜索框输入事件监听
 			searchInput?.addEventListener('input', handleSearch);
 
-			// 页面首次加载初始化
 			filteredItems = [...items];
 			renderPage();
 
-			// 执行后台 KV 动态大联动
-			syncKvSorting();
+			// 执行后台 KV 修改与排序的大联动
+			syncKvManagementAndSorting();
 		</script>
 	</body>
 </html>
