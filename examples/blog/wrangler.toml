@@ -1,0 +1,8 @@
+name = "helpmini-blog"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-07-29"
+
+# 显式声明你的 Cloudflare KV 绑定
+[[kv_namespaces]]
+binding = "ADMIN_KV"
+id = "你的_ADMIN_KV_ID_字符串" # 在 Cloudflare 后台 KV 界面查看
