@@ -4,17 +4,44 @@ import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 服务端 SSR 阶段自动扫描物理存在的工具页面 (.astro)
-const toolModules = import.meta.glob('/src/pages/**/tools/*.astro');
+// 1. 内置常用工具的中文名映射表（如果页面本身未导出 title，优先匹配此字典）
+const TOOL_NAME_MAP: Record<string, string> = {
+  'image-base64-converter': '图片转 Base64 & DataURI 工具',
+  'base64-url-converter': 'Base64 & URL 编解码工具',
+  'json-converter': 'JSON 格式化 & 语法校验工具',
+  'json-to-ts': 'JSON 转 TypeScript 类型定义',
+  'json-yaml-converter': 'JSON / YAML 互转工具',
+  'markdown-cleaner': 'Markdown 排版与格式清理',
+  'seo-meta-generator': 'Google SEO Meta 标签生成器',
+  'ecommerce-seo-geo-generator': '电商 SEO & GEO 文案生成器',
+  'token-calculator': 'LLM Token 消耗与上下文计算器',
+  'compound-interest-fire-calculator': '复利 & FIRE 退休计算器',
+  'c-text-adventure-builder': 'C 语言地牢文字冒险构建器',
+  'hanoi-algorithm-visualizer': '汉诺塔算法可视化运行器',
+  'laser-mirror-puzzle': '激光折射镜片解谜游戏',
+  'logic-circuit-puzzle': '逻辑门电路设计解谜',
+  'kids-maze-robot': '儿童编程迷宫机器人'
+};
 
-const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
+// 2. 服务端自动扫描所有多语言版本的工具页面文件
+const allToolModules = import.meta.glob('/src/pages/**/tools/*.astro', { eager: true });
+
+const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, module]: [string, any]) => {
   const filename = filePath.split('/').pop() || '';
   const slug = filename.replace('.astro', '');
   
+  // 判断文件所属语言环境 (默认为 en，包含 /zh/ 的为 zh)
+  const lang = filePath.includes('/zh/') ? 'zh' : 'en';
+  
+  // 智能推导友好显示名称：优先读取页面导出的 title/frontmatter -> 其次匹配预设字典 -> 最后使用 slug
+  const pageTitle = module?.title || module?.frontmatter?.title;
+  const friendlyName = pageTitle || (lang === 'zh' ? (TOOL_NAME_MAP[slug] || slug) : slug);
+
   return {
     slug: slug,
-    astroComponent: filePath, // 物理真实路径（只读）
-    name: slug,               // 默认回退名称（可在后台编辑修改）
+    lang: lang,
+    astroComponent: filePath,
+    name: friendlyName, // 解决文件名问题
     category: 'general',
     icon: '🛠️',
     priority: 10,
@@ -37,6 +64,32 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       padding: 1rem 1.5rem;
       border-radius: 12px;
       border: 1px solid var(--admin-border, #1f2937);
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: #0b0f17;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      padding: 0.4em 0.9em;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: #3b82f6;
+      color: #fff;
     }
 
     .btn-primary {
@@ -162,11 +215,17 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
   </style>
 
   <div class="action-bar">
-    <div>
-      <span style="font-weight:700; color:#fff;">🛠️ 真实工具联动控制台 (KV: config_tools_v2)</span>
-      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">在此编辑展示名称与 SEO 配置，修改后点击右侧保存</span>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <span style="font-weight:700; color:#fff;">🛠️ 真实工具联动控制台</span>
+      
+      <!-- 🌐 多语言切换 Bar -->
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="btnLangZh" onclick="switchLanguage('zh')">🇨🇳 中文 (ZH)</button>
+        <button class="lang-btn" id="btnLangEn" onclick="switchLanguage('en')">🇺🇸 English (EN)</button>
+      </div>
     </div>
-    <button class="btn-primary" id="btnSaveConfig">💾 保存全量配置</button>
+    
+    <button class="btn-primary" id="btnSaveConfig">💾 保存当前语言配置</button>
   </div>
 
   <table class="tools-table">
@@ -174,7 +233,7 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       <tr>
         <th style="width: 50px;">图标</th>
         <th>工具展示名称</th>
-        <th>URL Slug (物理绑定)</th>
+        <th>URL Slug</th>
         <th>分类</th>
         <th style="width: 90px;">排序权重</th>
         <th>状态</th>
@@ -183,7 +242,7 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
     </thead>
     <tbody id="toolsTableBody">
       <tr>
-        <td colspan="7" style="text-align:center; color:#9ca3af;">正在同步物理工具与 KV 配置中...</td>
+        <td colspan="7" style="text-align:center; color:#9ca3af;">正在加载工具列表中...</td>
       </tr>
     </tbody>
   </table>
@@ -195,12 +254,11 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       
       <div class="form-row">
         <div class="form-group">
-          <!-- 1. 可自由编辑工具前端显示名称 -->
           <label>工具展示名称 (前端显示) *</label>
-          <input type="text" id="editName" class="form-control" placeholder="如: 复利 & FIRE 退休计算器" />
+          <input type="text" id="editName" class="form-control" placeholder="如: 图片转 Base64 & DataURI 工具" />
         </div>
         <div class="form-group">
-          <label>URL Slug (物理绑定，不可修改)</label>
+          <label>URL Slug (物理绑定)</label>
           <input type="text" id="editSlug" class="form-control readonly-field" readonly />
         </div>
       </div>
@@ -223,7 +281,7 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
             <input type="number" id="editPriority" class="form-control" value="10" />
           </div>
           <div>
-            <label>Astro 文件路径 (物理绑定，不可修改)</label>
+            <label>Astro 文件路径 (物理绑定)</label>
             <input type="text" id="editAstroComponent" class="form-control readonly-field" readonly />
           </div>
         </div>
@@ -255,12 +313,23 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
   </div>
 
   <script is:inline define:vars={{ autoDiscoveredTools }}>
-    let toolsList = [];
+    let currentLang = 'zh'; // 默认语言为中文
+    let currentFilteredTools = [];
     let currentEditIndex = -1;
+
+    // 切换语言版本 (zh / en)
+    window.switchLanguage = function(lang) {
+      currentLang = lang;
+      document.getElementById('btnLangZh').classList.toggle('active', lang === 'zh');
+      document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
+      fetchAndMergeToolsConfig();
+    };
 
     async function fetchAndMergeToolsConfig() {
       try {
-        const res = await fetch('/api/admin/config?type=tools_v2');
+        // 根据不同语言动态读取对应的 KV Key：config_tools_v2_zh 或 config_tools_v2_en
+        const configType = `tools_v2_${currentLang}`;
+        const res = await fetch(`/api/admin/config?type=${configType}`);
         const json = await res.json();
         const kvToolsMap = new Map();
 
@@ -270,15 +339,17 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
           });
         }
 
-        // 合并物理工具与 KV 自定义配置
-        toolsList = autoDiscoveredTools.map(localTool => {
+        // 筛选出对应语言下的物理文件，并与 KV 配置做 Merge
+        const langDiscovered = autoDiscoveredTools.filter(t => t.lang === currentLang);
+
+        currentFilteredTools = langDiscovered.map(localTool => {
           const kvData = kvToolsMap.get(localTool.slug);
           if (kvData) {
             return {
               ...localTool,
-              ...kvData, // 包含用户修改保存过的自定义 name
-              astroComponent: localTool.astroComponent, // 物理锁定
-              slug: localTool.slug // 物理锁定
+              ...kvData, // 包含用户保存过的自定义中文/英文名称
+              astroComponent: localTool.astroComponent,
+              slug: localTool.slug
             };
           }
           return localTool;
@@ -294,12 +365,12 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       const tbody = document.getElementById('toolsTableBody');
       if (!tbody) return;
 
-      if (toolsList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#9ca3af;">未在 src/pages/ 中找到任何 .astro 工具页面文件</td></tr>`;
+      if (currentFilteredTools.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#9ca3af;">未找到 ${currentLang.toUpperCase()} 语言版本下的工具文件</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = toolsList.map((tool, index) => `
+      tbody.innerHTML = currentFilteredTools.map((tool, index) => `
         <tr>
           <td style="font-size:1.3rem; text-align:center;">${tool.icon || '🛠️'}</td>
           <td>
@@ -322,19 +393,19 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       `).join('');
     }
 
-    window.updateStatus = function(index, value) { toolsList[index].status = value; };
+    window.updateStatus = function(index, value) { currentFilteredTools[index].status = value; };
 
     window.openEditModal = function(index) {
       currentEditIndex = index;
-      const tool = toolsList[index];
+      const tool = currentFilteredTools[index];
 
-      document.getElementById('modalTitle').innerText = `编辑工具: ${tool.name || tool.slug}`;
+      document.getElementById('modalTitle').innerText = `编辑工具 [${currentLang.toUpperCase()}]: ${tool.name || tool.slug}`;
       document.getElementById('editName').value = tool.name || tool.slug;
-      document.getElementById('editSlug').value = tool.slug; // 只读
+      document.getElementById('editSlug').value = tool.slug;
       document.getElementById('editCategory').value = tool.category || 'general';
       document.getElementById('editIcon').value = tool.icon || '🛠️';
       document.getElementById('editPriority').value = tool.priority ?? 10;
-      document.getElementById('editAstroComponent').value = tool.astroComponent; // 只读
+      document.getElementById('editAstroComponent').value = tool.astroComponent;
       document.getElementById('editDescription').value = tool.description || '';
       document.getElementById('editSeoTitle').value = tool.seoTitle || '';
       document.getElementById('editSeoDescription').value = tool.seoDescription || '';
@@ -349,32 +420,33 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
     window.saveModalChanges = function() {
       if (currentEditIndex < 0) return;
 
-      toolsList[currentEditIndex].name = document.getElementById('editName').value;
-      toolsList[currentEditIndex].category = document.getElementById('editCategory').value;
-      toolsList[currentEditIndex].icon = document.getElementById('editIcon').value;
-      toolsList[currentEditIndex].priority = parseInt(document.getElementById('editPriority').value) || 0;
-      toolsList[currentEditIndex].description = document.getElementById('editDescription').value;
-      toolsList[currentEditIndex].seoTitle = document.getElementById('editSeoTitle').value;
-      toolsList[currentEditIndex].seoDescription = document.getElementById('editSeoDescription').value;
+      currentFilteredTools[currentEditIndex].name = document.getElementById('editName').value;
+      currentFilteredTools[currentEditIndex].category = document.getElementById('editCategory').value;
+      currentFilteredTools[currentEditIndex].icon = document.getElementById('editIcon').value;
+      currentFilteredTools[currentEditIndex].priority = parseInt(document.getElementById('editPriority').value) || 0;
+      currentFilteredTools[currentEditIndex].description = document.getElementById('editDescription').value;
+      currentFilteredTools[currentEditIndex].seoTitle = document.getElementById('editSeoTitle').value;
+      currentFilteredTools[currentEditIndex].seoDescription = document.getElementById('editSeoDescription').value;
 
       renderTable();
       closeModal();
     };
 
-    // 提交保存至 Cloudflare KV
+    // 点击保存，按当前所选语言分发存储至 KV：config_tools_v2_zh 或 config_tools_v2_en
     document.getElementById('btnSaveConfig')?.addEventListener('click', async () => {
       try {
+        const configType = `tools_v2_${currentLang}`;
         const res = await fetch('/api/admin/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            type: 'tools_v2',
-            configData: toolsList
+            type: configType,
+            configData: currentFilteredTools
           })
         });
         const json = await res.json();
         if (json.success) {
-          alert('✅ ' + json.message);
+          alert(`✅ [${currentLang.toUpperCase()}] ` + json.message);
         } else {
           alert('❌ 保存失败: ' + (json.message || json.error));
         }
