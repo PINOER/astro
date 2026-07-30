@@ -34,12 +34,12 @@ const zhTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
 	const slug = path.split('/').pop().replace('.astro', '');
 	
 	// 从 .astro 页面提取元数据并结合源码正则
-	let rawFm: any = file.toolMeta || file.toolInfo || file.frontmatter || {};
+	let rawFm: any = file.frontmatter || file.toolMeta || file.toolInfo || {};
 	const rawContent = (toolFilesRaw[path] as any)?.default || '';
 	
 	if (rawContent) {
 		try {
-			const match = rawContent.match(/(?:export\s+)?const\s+(?:toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
+			const match = rawContent.match(/(?:export\s+)?const\s+(?:frontmatter|toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
 			if (match && match[1]) {
 				const parsed = new Function(`return ${match[1]}`)();
 				rawFm = { ...rawFm, ...parsed };
@@ -130,12 +130,32 @@ const allSearchableItems = rawItems.sort((a, b) => {
 	<head>
 		<BaseHead title={`微帮工具箱 - 免费在线高效 AI 工具箱 | 提示词、创作者、站长 SEO & 金融计算工具 - HelpMini`} description={'HelpMini 是专为跨境卖家、内容创作者与开发者打造的免费在线 AI 工具箱。提供专业级男装/女装 AI 商拍提示词生成器、社媒文案生成、Google SEO 与 GEO 结构化代码工具、以及跨境电商利润与金融计算器。无需注册，即用即走，为你提升数倍生产力效率！'} />
 		<style>
+			/* 🛠️ SSR 模式救命防重叠/挤压规则 */
+			:global(html) {
+				height: 100%;
+			}
+
+			:global(body) {
+				min-height: 100vh;
+				display: flex !important;
+				flex-direction: column !important;
+				margin: 0;
+				padding: 0;
+			}
+
+			:global(header), :global(footer) {
+				flex-shrink: 0;
+			}
+
 			main {
+				flex: 1 0 auto;
 				width: 1000px;
 				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
+				margin: 0 auto;
+				padding: 2em 1em 4em;
+				box-sizing: border-box;
 			}
+
 			.hero {
 				text-align: center;
 				padding: 2em 0 2.5em;
