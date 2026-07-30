@@ -4,25 +4,21 @@ import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 1. 在服务端 SSR 阶段，自动扫描项目里物理存在的真实工具页面 (.astro)
-// 扫描 src/pages/tools/ 或 src/pages/zh/tools/ 下的所有工具文件
+// 服务端 SSR 阶段自动扫描物理存在的工具页面 (.astro)
 const toolModules = import.meta.glob('/src/pages/**/tools/*.astro');
 
 const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
-  // 从文件路径解析出 slug (例如: /src/pages/zh/tools/image-base64-converter.astro -> image-base64-converter)
   const filename = filePath.split('/').pop() || '';
   const slug = filename.replace('.astro', '');
   
   return {
     slug: slug,
-    astroComponent: filePath, // 物理真实路径，只读
-    name: slug,               // 默认回退名称
+    astroComponent: filePath, // 物理真实路径（只读）
+    name: slug,               // 默认回退名称（可在后台编辑修改）
     category: 'general',
     icon: '🛠️',
     priority: 10,
     status: 'active',
-    isNew: false,
-    isFeatured: false,
     description: '',
     seoTitle: '',
     seoDescription: ''
@@ -104,17 +100,6 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       border-color: #1f2937 !important;
     }
 
-    .badge-tag {
-      display: inline-block;
-      padding: 0.15em 0.4em;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      margin-right: 0.3rem;
-    }
-    .badge-new { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-featured { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
-
     /* Modal 编辑弹窗样式 */
     .modal-overlay {
       position: fixed;
@@ -179,9 +164,8 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
   <div class="action-bar">
     <div>
       <span style="font-weight:700; color:#fff;">🛠️ 真实工具联动控制台 (KV: config_tools_v2)</span>
-      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">已自动检测到项目中真实的 Astro 工具，设置完属性点击右侧保存</span>
+      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">在此编辑展示名称与 SEO 配置，修改后点击右侧保存</span>
     </div>
-    <!-- 2. 已完全移除“新增工具”按钮，防止配置虚假路径 -->
     <button class="btn-primary" id="btnSaveConfig">💾 保存全量配置</button>
   </div>
 
@@ -189,11 +173,11 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
     <thead>
       <tr>
         <th style="width: 50px;">图标</th>
-        <th>工具名称 / Slug (只读)</th>
+        <th>工具展示名称</th>
+        <th>URL Slug (物理绑定)</th>
         <th>分类</th>
         <th style="width: 90px;">排序权重</th>
         <th>状态</th>
-        <th>标记</th>
         <th style="width: 100px;">操作</th>
       </tr>
     </thead>
@@ -211,11 +195,11 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
       
       <div class="form-row">
         <div class="form-group">
-          <label>工具名称 *</label>
-          <input type="text" id="editName" class="form-control" placeholder="如: 复利计算器" />
+          <!-- 1. 可自由编辑工具前端显示名称 -->
+          <label>工具展示名称 (前端显示) *</label>
+          <input type="text" id="editName" class="form-control" placeholder="如: 复利 & FIRE 退休计算器" />
         </div>
         <div class="form-group">
-          <!-- 3. URL Slug 设置为只读 -->
           <label>URL Slug (物理绑定，不可修改)</label>
           <input type="text" id="editSlug" class="form-control readonly-field" readonly />
         </div>
@@ -239,7 +223,6 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
             <input type="number" id="editPriority" class="form-control" value="10" />
           </div>
           <div>
-            <!-- 3. Astro 物理组件路径设置为只读 -->
             <label>Astro 文件路径 (物理绑定，不可修改)</label>
             <input type="text" id="editAstroComponent" class="form-control readonly-field" readonly />
           </div>
@@ -256,7 +239,7 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
 
       <div class="form-group">
         <label>SEO Title (自定义网页标题)</label>
-        <input type="text" id="editSeoTitle" class="form-control" placeholder="留空则使用工具名称" />
+        <input type="text" id="editSeoTitle" class="form-control" placeholder="留空则使用工具展示名称" />
       </div>
 
       <div class="form-group">
@@ -271,33 +254,29 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
     </div>
   </div>
 
-  <!-- 注入服务端扫描到的物理工具信息 -->
   <script is:inline define:vars={{ autoDiscoveredTools }}>
     let toolsList = [];
     let currentEditIndex = -1;
 
-    // 核心逻辑：获取 KV 配置并与本地物理工具扫描结果自动合并 (Merge)
     async function fetchAndMergeToolsConfig() {
       try {
         const res = await fetch('/api/admin/config?type=tools_v2');
         const json = await res.json();
         const kvToolsMap = new Map();
 
-        // 如果 KV 中已有配置数据，存入 Map 中以便检索
         if (json.success && json.data && Array.isArray(json.data)) {
           json.data.forEach(item => {
             if (item.slug) kvToolsMap.set(item.slug, item);
           });
         }
 
-        // 1. 物理真实工具与 KV 配置匹配绑定
+        // 合并物理工具与 KV 自定义配置
         toolsList = autoDiscoveredTools.map(localTool => {
           const kvData = kvToolsMap.get(localTool.slug);
           if (kvData) {
-            // 保留 KV 中已经配置好的自定义属性，但强制绑定物理路径
             return {
               ...localTool,
-              ...kvData,
+              ...kvData, // 包含用户修改保存过的自定义 name
               astroComponent: localTool.astroComponent, // 物理锁定
               slug: localTool.slug // 物理锁定
             };
@@ -325,8 +304,8 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
           <td style="font-size:1.3rem; text-align:center;">${tool.icon || '🛠️'}</td>
           <td>
             <div style="font-weight:700; color:#fff;">${tool.name || tool.slug}</div>
-            <div style="font-size:0.75rem; color:#9ca3af; font-family:monospace;">/${tool.slug}</div>
           </td>
+          <td style="font-size:0.75rem; color:#9ca3af; font-family:monospace;">/${tool.slug}</td>
           <td><span style="background:rgba(255,255,255,0.06); padding:0.2em 0.5em; border-radius:4px; font-size:0.78rem;">${tool.category || 'general'}</span></td>
           <td><strong style="color:#3b82f6;">${tool.priority ?? 10}</strong></td>
           <td>
@@ -337,16 +316,6 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
             </select>
           </td>
           <td>
-            <label style="cursor:pointer; margin-right:0.3rem;">
-              <input type="checkbox" ${tool.isNew ? 'checked' : ''} onchange="toggleFlag(${index}, 'isNew', this.checked)">
-              <span class="badge-tag badge-new">NEW</span>
-            </label>
-            <label style="cursor:pointer;">
-              <input type="checkbox" ${tool.isFeatured ? 'checked' : ''} onchange="toggleFlag(${index}, 'isFeatured', this.checked)">
-              <span class="badge-tag badge-featured">推荐</span>
-            </label>
-          </td>
-          <td>
             <button class="btn-secondary" onclick="openEditModal(${index})">✏️ 编辑</button>
           </td>
         </tr>
@@ -354,7 +323,6 @@ const autoDiscoveredTools = Object.keys(toolModules).map((filePath) => {
     }
 
     window.updateStatus = function(index, value) { toolsList[index].status = value; };
-    window.toggleFlag = function(index, flag, checked) { toolsList[index][flag] = checked; };
 
     window.openEditModal = function(index) {
       currentEditIndex = index;
