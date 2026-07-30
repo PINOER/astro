@@ -1,0 +1,492 @@
+---
+// src/pages/admin/categories.astro
+import AdminLayout from 'src/layouts/AdminLayout.astro';
+
+export const prerender = false;
+
+// 默认预设分类数据（当 KV 未初始化时使用）
+const defaultCategoriesByLang: Record<string, any[]> = {
+  zh: [
+    { id: 'efficiency', name: '效率工具', icon: '⚡', description: '提升日常工作与开发效率的实用工具', priority: 100 },
+    { id: 'image', name: '图像处理', icon: '🖼️', description: '图片格式转换、Base64 与图像压缩工具', priority: 90 },
+    { id: 'ai', name: 'AI 提示词', icon: '🤖', description: '电商商拍与 AI 文案生成提示词预设', priority: 80 },
+    { id: 'seo', name: 'SEO & 站长', icon: '🔍', description: '结构化数据、Meta 标签与 Search 优化工具', priority: 70 },
+    { id: 'finance', name: '金融计算', icon: '🧮', description: '跨境利润、汇率与金融理财计算器', priority: 60 }
+  ],
+  en: [
+    { id: 'efficiency', name: 'Productivity', icon: '⚡', description: 'Tools to boost daily workflow and development efficiency', priority: 100 },
+    { id: 'image', name: 'Image Tools', icon: '🖼️', description: 'Converters, Base64 encodings, and image utilities', priority: 90 },
+    { id: 'ai', name: 'AI Prompts', icon: '🤖', description: 'Commerce shoot prompts and text generators', priority: 80 },
+    { id: 'seo', name: 'SEO & Webmaster', icon: '🔍', description: 'Structured data, Meta tags, and Search optimization', priority: 70 },
+    { id: 'finance', name: 'Finance & Calc', icon: '🧮', description: 'Cross-border margin and financial calculators', priority: 60 }
+  ]
+};
+---
+
+<AdminLayout title="分类管理 (Categories Management)">
+  <style>
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: var(--admin-card);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--admin-border);
+    }
+
+    .lang-select {
+      background: #0b0f17;
+      color: #fff;
+      border: 1px solid #3b82f6;
+      padding: 0.45em 0.8em;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .categories-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--admin-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--admin-border);
+      font-size: 0.88rem;
+    }
+
+    .categories-table th, .categories-table td {
+      padding: 0.85rem 0.8rem;
+      border-bottom: 1px solid var(--admin-border);
+      vertical-align: middle;
+    }
+
+    .categories-table th:first-child,
+    .categories-table td:first-child {
+      text-align: left;
+    }
+
+    .categories-table th:not(:first-child),
+    .categories-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .categories-table th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--admin-muted);
+      font-weight: 700;
+    }
+
+    .input-priority {
+      width: 52px;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      color: #fff;
+      padding: 0.35em 0.3em;
+      border-radius: 6px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      font-size: 0.85rem;
+    }
+    .input-priority:focus { border-color: var(--admin-accent); }
+
+    .btn-primary {
+      background: var(--admin-accent);
+      border: none;
+      color: #fff;
+      padding: 0.6em 1.2em;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--admin-border);
+      padding: 0.6em 1.2em;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-action-edit {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      padding: 0.25em 0.55em;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-right: 0.3rem;
+    }
+
+    .btn-action-delete {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      padding: 0.25em 0.55em;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Modal 弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal-box {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      width: 520px;
+      max-width: 90vw;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #d1d5db;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #0b0f17;
+      border: 1px solid #374151;
+      color: #fff;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      box-sizing: border-box;
+    }
+    .form-control:focus { border-color: #3b82f6; outline: none; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #1f2937;
+    }
+  </style>
+
+  <div class="action-bar">
+    <div style="display:flex; align-items:center; gap:1.2rem;">
+      <div>
+        <h3 style="margin:0 0 0.2rem 0; color:#fff; font-size:1.1rem;">分类管理 (Categories Management)</h3>
+        <p style="margin:0; color:var(--admin-muted); font-size:0.82rem;">自定义工具与文章归类标签，支持多语言、图标与展示顺序调整</p>
+      </div>
+      
+      <select class="lang-select" id="langSelect" onchange="switchLanguage(this.value)">
+        <option value="zh">🇨🇳 中文 (ZH)</option>
+        <option value="en">🇺🇸 English (EN)</option>
+        <option value="ja">🇯🇵 日本語 (JA)</option>
+        <option value="ko">🇰🇷 한국어 (KO)</option>
+        <option value="de">🇩🇪 Deutsch (DE)</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:0.8rem;">
+      <button class="btn-secondary" onclick="openCategoryModal()">🏷️ 新增分类</button>
+      <button class="btn-primary" id="btnSaveCategories" type="button">💾 保存分类修改</button>
+    </div>
+  </div>
+
+  <table class="categories-table">
+    <thead>
+      <tr>
+        <th>分类名称与标识符</th>
+        <th>图标</th>
+        <th>描述说明</th>
+        <th>排序权重</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="categoriesTbody">
+      <tr>
+        <td colspan="5" style="text-align:center; color:var(--admin-muted);">正在同步分类数据...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 新增/编辑分类 Modal -->
+  <div id="categoryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <h3 id="modalTitle" style="margin-top:0; color:#fff; font-size:1.1rem;">🏷️ 配置分类</h3>
+      <input type="hidden" id="editingCatId" value="" />
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>所属语言 *</label>
+          <select id="catLang" class="form-control">
+            <option value="zh">🇨🇳 中文 (ZH)</option>
+            <option value="en">🇺🇸 English (EN)</option>
+            <option value="ja">🇯🇵 日本語 (JA)</option>
+            <option value="ko">🇰🇷 한국어 (KO)</option>
+            <option value="de">🇩🇪 Deutsch (DE)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>图标 / Emoji *</label>
+          <input type="text" id="catIcon" class="form-control" value="🏷️" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>分类名称 *</label>
+          <input type="text" id="catName" class="form-control" placeholder="例如：效率工具" />
+        </div>
+        <div class="form-group">
+          <label>分类 Key / 标识符 *</label>
+          <input type="text" id="catKey" class="form-control" placeholder="例如：efficiency" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>分类简述 (Description)</label>
+        <textarea id="catDesc" class="form-control" rows="2" placeholder="简要说明该分类下的工具内容..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>排序权重 (Priority)</label>
+        <input type="number" id="catPriority" class="form-control" value="100" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeCategoryModal()">取消</button>
+        <button class="btn-primary" onclick="submitCategory()">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ defaultCategoriesByLang }}>
+    let currentLang = 'zh';
+    let currentCategoryList = [];
+
+    window.switchLanguage = function(lang) {
+      currentLang = lang;
+      fetchCategories();
+    };
+
+    async function fetchCategories() {
+      try {
+        const tbody = document.getElementById('categoriesTbody');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--admin-muted);">正在加载 [${currentLang.toUpperCase()}] 分类...</td></tr>`;
+
+        // 请求 Cloudflare KV 中的分类配置 config_categories_zh / en
+        const res = await fetch(`/api/admin/config?type=categories_v1_${currentLang}`);
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          currentCategoryList = json.data;
+        } else {
+          // 回退默认预设
+          currentCategoryList = defaultCategoriesByLang[currentLang] || defaultCategoriesByLang['zh'];
+        }
+
+        // 排序：按 Priority 降序排列
+        currentCategoryList.sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0));
+
+        renderTable();
+      } catch (e) {
+        alert('读取分类数据失败: ' + e.message);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('categoriesTbody');
+      if (!tbody) return;
+
+      if (currentCategoryList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--admin-muted);">当前语言下无分类，请点击右上方添加</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = currentCategoryList.map((cat) => `
+        <tr data-id="${cat.id}">
+          <!-- 1. 名称与 Key (靠左) -->
+          <td>
+            <div style="font-weight: 700; color:#fff; font-size:0.95rem;">
+              ${cat.name}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.1rem;">
+              <code>Key: ${cat.id}</code>
+            </div>
+          </td>
+
+          <!-- 2. 图标 (居中) -->
+          <td>
+            <span style="font-size:1.3rem;">${cat.icon || '🏷️'}</span>
+          </td>
+
+          <!-- 3. 描述说明 (居中) -->
+          <td>
+            <span style="color:var(--admin-muted); font-size:0.82rem;">${cat.description || '—'}</span>
+          </td>
+
+          <!-- 4. 排序权重 (居中) -->
+          <td>
+            <input class="input-priority" type="number" value="${cat.priority || 0}" />
+          </td>
+
+          <!-- 5. 操作 (居中) -->
+          <td>
+            <button class="btn-action-edit" onclick="openEditCategoryModal('${cat.id}')">✏️ 编辑</button>
+            <button class="btn-action-delete" onclick="deleteCategory('${cat.id}')">🗑️ 删除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* 打开新增分类弹窗 */
+    window.openCategoryModal = function() {
+      document.getElementById('modalTitle').textContent = '🏷️ 新增分类';
+      document.getElementById('editingCatId').value = '';
+      document.getElementById('catLang').value = currentLang;
+      document.getElementById('catIcon').value = '🏷️';
+      document.getElementById('catName').value = '';
+      document.getElementById('catKey').value = '';
+      document.getElementById('catDesc').value = '';
+      document.getElementById('catPriority').value = '100';
+      document.getElementById('categoryModal').style.display = 'flex';
+    };
+
+    /* 打开编辑分类弹窗 */
+    window.openEditCategoryModal = function(id) {
+      const item = currentCategoryList.find(c => c.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTitle').textContent = '✏️ 编辑分类';
+      document.getElementById('editingCatId').value = item.id;
+      document.getElementById('catLang').value = currentLang;
+      document.getElementById('catIcon').value = item.icon || '🏷️';
+      document.getElementById('catName').value = item.name || '';
+      document.getElementById('catKey').value = item.id || '';
+      document.getElementById('catDesc').value = item.description || '';
+      document.getElementById('catPriority').value = item.priority || 100;
+
+      document.getElementById('categoryModal').style.display = 'flex';
+    };
+
+    window.closeCategoryModal = function() {
+      document.getElementById('categoryModal').style.display = 'none';
+    };
+
+    /* 删除分类 */
+    window.deleteCategory = function(id) {
+      if (confirm(`确认删除分类 [${id}]？保存后生效。`)) {
+        currentCategoryList = currentCategoryList.filter(c => c.id !== id);
+        renderTable();
+      }
+    };
+
+    /* 提交分类 */
+    window.submitCategory = function() {
+      const editingId = document.getElementById('editingCatId').value;
+      const lang = document.getElementById('catLang').value;
+      const icon = document.getElementById('catIcon').value || '🏷️';
+      const name = document.getElementById('catName').value.trim();
+      const key = document.getElementById('catKey').value.trim().toLowerCase().replace(/\s+/g, '-');
+      const desc = document.getElementById('catDesc').value.trim();
+      const priority = Number(document.getElementById('catPriority').value) || 0;
+
+      if (!name || !key) {
+        alert('请填写真实的分类名称与分类 Key！');
+        return;
+      }
+
+      if (editingId) {
+        // 编辑模式
+        const idx = currentCategoryList.findIndex(c => c.id === editingId);
+        if (idx !== -1) {
+          currentCategoryList[idx] = { id: key, name, icon, description: desc, priority };
+        }
+      } else {
+        // 新增模式
+        if (currentCategoryList.some(c => c.id === key)) {
+          alert(`分类 Key [${key}] 已存在，请换一个标识符！`);
+          return;
+        }
+        currentCategoryList.unshift({ id: key, name, icon, description: desc, priority });
+      }
+
+      currentCategoryList.sort((a, b) => Number(b.priority || 0) - Number(a.priority || 0));
+      renderTable();
+      closeCategoryModal();
+    };
+
+    /* 保存全部分类至 Cloudflare KV */
+    document.getElementById('btnSaveCategories')?.addEventListener('click', async () => {
+      const btn = document.getElementById('btnSaveCategories');
+      btn.textContent = '⏳ 保存中...';
+      btn.disabled = true;
+
+      const rows = document.querySelectorAll('#categoriesTbody tr');
+
+      // 提取表格中可能实时调整的 Priority 权重
+      rows.forEach((row) => {
+        const id = row.dataset.id;
+        const priorityInput = row.querySelector('.input-priority');
+        if (id && priorityInput) {
+          const item = currentCategoryList.find(c => c.id === id);
+          if (item) item.priority = Number(priorityInput.value);
+        }
+      });
+
+      try {
+        const res = await fetch('/api/admin/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: `categories_v1_${currentLang}`,
+            configData: currentCategoryList
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert(`🎉 [${currentLang.toUpperCase()}] 分类配置已成功保存至 Cloudflare KV！`);
+          fetchCategories();
+        } else {
+          alert('保存失败：' + (data.message || '未知错误'));
+        }
+      } catch (err) {
+        alert('网络同步失败，请检查登录状态或 KV 绑定');
+      } finally {
+        btn.textContent = '💾 保存分类修改';
+        btn.disabled = false;
+      }
+    });
+
+    fetchCategories();
+  </script>
+</AdminLayout>
