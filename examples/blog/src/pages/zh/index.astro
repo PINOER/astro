@@ -26,26 +26,38 @@ try {
 	console.warn('SSR 读取 Cloudflare KV 失败，全量保持原生前端配置:', e);
 }
 
-// 2. 自动化扫描 src/pages/zh/tools/ 下的所有工具页面
+// 2. 自动化扫描与源码精准解析，获取原生初始 display
+const toolFilesRaw = import.meta.glob('/src/pages/zh/tools/*.astro', { query: '?raw', eager: true });
 const toolFiles = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true });
 
 const zhTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
 	const slug = path.split('/').pop().replace('.astro', '');
 	
-	// 从 Astro 页面提取原生的元数据导出对象 (兼容多种导出写法)
-	const rawFm = file.toolMeta || file.toolInfo || file.frontmatter || {};
+	// 从 .astro 页面提取元数据并结合源码正则
+	let rawFm: any = file.toolMeta || file.toolInfo || file.frontmatter || {};
+	const rawContent = (toolFilesRaw[path] as any)?.default || '';
 	
-	// ⚡ 1. 提取前端原生默认配置 (Base Defaults)
+	if (rawContent) {
+		try {
+			const match = rawContent.match(/(?:export\s+)?const\s+(?:toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
+			if (match && match[1]) {
+				const parsed = new Function(`return ${match[1]}`)();
+				rawFm = { ...rawFm, ...parsed };
+			}
+		} catch (e) {}
+	}
+	
+	// ⚡ 1. 提取前端原生默认配置
 	const defaultTitle = rawFm.title || rawFm.name || slug;
 	const defaultDesc = rawFm.description || rawFm.desc || '';
 	const defaultIcon = rawFm.icon || '⚡';
 	const defaultTag = rawFm.tag || rawFm.category || '工具';
 	const defaultPriority = rawFm.priority || rawFm.defaultPriority || 0;
 
-	// ⚡ 2. 获取 KV 中的配置（如果后台有保存过）
+	// ⚡ 2. 获取 KV 中的配置
 	const kvConfig = kvToolsConfigMap.get(slug) || {};
 
-	// ⚡ 3. 字段级精准回退：后台修改优先；未修改或为空时，100% 还原前端原生初始配置
+	// ⚡ 3. 字段级精准覆盖：只有在 KV 中显式修改过且不为空时才使用 KV 值；未修改 100% 使用源码定义
 	const finalTitle = (kvConfig.name && kvConfig.name.trim() !== '' && kvConfig.name !== slug) ? kvConfig.name : defaultTitle;
 	const finalDesc = (kvConfig.description && kvConfig.description.trim() !== '') ? kvConfig.description : defaultDesc;
 	const finalIcon = (kvConfig.icon && kvConfig.icon.trim() !== '' && kvConfig.icon !== '🛠️') ? kvConfig.icon : defaultIcon;
