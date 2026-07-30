@@ -4,14 +4,14 @@ import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 1. 服务端 SSR 阶段自动扫描所有多语言工具页面，全量抽取前台原本的 title, description, icon, category
+// 1. 服务端 SSR 阶段自动扫描所有多语言工具页面，全量抽取前台原本定义的 title, description, icon, category
 const allToolModules = import.meta.glob('/src/pages/**/tools/*.astro', { eager: true });
 
 const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, module]: [string, any]) => {
   const filename = filePath.split('/').pop() || '';
   const slug = filename.replace('.astro', '');
   
-  // 从文件路径提取语言类型 (例如: /src/pages/zh/tools/xxx -> zh, /src/pages/en/tools/xxx -> en)
+  // 从文件路径提取语言类型 (如: /src/pages/zh/tools/xxx -> zh)
   const pathParts = filePath.split('/');
   const toolsIndex = pathParts.indexOf('tools');
   let lang = 'en';
@@ -21,22 +21,23 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     lang = 'zh';
   }
 
-  // 从前台 Astro 组件的导出属性中强提取元数据
-  const meta = module?.toolMeta || module?.frontmatter || {};
-  const pageTitle = module?.title || meta.title || slug;
-  const description = module?.description || meta.description || '';
-  const icon = module?.icon || meta.icon || '🛠️';
-  const category = module?.category || meta.category || 'general';
+  // 🔑 重点：全方位提取前台组件导出的元数据 (优先读取 toolMeta -> 其次 frontmatter -> 其次 toolInfo)
+  const meta = module?.toolMeta || module?.frontmatter || module?.toolInfo || {};
+  
+  const pageTitle = meta.title || meta.name || slug;
+  const description = meta.description || meta.desc || '';
+  const icon = meta.icon || '🛠️';
+  const category = meta.category || meta.tag || 'general';
 
   return {
     slug: slug,
     lang: lang,
     astroComponent: filePath,
-    name: pageTitle,       // 从前台同步来的名称
-    description: description, // 从前台同步来的描述
-    icon: icon,            // 从前台同步来的图标
-    category: category,    // 从前台同步来的分类
-    priority: 10,
+    name: pageTitle,       // 👈 完美同步前台默认名称
+    description: description, // 👈 完美同步前台默认简介
+    icon: icon,            // 👈 完美同步前台默认图标
+    category: category,    // 👈 完美同步前台默认分类
+    priority: meta.priority || 10,
     status: 'active',
     seoTitle: '',
     seoDescription: ''
@@ -130,7 +131,6 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       border-color: #1f2937 !important;
     }
 
-    /* Modal 编辑弹窗样式 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -195,18 +195,16 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     <div style="display:flex; align-items:center; gap:1rem;">
       <span style="font-weight:700; color:#fff;">🛠️ 真实工具管理中心</span>
       
-      <!-- 1. 下拉菜单切换语言环境 (支持无限扩展新语种) -->
       <select class="lang-select" id="langSelect" onchange="switchLanguage(this.value)">
         <option value="zh">🇨🇳 中文 (ZH)</option>
         <option value="en">🇺🇸 English (EN)</option>
         <option value="ja">🇯🇵 日本語 (JA)</option>
         <option value="ko">🇰🇷 한국어 (KO)</option>
         <option value="de">🇩🇪 Deutsch (DE)</option>
-        <option value="es">🇪🇸 Español (ES)</option>
       </select>
     </div>
     
-    <button class="btn-primary" id="btnSaveConfig">💾 保存当前语言配置至 KV</button>
+    <button class="btn-primary" id="btnSaveConfig">💾 保存配置至 Cloudflare KV</button>
   </div>
 
   <table class="tools-table">
@@ -223,7 +221,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     </thead>
     <tbody id="toolsTableBody">
       <tr>
-        <td colspan="7" style="text-align:center; color:#9ca3af;">正在加载工具数据中...</td>
+        <td colspan="7" style="text-align:center; color:#9ca3af;">正在同步数据中...</td>
       </tr>
     </tbody>
   </table>
@@ -235,7 +233,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       
       <div class="form-row">
         <div class="form-group">
-          <label>工具展示名称 (前端同步显示) *</label>
+          <label>工具展示名称 *</label>
           <input type="text" id="editName" class="form-control" />
         </div>
         <div class="form-group">
@@ -247,11 +245,11 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       <div class="form-row">
         <div class="form-group">
           <label>分类 (Category ID) *</label>
-          <input type="text" id="editCategory" class="form-control" placeholder="如: financial / programming" />
+          <input type="text" id="editCategory" class="form-control" />
         </div>
         <div class="form-group">
           <label>图标 / Emoji</label>
-          <input type="text" id="editIcon" class="form-control" placeholder="如: 📈 或 ⚔️" />
+          <input type="text" id="editIcon" class="form-control" />
         </div>
       </div>
 
@@ -270,7 +268,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
       <div class="form-group">
         <label>工具简短描述 (Description)</label>
-        <textarea id="editDescription" class="form-control" rows="2" placeholder="同步展示在前台工具卡片与元数据中..."></textarea>
+        <textarea id="editDescription" class="form-control" rows="2"></textarea>
       </div>
 
       <hr style="border: 0; border-top: 1px solid #1f2937; margin: 1.2rem 0;" />
@@ -318,14 +316,25 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
         const langDiscovered = autoDiscoveredTools.filter(t => t.lang === currentLang || (currentLang === 'zh' && t.lang === 'zh'));
 
+        // 🔑 核心合并规则：
+        // 以物理文件提取出的“前台原生默认值”为底层 base，如果 KV 中有修改记录则覆盖；KV 中未修改的字段自动保持前台默认值！
         currentFilteredTools = (langDiscovered.length > 0 ? langDiscovered : autoDiscoveredTools).map(localTool => {
           const kvData = kvToolsMap.get(localTool.slug);
-          return {
-            ...localTool,
-            ...(kvData || {}),
-            astroComponent: localTool.astroComponent,
-            slug: localTool.slug
-          };
+          if (kvData) {
+            return {
+              ...localTool,
+              // 仅当 KV 中的字符串不为空时覆盖前台值
+              name: (kvData.name && kvData.name.trim() !== '') ? kvData.name : localTool.name,
+              description: (kvData.description && kvData.description.trim() !== '') ? kvData.description : localTool.description,
+              icon: (kvData.icon && kvData.icon.trim() !== '') ? kvData.icon : localTool.icon,
+              category: (kvData.category && kvData.category.trim() !== '') ? kvData.category : localTool.category,
+              priority: kvData.priority !== undefined ? kvData.priority : localTool.priority,
+              status: kvData.status || localTool.status,
+              seoTitle: kvData.seoTitle || '',
+              seoDescription: kvData.seoDescription || ''
+            };
+          }
+          return localTool;
         });
 
         renderTable();
@@ -370,8 +379,8 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       document.getElementById('modalTitle').innerText = `编辑工具 [${currentLang.toUpperCase()}]: ${tool.name || tool.slug}`;
       document.getElementById('editName').value = tool.name || tool.slug;
       document.getElementById('editSlug').value = tool.slug;
-      document.getElementById('editCategory').value = tool.category || 'general';
-      document.getElementById('editIcon').value = tool.icon || '🛠️';
+      document.getElementById('editCategory').value = tool.category || '';
+      document.getElementById('editIcon').value = tool.icon || '';
       document.getElementById('editPriority').value = tool.priority ?? 10;
       document.getElementById('editAstroComponent').value = tool.astroComponent;
       document.getElementById('editDescription').value = tool.description || '';
@@ -400,7 +409,6 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       closeModal();
     };
 
-    // 点击保存更新至 KV
     document.getElementById('btnSaveConfig')?.addEventListener('click', async () => {
       try {
         const configType = `tools_v2_${currentLang}`;
