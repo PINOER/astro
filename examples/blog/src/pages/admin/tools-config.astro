@@ -1,0 +1,263 @@
+---
+// src/pages/admin/tools-config.astro
+import AdminLayout from 'src/layouts/AdminLayout.astro';
+
+export const prerender = false;
+---
+
+<AdminLayout title="🛠️ 工具管理 (Tools Management)">
+  <style>
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: var(--admin-card, #111827);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--admin-border, #1f2937);
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      padding: 0.6em 1.2em;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .tools-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--admin-card, #111827);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--admin-border, #1f2937);
+    }
+
+    .tools-table th, .tools-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--admin-border, #1f2937);
+      font-size: 0.88rem;
+    }
+
+    .tools-table th {
+      background: rgba(255, 255, 255, 0.02);
+      color: #9ca3af;
+      font-weight: 700;
+    }
+
+    .status-select {
+      background: #0b0f17;
+      color: #fff;
+      border: 1px solid #374151;
+      padding: 0.35em 0.6em;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 0.15em 0.5em;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-right: 0.3rem;
+    }
+
+    .badge-new { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-featured { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .btn-edit-param {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid #374151;
+      padding: 0.3em 0.7em;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .btn-edit-param:hover { background: rgba(255, 255, 255, 0.15); }
+  </style>
+
+  <div class="action-bar">
+    <div>
+      <span style="font-weight:700; color:#fff;">全站工具控制台 (KV: config_tools_v2)</span>
+      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">状态控制、推荐标记及预设场景参数</span>
+    </div>
+    <button class="btn-primary" id="btnSaveConfig">💾 保存至 Cloudflare KV</button>
+  </div>
+
+  <table class="tools-table">
+    <thead>
+      <tr>
+        <th style="width: 60px;">图标</th>
+        <th>工具名称 & Slug</th>
+        <th>组件路径</th>
+        <th>状态控制</th>
+        <th>标记位</th>
+        <th>预设参数/场景</th>
+      </tr>
+    </thead>
+    <tbody id="toolsTableBody">
+      <tr>
+        <td colspan="6" style="text-align:center; color:#9ca3af;">正在从 KV 读取配置中...</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script is:inline>
+    let toolsList = [];
+
+    // 初始内置工具数据 (当 KV 尚无内容时作为回退)
+    const DEFAULT_TOOLS = [
+      {
+        id: 'compound-interest-fire-calculator',
+        name: '复利 & FIRE 退休计算器',
+        slug: 'compound-interest-fire-calculator',
+        category: 'financial',
+        icon: '📈',
+        astroComponent: 'src/components/tools/FinanceCalc.astro',
+        tags: ['理财', '复利'],
+        status: 'active',
+        isNew: false,
+        isFeatured: true,
+        priority: 10,
+        presetParams: [
+          { key: 'defaultRate', label: '默认年化收益率 (%)', value: 6, type: 'number' }
+        ]
+      },
+      {
+        id: 'c-text-adventure-builder',
+        name: 'C 语言地牢文字冒险构建器',
+        slug: 'c-text-adventure-builder',
+        category: 'programming',
+        icon: '⚔️',
+        astroComponent: 'src/components/tools/CTextAdventure.astro',
+        tags: ['C语言', 'STEM'],
+        status: 'active',
+        isNew: true,
+        isFeatured: true,
+        priority: 20,
+        presetParams: [
+          { key: 'defaultHp', label: '初始玩家血量', value: 100, type: 'number' }
+        ]
+      }
+    ];
+
+    // 从通用 API /api/admin/config 读取 type=tools_v2
+    async function fetchToolsConfig() {
+      try {
+        const res = await fetch('/api/admin/config?type=tools_v2');
+        const json = await res.json();
+        
+        if (json.success && json.data && Array.isArray(json.data)) {
+          toolsList = json.data;
+        } else {
+          toolsList = DEFAULT_TOOLS;
+        }
+        renderTable();
+      } catch (e) {
+        alert('读取工具配置失败: ' + e.message);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('toolsTableBody');
+      if (!tbody) return;
+
+      if (toolsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af;">暂无工具数据</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = toolsList.map((tool, index) => `
+        <tr>
+          <td style="font-size:1.5rem; text-align:center;">${tool.icon || '🛠️'}</td>
+          <td>
+            <div style="font-weight:700; color:#fff;">${tool.name}</div>
+            <div style="font-size:0.78rem; color:#9ca3af; font-family:monospace;">/${tool.slug}</div>
+          </td>
+          <td style="font-family:monospace; font-size:0.8rem; color:#9ca3af;">${tool.astroComponent || '-'}</td>
+          <td>
+            <select class="status-select" onchange="updateStatus(${index}, this.value)">
+              <option value="active" ${tool.status === 'active' ? 'selected' : ''}>🟢 正常开启</option>
+              <option value="disabled" ${tool.status === 'disabled' ? 'selected' : ''}>🔴 禁用 (404)</option>
+              <option value="maintenance" ${tool.status === 'maintenance' ? 'selected' : ''}>🟡 维护模式</option>
+            </select>
+          </td>
+          <td>
+            <label style="cursor:pointer; margin-right:0.5rem;">
+              <input type="checkbox" ${tool.isNew ? 'checked' : ''} onchange="toggleFlag(${index}, 'isNew', this.checked)">
+              <span class="badge-tag badge-new">NEW</span>
+            </label>
+            <label style="cursor:pointer;">
+              <input type="checkbox" ${tool.isFeatured ? 'checked' : ''} onchange="toggleFlag(${index}, 'isFeatured', this.checked)">
+              <span class="badge-tag badge-featured">推荐</span>
+            </label>
+          </td>
+          <td>
+            <button class="btn-edit-param" onclick="editParams(${index})">
+              ⚙️ 参数配置 (${tool.presetParams ? tool.presetParams.length : 0})
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.updateStatus = function(index, value) {
+      toolsList[index].status = value;
+    };
+
+    window.toggleFlag = function(index, flag, checked) {
+      toolsList[index][flag] = checked;
+    };
+
+    window.editParams = function(index) {
+      const tool = toolsList[index];
+      const paramsText = JSON.stringify(tool.presetParams || [], null, 2);
+      const newText = prompt(`编辑 [${tool.name}] 的预设 JSON 参数:`, paramsText);
+      if (newText !== null) {
+        try {
+          tool.presetParams = JSON.parse(newText);
+          renderTable();
+        } catch (e) {
+          alert('JSON 格式不正确，修改未生效');
+        }
+      }
+    };
+
+    // 保存全量工具配置到 /api/admin/config (type: 'tools_v2')
+    document.getElementById('btnSaveConfig')?.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/admin/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'tools_v2',
+            configData: toolsList
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('✅ ' + json.message);
+        } else {
+          alert('❌ 保存失败: ' + (json.message || json.error));
+        }
+      } catch (e) {
+        alert('提交保存网络异常: ' + e.message);
+      }
+    });
+
+    fetchToolsConfig();
+  </script>
+</AdminLayout>
