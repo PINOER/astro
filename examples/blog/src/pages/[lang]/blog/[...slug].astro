@@ -2,48 +2,31 @@
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 
-// 1. 保留静态路径导出，同时不强制设置 prerender，让页面支持 SSR/Hybrid 模式
-export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => {
-		const rawPath = post.slug || post.id.replace(/\.(md|mdx)$/, '');
-		const [lang, ...slugParts] = rawPath.split('/');
-		const slug = slugParts.join('/');
-
-		return {
-			params: { lang: lang || 'en', slug: slug || '' },
-			props: post,
-		};
-	});
-}
+// ⚡ 关键：关闭 Prerender，允许 Cloudflare SSR 动态拉取 KV 内容
+export const prerender = false;
 
 type Props = CollectionEntry<'blog'>;
 
-const { lang = 'zh', slug = '' } = Astro.params;
-let post = Astro.props as CollectionEntry<'blog'>;
+// 1. 从 URL 提取路由参数
+const lang = Astro.params.lang || 'zh';
+const slug = Astro.params.slug || '';
 
-// 2. 匹配本地文章
-if (!post) {
-	const posts = await getCollection('blog');
-	const matchedPost = posts.find((p) => {
-		const rawPath = p.slug || p.id.replace(/\.(md|mdx)$/, '');
-		return rawPath === `${lang}/${slug}` || p.id === `${lang}/${slug}.md` || p.id.includes(slug);
-	});
-	if (matchedPost) {
-		post = matchedPost;
-	}
-}
+// 2. 匹配本地博客 Collection
+const posts = await getCollection('blog');
+let post = posts.find((p) => {
+	const rawPath = p.slug || p.id.replace(/\.(md|mdx)$/, '');
+	return rawPath === `${lang}/${slug}` || p.id === `${lang}/${slug}.md` || p.id.includes(slug);
+});
 
 if (!post) {
 	return Astro.redirect('/404');
 }
 
-// 3. 多维度检索 Cloudflare KV 数据库中的数据
+// 3. 动态读取 Cloudflare KV 数据库覆写
 let updatedContent: string | null = null;
-let updatedTitle = post?.data?.title || '';
+let updatedTitle = post.data.title;
 
 try {
-	// 从 Astro/Cloudflare 运行时对象提取 KV 实例
 	const locals = Astro.locals as any;
 	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
 
@@ -51,13 +34,12 @@ try {
 		const rawList = await kv.get(`articles_v1_${lang}`);
 		if (rawList) {
 			const articlesList = JSON.parse(rawList);
-			
-			// 尝试多重路径匹配：完整 ID、纯 Slug 或相对路径
-			const kvArticle = articlesList.find((item: any) => 
-				item.id === post.id || 
-				item.id === `${lang}/${slug}.md` || 
-				item.slug === slug ||
-				item.id?.includes(slug)
+			const kvArticle = articlesList.find(
+				(item: any) =>
+					item.id === post.id ||
+					item.id === `${lang}/${slug}.md` ||
+					item.slug === slug ||
+					(item.id && item.id.includes(slug))
 			);
 
 			if (kvArticle) {
@@ -69,26 +51,20 @@ try {
 		}
 	}
 } catch (e) {
-	console.warn('SSR 阶段读取 KV 失败，降级回退使用静态 MD:', e);
+	console.warn('SSR 读取 KV 失败，回退使用本地 MD:', e);
 }
 
-// 4. 原生 Markdown 转 HTML 解析（完美支持图像 Base64、加粗、换行、标题等）
+// 4. 原生 Markdown 转换为 HTML（精准解析 Base64 图片与标题段落）
 function renderMarkdownToHtml(md: string): string {
 	if (!md) return '';
 	return md
-		// 图片: ![alt](url) -> 完美兼容 Base64 和普通图片
 		.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%; height:auto; border-radius:8px; display:block; margin:1.2rem 0;" />')
-		// 链接: [text](url)
 		.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">$1</a>')
-		// 标题
 		.replace(/^### (.*$)/gim, '<h3 style="margin-top:1.5em; font-size:1.25rem;">$1</h3>')
 		.replace(/^## (.*$)/gim, '<h2 style="margin-top:1.8em; font-size:1.5rem;">$1</h2>')
 		.replace(/^# (.*$)/gim, '<h1 style="margin-top:2em; font-size:1.75rem;">$1</h1>')
-		// 粗体
 		.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-		// 行间代码/行代码
 		.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1); padding:0.2em 0.4em; border-radius:4px;">$1</code>')
-		// 段落分割
 		.split('\n\n')
 		.map((p) => {
 			const trimmed = p.trim();
@@ -99,7 +75,6 @@ function renderMarkdownToHtml(md: string): string {
 		.join('');
 }
 
-// 5. 渲染准备
 const { Content } = await render(post);
 const renderedKvHtml = updatedContent ? renderMarkdownToHtml(updatedContent) : null;
 const finalPostData = { ...post.data, title: updatedTitle };
@@ -108,10 +83,8 @@ const finalPostData = { ...post.data, title: updatedTitle };
 <BlogPost {...finalPostData}>
 	{
 		renderedKvHtml ? (
-			/* ⚡ KV 命中：渲染包含图片 Base64 的最新保存正文 */
 			<div class="markdown-body" set:html={renderedKvHtml} />
 		) : (
-			/* ⚡ KV 未命中/无修改：展示 Astro 原生 build 得到的 Content 组件 */
 			<Content />
 		)
 	}
