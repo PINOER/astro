@@ -4,49 +4,40 @@ import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 1. 内置常用工具的中文名映射表（如果页面本身未导出 title，优先匹配此字典）
-const TOOL_NAME_MAP: Record<string, string> = {
-  'image-base64-converter': '图片转 Base64 & DataURI 工具',
-  'base64-url-converter': 'Base64 & URL 编解码工具',
-  'json-converter': 'JSON 格式化 & 语法校验工具',
-  'json-to-ts': 'JSON 转 TypeScript 类型定义',
-  'json-yaml-converter': 'JSON / YAML 互转工具',
-  'markdown-cleaner': 'Markdown 排版与格式清理',
-  'seo-meta-generator': 'Google SEO Meta 标签生成器',
-  'ecommerce-seo-geo-generator': '电商 SEO & GEO 文案生成器',
-  'token-calculator': 'LLM Token 消耗与上下文计算器',
-  'compound-interest-fire-calculator': '复利 & FIRE 退休计算器',
-  'c-text-adventure-builder': 'C 语言地牢文字冒险构建器',
-  'hanoi-algorithm-visualizer': '汉诺塔算法可视化运行器',
-  'laser-mirror-puzzle': '激光折射镜片解谜游戏',
-  'logic-circuit-puzzle': '逻辑门电路设计解谜',
-  'kids-maze-robot': '儿童编程迷宫机器人'
-};
-
-// 2. 服务端自动扫描所有多语言版本的工具页面文件
+// 1. 服务端 SSR 阶段自动扫描所有多语言工具页面，全量抽取前台原本的 title, description, icon, category
 const allToolModules = import.meta.glob('/src/pages/**/tools/*.astro', { eager: true });
 
 const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, module]: [string, any]) => {
   const filename = filePath.split('/').pop() || '';
   const slug = filename.replace('.astro', '');
   
-  // 判断文件所属语言环境 (默认为 en，包含 /zh/ 的为 zh)
-  const lang = filePath.includes('/zh/') ? 'zh' : 'en';
-  
-  // 智能推导友好显示名称：优先读取页面导出的 title/frontmatter -> 其次匹配预设字典 -> 最后使用 slug
-  const pageTitle = module?.title || module?.frontmatter?.title;
-  const friendlyName = pageTitle || (lang === 'zh' ? (TOOL_NAME_MAP[slug] || slug) : slug);
+  // 从文件路径提取语言类型 (例如: /src/pages/zh/tools/xxx -> zh, /src/pages/en/tools/xxx -> en)
+  const pathParts = filePath.split('/');
+  const toolsIndex = pathParts.indexOf('tools');
+  let lang = 'en';
+  if (toolsIndex > 0 && pathParts[toolsIndex - 1] !== 'pages') {
+    lang = pathParts[toolsIndex - 1];
+  } else if (filePath.includes('/zh/')) {
+    lang = 'zh';
+  }
+
+  // 从前台 Astro 组件的导出属性中强提取元数据
+  const meta = module?.toolMeta || module?.frontmatter || {};
+  const pageTitle = module?.title || meta.title || slug;
+  const description = module?.description || meta.description || '';
+  const icon = module?.icon || meta.icon || '🛠️';
+  const category = module?.category || meta.category || 'general';
 
   return {
     slug: slug,
     lang: lang,
     astroComponent: filePath,
-    name: friendlyName, // 解决文件名问题
-    category: 'general',
-    icon: '🛠️',
+    name: pageTitle,       // 从前台同步来的名称
+    description: description, // 从前台同步来的描述
+    icon: icon,            // 从前台同步来的图标
+    category: category,    // 从前台同步来的分类
     priority: 10,
     status: 'active',
-    description: '',
     seoTitle: '',
     seoDescription: ''
   };
@@ -66,30 +57,16 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       border: 1px solid var(--admin-border, #1f2937);
     }
 
-    .lang-switcher {
-      display: flex;
+    .lang-select {
       background: #0b0f17;
-      border: 1px solid #374151;
+      color: #fff;
+      border: 1px solid #3b82f6;
+      padding: 0.45em 0.8em;
       border-radius: 8px;
-      padding: 3px;
-      gap: 3px;
-    }
-
-    .lang-btn {
-      background: transparent;
-      border: none;
-      color: #9ca3af;
-      padding: 0.4em 0.9em;
-      border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .lang-btn.active {
-      background: #3b82f6;
-      color: #fff;
+      outline: none;
     }
 
     .btn-primary {
@@ -216,16 +193,20 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
   <div class="action-bar">
     <div style="display:flex; align-items:center; gap:1rem;">
-      <span style="font-weight:700; color:#fff;">🛠️ 真实工具联动控制台</span>
+      <span style="font-weight:700; color:#fff;">🛠️ 真实工具管理中心</span>
       
-      <!-- 🌐 多语言切换 Bar -->
-      <div class="lang-switcher">
-        <button class="lang-btn active" id="btnLangZh" onclick="switchLanguage('zh')">🇨🇳 中文 (ZH)</button>
-        <button class="lang-btn" id="btnLangEn" onclick="switchLanguage('en')">🇺🇸 English (EN)</button>
-      </div>
+      <!-- 1. 下拉菜单切换语言环境 (支持无限扩展新语种) -->
+      <select class="lang-select" id="langSelect" onchange="switchLanguage(this.value)">
+        <option value="zh">🇨🇳 中文 (ZH)</option>
+        <option value="en">🇺🇸 English (EN)</option>
+        <option value="ja">🇯🇵 日本語 (JA)</option>
+        <option value="ko">🇰🇷 한국어 (KO)</option>
+        <option value="de">🇩🇪 Deutsch (DE)</option>
+        <option value="es">🇪🇸 Español (ES)</option>
+      </select>
     </div>
     
-    <button class="btn-primary" id="btnSaveConfig">💾 保存当前语言配置</button>
+    <button class="btn-primary" id="btnSaveConfig">💾 保存当前语言配置至 KV</button>
   </div>
 
   <table class="tools-table">
@@ -242,7 +223,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     </thead>
     <tbody id="toolsTableBody">
       <tr>
-        <td colspan="7" style="text-align:center; color:#9ca3af;">正在加载工具列表中...</td>
+        <td colspan="7" style="text-align:center; color:#9ca3af;">正在加载工具数据中...</td>
       </tr>
     </tbody>
   </table>
@@ -254,8 +235,8 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       
       <div class="form-row">
         <div class="form-group">
-          <label>工具展示名称 (前端显示) *</label>
-          <input type="text" id="editName" class="form-control" placeholder="如: 图片转 Base64 & DataURI 工具" />
+          <label>工具展示名称 (前端同步显示) *</label>
+          <input type="text" id="editName" class="form-control" />
         </div>
         <div class="form-group">
           <label>URL Slug (物理绑定)</label>
@@ -289,7 +270,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
       <div class="form-group">
         <label>工具简短描述 (Description)</label>
-        <textarea id="editDescription" class="form-control" rows="2" placeholder="卡片展示的简介..."></textarea>
+        <textarea id="editDescription" class="form-control" rows="2" placeholder="同步展示在前台工具卡片与元数据中..."></textarea>
       </div>
 
       <hr style="border: 0; border-top: 1px solid #1f2937; margin: 1.2rem 0;" />
@@ -297,7 +278,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
       <div class="form-group">
         <label>SEO Title (自定义网页标题)</label>
-        <input type="text" id="editSeoTitle" class="form-control" placeholder="留空则使用工具展示名称" />
+        <input type="text" id="editSeoTitle" class="form-control" placeholder="留空则默认使用工具展示名称" />
       </div>
 
       <div class="form-group">
@@ -313,21 +294,17 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
   </div>
 
   <script is:inline define:vars={{ autoDiscoveredTools }}>
-    let currentLang = 'zh'; // 默认语言为中文
+    let currentLang = 'zh';
     let currentFilteredTools = [];
     let currentEditIndex = -1;
 
-    // 切换语言版本 (zh / en)
     window.switchLanguage = function(lang) {
       currentLang = lang;
-      document.getElementById('btnLangZh').classList.toggle('active', lang === 'zh');
-      document.getElementById('btnLangEn').classList.toggle('active', lang === 'en');
       fetchAndMergeToolsConfig();
     };
 
     async function fetchAndMergeToolsConfig() {
       try {
-        // 根据不同语言动态读取对应的 KV Key：config_tools_v2_zh 或 config_tools_v2_en
         const configType = `tools_v2_${currentLang}`;
         const res = await fetch(`/api/admin/config?type=${configType}`);
         const json = await res.json();
@@ -339,20 +316,16 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
           });
         }
 
-        // 筛选出对应语言下的物理文件，并与 KV 配置做 Merge
-        const langDiscovered = autoDiscoveredTools.filter(t => t.lang === currentLang);
+        const langDiscovered = autoDiscoveredTools.filter(t => t.lang === currentLang || (currentLang === 'zh' && t.lang === 'zh'));
 
-        currentFilteredTools = langDiscovered.map(localTool => {
+        currentFilteredTools = (langDiscovered.length > 0 ? langDiscovered : autoDiscoveredTools).map(localTool => {
           const kvData = kvToolsMap.get(localTool.slug);
-          if (kvData) {
-            return {
-              ...localTool,
-              ...kvData, // 包含用户保存过的自定义中文/英文名称
-              astroComponent: localTool.astroComponent,
-              slug: localTool.slug
-            };
-          }
-          return localTool;
+          return {
+            ...localTool,
+            ...(kvData || {}),
+            astroComponent: localTool.astroComponent,
+            slug: localTool.slug
+          };
         });
 
         renderTable();
@@ -364,11 +337,6 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     function renderTable() {
       const tbody = document.getElementById('toolsTableBody');
       if (!tbody) return;
-
-      if (currentFilteredTools.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#9ca3af;">未找到 ${currentLang.toUpperCase()} 语言版本下的工具文件</td></tr>`;
-        return;
-      }
 
       tbody.innerHTML = currentFilteredTools.map((tool, index) => `
         <tr>
@@ -432,7 +400,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
       closeModal();
     };
 
-    // 点击保存，按当前所选语言分发存储至 KV：config_tools_v2_zh 或 config_tools_v2_en
+    // 点击保存更新至 KV
     document.getElementById('btnSaveConfig')?.addEventListener('click', async () => {
       try {
         const configType = `tools_v2_${currentLang}`;
