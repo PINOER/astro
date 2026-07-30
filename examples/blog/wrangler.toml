@@ -1,8 +1,12 @@
-name = "helpmini-blog"
+name = "astro"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-07-29"
 
-# 显式声明你的 Cloudflare KV 绑定
+# 🔑 开启 Node.js 原生模块兼容（解决 node:stream 报错）
+node_compat = true
+compatibility_flags = [ "nodejs_compat" ]
+
+# KV 命名空间绑定
 [[kv_namespaces]]
 binding = "ADMIN_KV"
-id = "ce1325de77914f0c808ba79a06356909" # 在 Cloudflare 后台 KV 界面查看
+id = "ce1325de77914f0c808ba79a06356909"
