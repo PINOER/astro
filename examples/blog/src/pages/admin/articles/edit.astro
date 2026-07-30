@@ -134,6 +134,10 @@ export const prerender = false;
       font-weight: 800;
       cursor: pointer;
     }
+    .btn-save:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 
   <div class="editor-header">
@@ -237,7 +241,7 @@ export const prerender = false;
 
     mdInput.addEventListener('input', updatePreview);
 
-    // ⚡ 纯前端 WebP Base64 转码（100% 避开 Edge 运行时的 fs.mkdirSync 限制）
+    // 纯前端 WebP Base64 转码
     async function processAndUploadImage(file) {
       if (!file.type.startsWith('image/')) return;
 
@@ -330,6 +334,7 @@ export const prerender = false;
       }
     }
 
+    // ⚡ 精准网络请求与保存处理
     document.getElementById('btnSaveArticle')?.addEventListener('click', async () => {
       const lang = document.getElementById('artLang').value;
       const rawSlug = document.getElementById('artSlug').value.trim().replace(/^\//, '');
@@ -345,6 +350,10 @@ export const prerender = false;
       const cleanSlug = rawSlug.replace(/\.(md|mdx)$/, '');
       const fullId = articleId || `${lang}/${cleanSlug}.md`;
 
+      const btnSave = document.getElementById('btnSaveArticle');
+      btnSave.textContent = '⏳ 保存中...';
+      btnSave.disabled = true;
+
       try {
         const res = await fetch('/api/admin/articles/save', {
           method: 'POST',
@@ -358,15 +367,20 @@ export const prerender = false;
             content: content 
           })
         });
-        const data = await res.json();
-        if (data.success) {
-          alert('🎉 文章编辑成功并更新部署！');
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success) {
+          alert('🎉 文章保存成功！');
           window.location.href = '/admin/articles';
         } else {
-          alert('保存失败: ' + (data.message || '未知错误'));
+          alert('保存失败: ' + (data.message || `HTTP状态码 ${res.status}`));
         }
       } catch (e) {
-        alert('网络请求异常');
+        alert('网络请求异常/传输体积超限: ' + e.message);
+      } finally {
+        btnSave.textContent = '💾 保存文章';
+        btnSave.disabled = false;
       }
     });
 
