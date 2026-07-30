@@ -4,8 +4,6 @@ import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
-// ⚠️ 关键点 1：必须声明禁用预渲染，开全局 SSR 动态读取 KV
-export const prerender = false;
 
 // 1. 声明给后台大联动扫描的核心元数据
 export const toolInfo = {
