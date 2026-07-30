@@ -221,7 +221,8 @@ export const prerender = false;
               📝 ${item.title}
             </div>
             <div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.2rem;">
-              <code>/${currentLang}/blog/${item.slug}</code>
+              <!-- ⚡ 修正显示路径为正确的 /blog/${currentLang}/${item.slug} -->
+              <code>/blog/${currentLang}/${item.slug}</code>
             </div>
           </td>
           <td>
