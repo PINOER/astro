@@ -23,7 +23,7 @@ try {
   console.warn('SSR 读取 Cloudflare KV 失败:', e);
 }
 
-// 2. 自动化扫描与源码精准解析 (全语言静态预扫描)
+// 2. 自动化扫描与源码精准解析 (全语言静态预扫描，同步获取前端 pinned 初始状态)
 const rawToolFiles = import.meta.glob('/src/pages/**/tools/*.astro', { query: '?raw', eager: true });
 const allToolModules = import.meta.glob('/src/pages/**/tools/*.astro', { eager: true });
 
@@ -69,7 +69,7 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     category: category,
     url: `/${lang}/tools/${slug}/`,
     defaultPriority: meta.priority || 10,
-    defaultPinned: false,
+    defaultPinned: meta.pinned || false, // 👈 规则 1：完美获取前端配置中的 pinned 状态
     status: kvData.status || 'active',
     type: 'tool' as const,
   };
@@ -150,21 +150,17 @@ const allSponsorItems = sponsorItems || {};
       outline: none;
     }
 
-    .select-status {
-      background: var(--admin-bg);
-      border: 1px solid var(--admin-border);
-      color: #fff;
-      padding: 0.35em 0.6em;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      outline: none;
-    }
-
     .badge {
       padding: 0.2em 0.6em;
       border-radius: 12px;
       font-size: 0.75rem;
       font-weight: 800;
+    }
+
+    .badge-sponsor {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
     .badge-pinned {
@@ -179,25 +175,92 @@ const allSponsorItems = sponsorItems || {};
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    .btn-save-all {
+    .btn-primary {
       background: var(--admin-accent);
       border: none;
       color: #fff;
-      padding: 0.65em 1.3em;
+      padding: 0.6em 1.2em;
       border-radius: 8px;
-      font-weight: 800;
+      font-weight: 700;
       cursor: pointer;
       transition: opacity 0.2s;
     }
-    .btn-save-all:hover { opacity: 0.9; }
-    .btn-save-all:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--admin-border);
+      padding: 0.6em 1.2em;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Modal 弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal-box {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      width: 550px;
+      max-width: 90vw;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #d1d5db;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #0b0f17;
+      border: 1px solid #374151;
+      color: #fff;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      box-sizing: border-box;
+    }
+    .form-control:focus { border-color: #3b82f6; outline: none; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #1f2937;
+    }
   </style>
 
   <div class="action-bar">
     <div style="display:flex; align-items:center; gap:1.2rem;">
       <div>
         <h3 style="margin:0 0 0.2rem 0; color:#fff; font-size:1.1rem;">全域综合排序与广告到期规则</h3>
-        <p style="margin:0; color:var(--admin-muted); font-size:0.82rem;">设置“到期恢复时间”后，超过该日期系统将自动取消置顶并恢复默认权重</p>
+        <p style="margin:0; color:var(--admin-muted); font-size:0.82rem;">广告项到期后将自动恢复为默认顺序与置顶状态</p>
       </div>
       
       <select class="lang-select" id="langSelect" onchange="switchLanguage(this.value)">
@@ -208,8 +271,11 @@ const allSponsorItems = sponsorItems || {};
         <option value="de">🇩🇪 Deutsch (DE)</option>
       </select>
     </div>
-    
-    <button class="btn-save-all" id="btnSaveSorting" type="button">💾 保存综合排序</button>
+
+    <div style="display:flex; gap:0.8rem;">
+      <button class="btn-secondary" onclick="openAddSponsorModal()">➕ 新增广告</button>
+      <button class="btn-primary" id="btnSaveSorting" type="button">💾 保存综合排序</button>
+    </div>
   </div>
 
   <table class="tools-table">
@@ -219,17 +285,79 @@ const allSponsorItems = sponsorItems || {};
         <th>分类</th>
         <th>排序权重 (Priority)</th>
         <th>置顶状态</th>
-        <th>到期恢复日期 (Expires)</th>
-        <th>上下架状态</th>
+        <th>广告到期恢复日期 (Expires)</th>
         <th>预览</th>
       </tr>
     </thead>
     <tbody id="sortingTbody">
       <tr>
-        <td colspan="7" style="text-align:center; color:var(--admin-muted);">正在同步与计算排序数据...</td>
+        <td colspan="6" style="text-align:center; color:var(--admin-muted);">正在同步与计算排序数据...</td>
       </tr>
     </tbody>
   </table>
+
+  <!-- 新增广告 Modal -->
+  <div id="addSponsorModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <h3 style="margin-top:0; color:#fff; font-size:1.1rem;">📢 新增广告卡片</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>投放语言 *</label>
+          <select id="adLang" class="form-control">
+            <option value="zh">🇨🇳 中文 (ZH)</option>
+            <option value="en">🇺🇸 English (EN)</option>
+            <option value="ja">🇯🇵 日本語 (JA)</option>
+            <option value="ko">🇰🇷 한국어 (KO)</option>
+            <option value="de">🇩🇪 Deutsch (DE)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>图标 / Emoji *</label>
+          <input type="text" id="adIcon" class="form-control" value="💎" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>广告标题 *</label>
+        <input type="text" id="adTitle" class="form-control" placeholder="例如：Cloudflare 高速 CDN 赞助" />
+      </div>
+
+      <div class="form-group">
+        <label>跳转链接 URL *</label>
+        <input type="url" id="adUrl" class="form-control" placeholder="https://example.com" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>标签分类</label>
+          <input type="text" id="adTag" class="form-control" value="赞助推广" />
+        </div>
+        <div class="form-group">
+          <label>排序权重 (Priority)</label>
+          <input type="number" id="adPriority" class="form-control" value="100" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>到期日期 (Expires)</label>
+          <input type="date" id="adExpires" class="form-control" />
+        </div>
+        <div class="form-group" style="display:flex; align-items:flex-end;">
+          <label style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.6rem;">
+            <input type="checkbox" id="adPinned" checked />
+            <span style="color:#fff;">📌 默认高亮置顶</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeAddSponsorModal()">取消</button>
+        <button class="btn-primary" onclick="submitNewSponsor()">确认添加广告</button>
+      </div>
+    </div>
+  </div>
 
   <script is:inline define:vars={{ autoDiscoveredTools, allSponsorItems }}>
     let currentLang = 'zh';
@@ -243,7 +371,7 @@ const allSponsorItems = sponsorItems || {};
     async function fetchAndMergeSortingConfig() {
       try {
         const tbody = document.getElementById('sortingTbody');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--admin-muted);">正在加载 [${currentLang.toUpperCase()}] 排序数据...</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--admin-muted);">正在加载 [${currentLang.toUpperCase()}] 排序数据...</td></tr>`;
 
         // 1. 获取对应语言的 工具管理 KV (tools_v2_zh)
         const toolsRes = await fetch(`/api/admin/config?type=tools_v2_${currentLang}`);
@@ -281,7 +409,7 @@ const allSponsorItems = sponsorItems || {};
           category: sponsor.tag || '赞助推广',
           url: sponsor.url,
           defaultPriority: sponsor.priority || 0,
-          defaultPinned: sponsor.pinned || false,
+          defaultPinned: sponsor.pinned || false, // 👈 规则 1：获取广告配置中的 pinned 状态
           status: 'active',
           type: 'sponsor'
         }));
@@ -301,15 +429,19 @@ const allSponsorItems = sponsorItems || {};
           const conf = kvSortConfig[item.id];
           let isExpired = false;
 
-          if (conf?.expiresAt) {
+          if (conf?.expiresAt && item.type === 'sponsor') {
             const expTime = new Date(conf.expiresAt).getTime();
             if (now > expTime) isExpired = true;
           }
 
+          // 👈 规则 1 修复：在没有手动设置 KV 覆盖时，完全使用 item.defaultPinned (前端源码) 补全置顶显示
+          const pinnedState = (conf && conf.pinned !== undefined) ? (isExpired ? false : Boolean(conf.pinned)) : item.defaultPinned;
+          const priorityVal = (conf && conf.priority !== undefined) ? (isExpired ? item.defaultPriority : Number(conf.priority)) : item.defaultPriority;
+
           return {
             ...item,
-            priority: (isExpired || !conf) ? item.defaultPriority : Number(conf.priority),
-            pinned: (isExpired || !conf) ? item.defaultPinned : Boolean(conf.pinned),
+            priority: priorityVal,
+            pinned: pinnedState,
             status: conf?.status || item.status || 'active',
             expiresAt: conf?.expiresAt || '',
             isExpired,
@@ -333,16 +465,17 @@ const allSponsorItems = sponsorItems || {};
       if (!tbody) return;
 
       if (currentSortingList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--admin-muted);">当前语言分类下无相关工具或广告</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--admin-muted);">当前语言分类下无相关工具或广告</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = currentSortingList.map((item, index) => `
+      tbody.innerHTML = currentSortingList.map((item) => `
         <tr data-id="${item.id}" data-type="${item.type}">
           <td>
             <div style="font-weight: 700; display: flex; align-items: center; gap: 0.5rem; color:#fff;">
               <span style="font-size:1.2rem;">${item.icon}</span>
               <span>${item.name}</span>
+              ${item.type === 'sponsor' ? '<span class="badge badge-sponsor">💎 赞助广告</span>' : ''}
             </div>
             <div style="font-size: 0.75rem; color: var(--admin-muted); margin-top: 0.2rem;">
               <code>${item.url}</code>
@@ -365,18 +498,15 @@ const allSponsorItems = sponsorItems || {};
             </label>
           </td>
           <td>
-            <input
-              class="input-date"
-              type="date"
-              value="${item.expiresAt ? item.expiresAt.slice(0, 10) : ''}"
-            />
-            ${item.isExpired ? '<span class="badge badge-expired" style="margin-left: 0.3rem;">⏰ 已过期恢复</span>' : ''}
-          </td>
-          <td>
-            <select class="select-status">
-              <option value="active" ${item.status === 'active' ? 'selected' : ''}>✅ 正常展示</option>
-              <option value="disabled" ${item.status === 'disabled' ? 'selected' : ''}>🚫 临时下架</option>
-            </select>
+            <!-- 👈 规则 3 修复：仅限赞助广告显示日期选择，工具项显示破折号 -->
+            ${item.type === 'sponsor' ? `
+              <input
+                class="input-date"
+                type="date"
+                value="${item.expiresAt ? item.expiresAt.slice(0, 10) : ''}"
+              />
+              ${item.isExpired ? '<span class="badge badge-expired" style="margin-left: 0.3rem;">⏰ 已过期恢复</span>' : ''}
+            ` : '<span style="color:var(--admin-muted);">—</span>'}
           </td>
           <td>
             <a
@@ -390,6 +520,56 @@ const allSponsorItems = sponsorItems || {};
         </tr>
       `).join('');
     }
+
+    /* 👈 规则 4：新增广告弹窗控制函数 */
+    window.openAddSponsorModal = function() {
+      document.getElementById('adLang').value = currentLang;
+      document.getElementById('addSponsorModal').style.display = 'flex';
+    };
+
+    window.closeAddSponsorModal = function() {
+      document.getElementById('addSponsorModal').style.display = 'none';
+    };
+
+    window.submitNewSponsor = function() {
+      const lang = document.getElementById('adLang').value;
+      const icon = document.getElementById('adIcon').value || '💎';
+      const title = document.getElementById('adTitle').value.trim();
+      const url = document.getElementById('adUrl').value.trim();
+      const tag = document.getElementById('adTag').value.trim() || '赞助推广';
+      const priority = Number(document.getElementById('adPriority').value) || 100;
+      const dateVal = document.getElementById('adExpires').value;
+      const pinned = document.getElementById('adPinned').checked;
+
+      if (!title || !url) {
+        alert('请填写广告标题与跳转链接 URL！');
+        return;
+      }
+
+      const expiresAt = dateVal ? new Date(`${dateVal}T23:59:59Z`).toISOString() : null;
+
+      const newSponsorItem = {
+        id: url,
+        slug: url,
+        lang: lang,
+        name: title,
+        icon: icon,
+        category: tag,
+        url: url,
+        priority: priority,
+        defaultPriority: priority,
+        pinned: pinned,
+        defaultPinned: pinned,
+        expiresAt: expiresAt,
+        status: 'active',
+        type: 'sponsor'
+      };
+
+      currentSortingList.unshift(newSponsorItem);
+      renderTable();
+      closeAddSponsorModal();
+      alert(`✅ 已添加广告，请点击“💾 保存综合排序”提交生效！`);
+    };
 
     document.getElementById('btnSaveSorting')?.addEventListener('click', async () => {
       const btn = document.getElementById('btnSaveSorting');
@@ -405,16 +585,14 @@ const allSponsorItems = sponsorItems || {};
         const priorityInput = row.querySelector('.input-priority');
         const pinnedInput = row.querySelector('.check-pinned');
         const dateInput = row.querySelector('.input-date');
-        const statusSelect = row.querySelector('.select-status');
 
         if (id && priorityInput) {
           const priority = Number(priorityInput.value);
           const pinned = pinnedInput.checked;
-          const dateVal = dateInput.value;
-          const status = statusSelect.value;
+          const dateVal = dateInput ? dateInput.value : '';
 
           const expiresAt = dateVal ? new Date(`${dateVal}T23:59:59Z`).toISOString() : null;
-          configData[id] = { priority, pinned, status, expiresAt, type };
+          configData[id] = { priority, pinned, status: 'active', expiresAt, type };
         }
       });
 
@@ -428,7 +606,7 @@ const allSponsorItems = sponsorItems || {};
 
         const data = await res.json();
         if (data.success) {
-          alert(`🎉 [${currentLang.toUpperCase()}] 综合排序与广告到期控制已成功保存至 Cloudflare KV！`);
+          alert(`🎉 [${currentLang.toUpperCase()}] 综合排序配置已成功保存至 Cloudflare KV！`);
           fetchAndMergeSortingConfig();
         } else {
           alert('保存失败：' + (data.message || '未知错误'));
