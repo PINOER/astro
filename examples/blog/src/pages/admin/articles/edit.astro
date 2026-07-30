@@ -237,11 +237,11 @@ export const prerender = false;
 
     mdInput.addEventListener('input', updatePreview);
 
-    // ⚡ 核心提升：采用 JSON Base64 直传模式，全面兼容多端 Node/Vite 上传
+    // ⚡ 纯前端 WebP Base64 转码（100% 避开 Edge 运行时的 fs.mkdirSync 限制）
     async function processAndUploadImage(file) {
       if (!file.type.startsWith('image/')) return;
 
-      const placeholder = `\n![上传中...](Uploading...)\n`;
+      const placeholder = `\n![处理中...](Processing...)\n`;
       const cursorPos = mdInput.selectionStart;
       mdInput.value = mdInput.value.slice(0, cursorPos) + placeholder + mdInput.value.slice(cursorPos);
       updatePreview();
@@ -252,36 +252,32 @@ export const prerender = false;
         await img.decode();
 
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
+        const maxDimension = 1600;
+        let width = img.width;
+        let height = img.height;
 
-        const base64Data = canvas.toDataURL('image/webp', 0.85);
-        const fileName = `${Date.now()}.webp`;
-
-        const res = await fetch('/api/admin/media/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base64: base64Data,
-            filename: fileName
-          })
-        });
-
-        const data = await res.json();
-
-        if (data.success && data.url) {
-          const imgMarkdown = `\n![${file.name || 'image'}](${data.url})\n`;
-          mdInput.value = mdInput.value.replace(placeholder, imgMarkdown);
-          updatePreview();
-        } else {
-          alert('图片上传失败: ' + (data.message || '服务端未知错误'));
-          mdInput.value = mdInput.value.replace(placeholder, '');
-          updatePreview();
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
         }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const webpBase64 = canvas.toDataURL('image/webp', 0.8);
+
+        const imgMarkdown = `\n![${file.name || 'image'}](${webpBase64})\n`;
+        mdInput.value = mdInput.value.replace(placeholder, imgMarkdown);
+        updatePreview();
       } catch (e) {
-        alert('图片处理或网络传输失败: ' + e.message);
+        alert('图片本地转换 WebP 失败: ' + e.message);
         mdInput.value = mdInput.value.replace(placeholder, '');
         updatePreview();
       }
