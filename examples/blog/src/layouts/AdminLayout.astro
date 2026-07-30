@@ -1,4 +1,5 @@
 ---
+// src/layouts/AdminLayout.astro
 import BaseHead from 'src/components/BaseHead.astro';
 
 interface Props {
@@ -8,162 +9,185 @@ interface Props {
 const { title } = Astro.props;
 const currentPath = Astro.url.pathname;
 
-// 校验 Admin Session
-const session = Astro.cookies.get('admin_session')?.value;
-if (session !== 'astro_admin_secure_session_token_2026') {
-	return Astro.redirect('/admin/login');
-}
+const menuItems = [
+	{ name: '数据概览', icon: '📊', path: '/admin/dashboard' },
+	{ name: '工具管理', icon: '🛠️', path: '/admin/tools-config' },
+	{ name: '分类管理', icon: '🏷️', path: '/admin/categories' },
+	{ name: '文章管理', icon: '📝', path: '/admin/articles' },
+	{ name: '广告变现', icon: '📢', path: '/admin/ads' },
+	{ name: '综合排序', icon: '🔢', path: '/admin/tools' }, // 对应我们刚刚完成的综合排序
+	{ name: '媒体文件库', icon: '🖼️', path: '/admin/media' },
+	{ name: 'SEO / GEO 引擎', icon: '🔍', path: '/admin/seo' },
+	{ name: '系统与权限', icon: '👥', path: '/admin/system' },
+	{ name: '站点全局配置', icon: '⚙️', path: '/admin/settings' },
+];
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={`${title} — 控制台管理后台`} description="系统管理后台" />
-		<style>
+		<BaseHead title={`${title} — HelpMini 后台控制中心`} description="HelpMini Admin Dashboard" />
+		<style is:global>
 			:root {
-				--admin-bg: #090d16;
-				--admin-card: #111827;
-				--admin-border: #1e293b;
-				--admin-accent: #3b82f6;
-				--admin-text: #f8fafc;
+				--admin-bg: #0b0f17;
+				--admin-card: #151c28;
+				--admin-border: #232d3f;
+				--admin-text: #f1f5f9;
 				--admin-muted: #94a3b8;
+				--admin-accent: #6366f1;
+				--admin-accent-hover: #4f46e5;
 			}
 
 			body {
 				margin: 0;
 				padding: 0;
-				background: var(--admin-bg);
+				background-color: var(--admin-bg);
 				color: var(--admin-text);
-				font-family: system-ui, -apple-system, sans-serif;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 				display: flex;
 				min-height: 100vh;
 			}
 
+			/* 👈 侧边栏样式 */
 			.admin-sidebar {
 				width: 240px;
 				background: var(--admin-card);
 				border-right: 1px solid var(--admin-border);
 				display: flex;
 				flex-direction: column;
-				justify-content: space-between;
-				padding: 1.5rem 1rem;
-				box-sizing: border-box;
 				flex-shrink: 0;
+				position: fixed;
+				top: 0;
+				bottom: 0;
+				left: 0;
+				z-index: 100;
 			}
 
-			.brand-logo {
+			.sidebar-brand {
+				padding: 1.5rem;
 				font-size: 1.2rem;
 				font-weight: 800;
-				color: var(--admin-text);
+				border-bottom: 1px solid var(--admin-border);
 				display: flex;
 				align-items: center;
-				gap: 0.5rem;
-				margin-bottom: 2rem;
+				gap: 0.6rem;
+				color: #fff;
 			}
 
-			.nav-list {
+			.sidebar-nav {
+				padding: 1rem 0.8rem;
 				display: flex;
 				flex-direction: column;
-				gap: 0.4rem;
-				list-style: none;
-				padding: 0;
-				margin: 0;
+				gap: 0.3rem;
+				overflow-y: auto;
+				flex-grow: 1;
 			}
 
-			.nav-item a {
+			.nav-item {
 				display: flex;
 				align-items: center;
-				gap: 0.8rem;
-				padding: 0.7em 0.9em;
+				gap: 0.75rem;
+				padding: 0.75rem 1rem;
+				border-radius: 10px;
 				color: var(--admin-muted);
 				text-decoration: none;
-				border-radius: 10px;
+				font-size: 0.9rem;
 				font-weight: 600;
-				font-size: 0.88rem;
-				transition: all 0.15s ease;
+				transition: all 0.2s ease;
 			}
 
-			.nav-item a:hover,
-			.nav-item.active a {
-				background: rgba(59, 130, 246, 0.15);
-				color: var(--admin-accent);
+			.nav-item:hover {
+				background: rgba(255, 255, 255, 0.05);
+				color: #fff;
 			}
 
-			.admin-content {
-				flex-grow: 1;
-				padding: 2rem;
-				overflow-y: auto;
-				box-sizing: border-box;
+			.nav-item.active {
+				background: var(--admin-accent);
+				color: #fff;
+				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 			}
 
-			.top-bar {
+			.sidebar-footer {
+				padding: 1rem 1.2rem;
+				border-top: 1px solid var(--admin-border);
 				display: flex;
-				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 1.8rem;
-				padding-bottom: 1rem;
-				border-bottom: 1px solid var(--admin-border);
+				justify-content: space-between;
 			}
 
 			.btn-logout {
 				background: rgba(239, 68, 68, 0.15);
-				border: 1px solid rgba(239, 68, 68, 0.4);
+				border: 1px solid rgba(239, 68, 68, 0.3);
 				color: #ef4444;
 				padding: 0.4em 0.8em;
-				border-radius: 8px;
-				cursor: pointer;
+				border-radius: 6px;
+				font-size: 0.8rem;
 				font-weight: 700;
-				font-size: 0.82rem;
-				transition: background 0.2s;
+				cursor: pointer;
 			}
 
-			.btn-logout:hover {
-				background: rgba(239, 68, 68, 0.25);
+			/* 👉 主内容区 */
+			.admin-main {
+				margin-left: 240px;
+				flex-grow: 1;
+				padding: 2rem;
+				max-width: 1200px;
+				box-sizing: border-box;
+			}
+
+			.page-header {
+				margin-bottom: 2rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.page-header h1 {
+				margin: 0;
+				font-size: 1.6rem;
+				font-weight: 800;
 			}
 
 			@media (max-width: 768px) {
-				body {
-					flex-direction: column;
-				}
-				.admin-sidebar {
-					width: 100%;
-					border-right: none;
-					border-bottom: 1px solid var(--admin-border);
-				}
+				.admin-sidebar { width: 70px; }
+				.sidebar-brand span:last-child, .nav-item span:last-child { display: none; }
+				.admin-main { margin-left: 70px; padding: 1rem; }
 			}
 		</style>
 	</head>
 	<body>
 		<aside class="admin-sidebar">
-			<div>
-				<div class="brand-logo">⚙️ 站点后台管理</div>
-				<ul class="nav-list">
-					<li class={`nav-item ${currentPath.includes('/admin/tools') ? 'active' : ''}`}>
-						<a href="/admin/tools">🛠️ 工具与排序管理</a>
-					</li>
-					<li class={`nav-item ${currentPath.includes('/admin/posts') ? 'active' : ''}`}>
-						<a href="/admin/posts">📝 博客文章管理</a>
-					</li>
-					<li class={`nav-item ${currentPath.includes('/admin/ads') ? 'active' : ''}`}>
-						<a href="/admin/ads">📢 全局广告配置</a>
-					</li>
-				</ul>
+			<div class="sidebar-brand">
+				<span>⚡</span>
+				<span>HelpMini Admin</span>
 			</div>
-
-			<button class="btn-logout" id="btnLogout" type="button">🔒 退出登录</button>
+			<nav class="sidebar-nav">
+				{menuItems.map((item) => (
+					<a href={item.path} class={`nav-item ${currentPath.startsWith(item.path) || (item.path === '/admin/tools' && currentPath === '/admin/tools') ? 'active' : ''}`}>
+						<span>{item.icon}</span>
+						<span>{item.name}</span>
+					</a>
+				))}
+			</nav>
+			<div class="sidebar-footer">
+				<a href="/zh/" target="_blank" style="color:var(--admin-muted); text-decoration:none; font-size:0.8rem; font-weight:700;">🔗 打开前台</a>
+				<button class="btn-logout" id="btnLogout">退出</button>
+			</div>
 		</aside>
 
-		<main class="admin-content">
-			<div class="top-bar">
-				<h2 style="margin:0; font-size: 1.4rem;">{title}</h2>
-				<span style="font-size:0.85rem; color:var(--admin-muted);">当前身份：管理员 (Admin)</span>
+		<main class="admin-main">
+			<div class="page-header">
+				<h1>{title}</h1>
+				<div style="font-size: 0.85rem; color: var(--admin-muted);">
+					系统节点: <span style="color:#10b981; font-weight:700;">Cloudflare Edge (KV Online)</span>
+				</div>
 			</div>
 			<slot />
 		</main>
 
 		<script is:inline>
 			document.getElementById('btnLogout')?.addEventListener('click', async () => {
-				if (confirm('确定要退出后台管理系统吗？')) {
+				if (confirm('确认退出后台管理面板？')) {
 					await fetch('/api/admin/auth', { method: 'DELETE' });
 					window.location.href = '/admin/login';
 				}
