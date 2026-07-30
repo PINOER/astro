@@ -3,7 +3,6 @@ import BaseHead from 'src/components/BaseHead.astro';
 import Header from 'src/components/Header.astro';
 import Footer from 'src/components/Footer.astro';
 import { SITE_DESCRIPTION } from 'src/consts';
-import { getCollection } from 'astro:content';
 import { sponsorItems } from 'src/data/tools'; // 专门用于广告赞助卡片
 
 export const prerender = false;
@@ -80,27 +79,9 @@ const zhTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
 	};
 }).filter(t => t.status !== 'disabled');
 
-// 3. 自动从 Content Collection 获取中文博客
-const allPosts = await getCollection('blog');
-const zhPosts = allPosts.filter((post) => post.data?.lang === 'zh' || post.id.startsWith('zh/'));
-
-// 4. 组装全量搜索项 (Tools + Blogs + Sponsors)
+// 3. 组装全量搜索项 (仅包含 Tools + Sponsors，已去除 Blog)
 const rawItems = [
 	...zhTools,
-	...zhPosts.map((post) => ({
-		id: post.id,
-		slug: post.id,
-		title: post.data.title,
-		desc: post.data.description,
-		url: `/blog/${post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '')}/`,
-		type: 'blog',
-		icon: '📚',
-		tag: '教程指南',
-		keywords: `${post.data.title} ${post.data.description}`,
-		pinned: (post.data as any).pinned || false,
-		priority: (post.data as any).priority || 0,
-		status: 'active'
-	})),
 	...(sponsorItems.zh || []).map((sponsor) => ({
 		id: sponsor.url,
 		slug: sponsor.url,
@@ -142,7 +123,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 			:global(body) {
 				display: flex !important;
 				flex-direction: column !important;
-				align-items: center !important; /* 保持子元素居中对齐 */
+				align-items: center !important;
 			}
 
 			/* ⚡ 核心修复：强制 Header 和 Footer 宽度 100% 占满全屏，禁止缩小 */
@@ -324,7 +305,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 			}
 
 			.tag-tool { color: var(--cyan); }
-			.tag-blog { color: var(--accent); }
 			.tag-sponsor { color: #f59e0b; }
 
 			.type-badge {
@@ -335,7 +315,6 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				text-transform: uppercase;
 			}
 			.badge-tool { background: rgba(6, 182, 212, 0.15); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.25); }
-			.badge-blog { background: rgba(99, 102, 241, 0.15); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.25); }
 			.badge-sponsor { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
 			.pinned-icon {
@@ -401,7 +380,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						type="text"
 						id="searchInput"
 						class="search-input-box"
-						placeholder="搜索工具、教程文档或关键词... (例如 SEO、Token、JSON)"
+						placeholder="搜索在线工具或关键词... (例如 SEO、Base64、JSON)"
 						autocomplete="off"
 					/>
 				</div>
@@ -435,15 +414,15 @@ const allSearchableItems = rawItems.sort((a, b) => {
 							<p>{item.desc}</p>
 							<div class="tool-card-footer">
 								<span class={`tool-tag tag-${item.type}`}>{item.tag || '工具'}</span>
-								<span class={`type-badge badge-${item.type}`}>{item.type === 'sponsor' ? '赞助' : (item.type === 'blog' ? '博客' : '工具')}</span>
+								<span class={`type-badge badge-${item.type}`}>{item.type === 'sponsor' ? '赞助' : '工具'}</span>
 							</div>
 						</a>
 					))}
 
 					<div id="noResults" class="no-results">
 						<div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
-						<p style="font-size: 1.1rem; font-weight: 600;">未找到匹配的工具或文档</p>
-						<p style="font-size: 0.85rem; opacity: 0.8;">尝试搜索其他关键词，例如 "SEO"、"JSON" 或 "Token"</p>
+						<p style="font-size: 1.1rem; font-weight: 600;">未找到匹配的工具</p>
+						<p style="font-size: 0.85rem; opacity: 0.8;">尝试搜索其他关键词，例如 "SEO"、"Base64" 或 "JSON"</p>
 					</div>
 				</div>
 
@@ -460,7 +439,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 		</main>
 		<Footer lang="zh" />
 
-		<!-- 客户端 JS -->
+		<!-- 客户端 JS：处理分页、动态搜索与精准覆盖 -->
 		<script is:inline>
 			const ITEMS_PER_PAGE = 21;
 			let currentPage = 1;
@@ -494,7 +473,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				visibleItems.forEach(item => item.style.display = 'flex');
 
 				if (sectionTitle) sectionTitle.textContent = query ? '搜索结果' : '精选微工具';
-				if (resultCount) resultCount.textContent = `共 ${totalItems} 个工具/文档`;
+				if (resultCount) resultCount.textContent = `共 ${totalItems} 个工具`;
 
 				if (noResults) {
 					noResults.style.display = totalItems === 0 ? 'block' : 'none';
@@ -528,8 +507,10 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				renderPage();
 			}
 
+			// ⚡ 客户端大联动：精准判空覆盖
 			async function syncKvManagementAndSorting() {
 				try {
+					// 1. 同步后台“工具管理” KV (tools_v2_zh)
 					const toolsRes = await fetch('/api/admin/config?type=tools_v2_zh');
 					const toolsJson = await toolsRes.json();
 					
@@ -572,6 +553,7 @@ const allSearchableItems = rawItems.sort((a, b) => {
 						});
 					}
 
+					// 2. 同步后台“综合排序” KV (sorting_v3)
 					const res = await fetch('/api/admin/config?type=sorting_v3');
 					const result = await res.json();
 
