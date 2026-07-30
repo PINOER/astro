@@ -9,16 +9,15 @@ export const GET: APIRoute = async ({ request, locals }) => {
     const url = new URL(request.url);
     const lang = url.searchParams.get('lang') || 'zh';
 
-    // 1. 读取 Content Collections 博客列表
+    // 1. 读取 Content Collection 博客数据
     const allPosts = await getCollection('blog');
     
-    // 2. ⚡ 精准匹配子目录：匹配 id 以 "zh/" 或 "en/" 等开头的文章
+    // 2. 匹配指定语言目录下的文章 (例如 id 为 "zh/seo-tools.md" 或 "en/seo-tools.md")
     const filteredPosts = allPosts.filter((post) => {
-      // id 格式例如: "zh/seo-tools-guide.md" 或 "en/seo-tools-guide.md"
       return post.id.startsWith(`${lang}/`) || post.data?.lang === lang;
     });
 
-    // 3. 读取 Cloudflare KV 覆盖配置 (articles_v1_zh / en)
+    // 3. 读取 Cloudflare KV 中的自定义属性覆写
     let kvMap = new Map();
     const runtime = (locals as any).runtime;
     const kv = runtime?.env?.ADMIN_KV;
@@ -33,14 +32,19 @@ export const GET: APIRoute = async ({ request, locals }) => {
       }
     }
 
-    // 4. 组装文章属性并正确计算纯 Slug 与前台 Preview URL
+    // 4. 计算标准化的路径与 URL
     const articles = filteredPosts.map((post) => {
       const kvData = kvMap.get(post.id) || {};
       
-      // 去除语言前缀与文件扩展名，得到纯 Slug (例如 "zh/seo-guide.md" -> "seo-guide")
-      const rawSlug = post.id.replace(new RegExp(`^${lang}/`), '');
-      const cleanSlug = rawSlug.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '');
+      // 提取纯字符 Slug，去除 "zh/" 或 "en/" 前缀以及 ".md" 扩展名
+      const cleanSlug = post.id
+        .replace(new RegExp(`^${lang}/`), '')
+        .replace(/\.(md|mdx)$/, '')
+        .replace(/\/index$/, '');
       
+      // ⚡ 修正：准确构造前台带语言前缀的预览 URL (例如 /zh/blog/seo-tools/ 或 /en/blog/seo-tools/)
+      const previewUrl = `/${lang}/blog/${cleanSlug}/`;
+
       return {
         id: post.id,
         slug: cleanSlug,
@@ -53,12 +57,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
         pinned: kvData.pinned !== undefined ? Boolean(kvData.pinned) : Boolean((post.data as any).pinned || false),
         views: kvData.views !== undefined ? Number(kvData.views) : (kvData.views || 0),
         status: kvData.status || 'active',
-        // 前台预览 URL 修正为 /blog/en/... 或 /blog/...
-        url: `/blog/${cleanSlug}/`
+        url: previewUrl
       };
     });
 
-    // 5. 按 Priority 降序与置顶排序
     articles.sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       return b.priority - a.priority;
