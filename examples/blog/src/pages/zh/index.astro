@@ -456,37 +456,53 @@ const allSearchableItems = rawItems.sort((a, b) => {
 				renderPage();
 			}
 
-			// ⚡ 核心联动逻辑：动态从 Cloudflare KV API 读取后台配置并重新倒序排列 DOM
+			// ⚡ 核心大联动：读取后台 KV 排序，并自动判定过期恢复
 			async function syncKvSorting() {
 				try {
-					const res = await fetch('/api/admin/config?type=tools_v2');
+					const res = await fetch('/api/admin/config?type=sorting_v3');
 					const result = await res.json();
 
 					if (result.success && result.data) {
 						const kvConfig = result.data;
 						const grid = document.getElementById('contentGrid');
+						const now = new Date().getTime();
 
 						items.forEach((card) => {
 							const id = card.dataset.id;
 							const conf = kvConfig[id];
 
 							if (conf) {
+								// 1. 检查是否设置了到期时间，且当前时间已超过到期时间
+								let isExpired = false;
+								if (conf.expiresAt) {
+									const expTime = new Date(conf.expiresAt).getTime();
+									if (now > expTime) {
+										isExpired = true; // 已经过期！
+									}
+								}
+
 								if (conf.status === 'disabled') {
 									card.dataset.disabled = 'true';
 								} else {
 									card.dataset.disabled = 'false';
-									card.dataset.priority = conf.priority;
-									card.dataset.pinned = conf.pinned ? 'true' : 'false';
+
+									// 2. 如果过期了，恢复 Card 自身的默认 priority，并移除置顶标记
+									if (isExpired) {
+										card.dataset.pinned = 'false';
+									} else {
+										card.dataset.priority = conf.priority;
+										card.dataset.pinned = conf.pinned ? 'true' : 'false';
+									}
 
 									const pinnedIcon = card.querySelector('.pinned-icon');
 									if (pinnedIcon) {
-										pinnedIcon.style.display = conf.pinned ? 'block' : 'none';
+										pinnedIcon.style.display = (conf.pinned && !isExpired) ? 'block' : 'none';
 									}
 								}
 							}
 						});
 
-						// 重新按 (置顶 -> Priority 降序) 重排 DOM 顺序
+						// 3. 重新按 (未过期的置顶 -> Priority 降序) 重排 DOM 节点
 						items.sort((a, b) => {
 							const isPinnedA = a.dataset.pinned === 'true';
 							const isPinnedB = b.dataset.pinned === 'true';
@@ -495,16 +511,14 @@ const allSearchableItems = rawItems.sort((a, b) => {
 							return Number(b.dataset.priority || 0) - Number(a.dataset.priority || 0);
 						});
 
-						// 重新将排序后的 DOM 节点挂载回网格
 						items.forEach((card) => {
 							if (noResults) grid.insertBefore(card, noResults);
 						});
 
-						// 过滤并重新刷新页面渲染
 						handleSearch();
 					}
 				} catch (e) {
-					console.warn('读取后台 KV 排序失败，回退使用静态预设顺序');
+					console.warn('读取后台 KV 排序失败，回退使用默认规则');
 				}
 			}
 
