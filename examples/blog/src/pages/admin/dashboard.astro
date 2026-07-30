@@ -1,0 +1,122 @@
+---
+// src/pages/admin/dashboard.astro
+import AdminLayout from 'src/layouts/AdminLayout.astro';
+
+export const prerender = false;
+
+// 仪表盘核心功能导航元数据
+const modules = [
+	{ title: '📊 1. 数据概览', desc: '全站 PV/UV 统计、工具使用热力图、广告 CTR 监控与搜索引擎收录监测', path: '/admin/dashboard', status: '已就绪', badge: '核心' },
+	{ title: '🛠️ 2. 工具管理', desc: '管理工具上下架状态、参数预设设定与独立前端组件路由', path: '/admin/tools-config', status: '待配置', badge: '高频' },
+	{ title: '🏷️ 3. 分类管理', desc: '构建金融、编程、几何等多级分类树，配置独立的 Meta Title 与 SEO 描述', path: '/admin/categories', status: '待配置', badge: '基础' },
+	{ title: '📝 4. 博客文章', desc: '双栏 Markdown/MDX 实时编辑器，支持文章关联交互工具与双向挂件链接', path: '/admin/articles', status: '已连接 Collection', badge: '内容' },
+	{ title: '📢 5. 广告变现', desc: '控制 Banner 宣发位、侧边栏推荐位以及 AdSense 代码的全局响应式注入', path: '/admin/ads', status: '✅ KV 已通', badge: '变现' },
+	{ title: '🔢 6. 综合排序', desc: '工具与赞助广告的统一拖拽/权重(Priority)排序，支持到期自动恢复原状', path: '/admin/tools', status: '✅ 线上运转中', badge: '核心' },
+	{ title: '🖼️ 7. 媒体文件库', desc: '拖拽上传图片素材，自动转换为 WebP 压缩格式并管理 Alt SEO 标签', path: '/admin/media', status: '待配置', badge: '资源' },
+	{ title: '🔍 8. SEO / GEO 引擎', desc: '自动构建 Sitemap XML，为工具与文章生成 WebApplication / Schema 结构化数据', path: '/admin/seo', status: '待配置', badge: '收录' },
+	{ title: '👥 9. 系统与权限', desc: '管理 Session 安全 Key、操作日志 Audit Logs 查看与 Cloudflare 环境诊断', path: '/admin/system', status: '✅ 鉴权受控', badge: '安全' },
+	{ title: '⚙️ 10. 全局配置', desc: '设置全站 TDK、页头页脚 Custom Code 代码注入与备案信息', path: '/admin/settings', status: '待配置', badge: '全局' },
+];
+---
+
+<AdminLayout title="系统后台管理面板 (Admin Dashboard)">
+	<style>
+		.overview-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 2rem;
+		}
+
+		.stat-card {
+			background: var(--admin-card);
+			border: 1px solid var(--admin-border);
+			border-radius: 14px;
+			padding: 1.2rem;
+		}
+
+		.stat-label { font-size: 0.8rem; color: var(--admin-muted); font-weight: 700; margin-bottom: 0.4rem; }
+		.stat-value { font-size: 1.8rem; font-weight: 800; color: #fff; }
+		.stat-change { font-size: 0.75rem; color: #10b981; margin-top: 0.3rem; }
+
+		.modules-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 1.2rem; color: #fff; }
+
+		.modules-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+			gap: 1.5rem;
+		}
+
+		.module-card {
+			background: var(--admin-card);
+			border: 1px solid var(--admin-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			text-decoration: none;
+			color: inherit;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			transition: all 0.2s ease;
+		}
+
+		.module-card:hover {
+			transform: translateY(-3px);
+			border-color: var(--admin-accent);
+			box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+		}
+
+		.module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+		.module-name { font-size: 1.1rem; font-weight: 800; color: #fff; }
+		.module-badge { background: rgba(99, 102, 241, 0.15); color: var(--admin-accent); border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.2em 0.6em; border-radius: 8px; font-size: 0.72rem; font-weight: 700; }
+		.module-desc { font-size: 0.85rem; color: var(--admin-muted); line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1; }
+		.module-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700; border-top: 1px solid var(--admin-border); padding-top: 0.8rem; }
+		.status-tag { color: #10b981; }
+		.action-text { color: var(--admin-accent); }
+	</style>
+
+	<!-- 📊 快速数据指标 -->
+	<div class="overview-grid">
+		<div class="stat-card">
+			<div class="stat-label">全站活跃工具库</div>
+			<div class="stat-value">6 个</div>
+			<div class="stat-change">↑ 自动扫描同步中</div>
+		</div>
+		<div class="stat-card">
+			<div class="stat-label">Cloudflare KV 状态</div>
+			<div class="stat-value" style="color:#10b981;">已连通</div>
+			<div class="stat-change">绑定: ADMIN_KV</div>
+		</div>
+		<div class="stat-card">
+			<div class="stat-label">广告与赞助位</div>
+			<div class="stat-value">3 个</div>
+			<div class="stat-change">支持到期自动恢复</div>
+		</div>
+		<div class="stat-card">
+			<div class="stat-label">博客文章总数</div>
+			<div class="stat-value">4 篇</div>
+			<div class="stat-change">Content Collections</div>
+		</div>
+	</div>
+
+	<div class="modules-title">🏛️ 系统核心管理模块索引</div>
+
+	<!-- 📦 10 大核心模块网格 -->
+	<div class="modules-grid">
+		{modules.map((m) => (
+			<a href={m.path} class="module-card">
+				<div>
+					<div class="module-header">
+						<span class="module-name">{m.title}</span>
+						<span class="module-badge">{m.badge}</span>
+					</div>
+					<div class="module-desc">{m.desc}</div>
+				</div>
+				<div class="module-footer">
+					<span class="status-tag">{m.status}</span>
+					<span class="action-text">进入管理 →</span>
+				</div>
+			</a>
+		))}
+	</div>
+</AdminLayout>
