@@ -7,7 +7,9 @@ interface Props {
 }
 
 const { title } = Astro.props;
-const currentPath = Astro.url.pathname;
+
+// 规范化当前路径（去除末尾斜杠，保证匹配精准度）
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 const menuItems = [
 	{ name: '数据概览', icon: '📊', path: '/admin/dashboard' },
@@ -15,12 +17,19 @@ const menuItems = [
 	{ name: '分类管理', icon: '🏷️', path: '/admin/categories' },
 	{ name: '文章管理', icon: '📝', path: '/admin/articles' },
 	{ name: '广告变现', icon: '📢', path: '/admin/ads' },
-	{ name: '综合排序', icon: '🔢', path: '/admin/tools' }, // 对应我们刚刚完成的综合排序
+	{ name: '综合排序', icon: '🔢', path: '/admin/tools' },
 	{ name: '媒体文件库', icon: '🖼️', path: '/admin/media' },
 	{ name: 'SEO / GEO 引擎', icon: '🔍', path: '/admin/seo' },
 	{ name: '系统与权限', icon: '👥', path: '/admin/system' },
 	{ name: '站点全局配置', icon: '⚙️', path: '/admin/settings' },
 ];
+
+// 精确校验当前菜单激活状态
+const isNavActive = (itemPath: string) => {
+	const cleanItemPath = itemPath.replace(/\/$/, '');
+	// 完全全等，或者带有子页面（例如 /admin/articles/edit-123）
+	return currentPath === cleanItemPath || currentPath.startsWith(`${cleanItemPath}/`);
+};
 ---
 
 <!doctype html>
@@ -163,7 +172,7 @@ const menuItems = [
 			</div>
 			<nav class="sidebar-nav">
 				{menuItems.map((item) => (
-					<a href={item.path} class={`nav-item ${currentPath.startsWith(item.path) || (item.path === '/admin/tools' && currentPath === '/admin/tools') ? 'active' : ''}`}>
+					<a href={item.path} class={`nav-item ${isNavActive(item.path) ? 'active' : ''}`}>
 						<span>{item.icon}</span>
 						<span>{item.name}</span>
 					</a>
