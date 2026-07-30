@@ -4,14 +4,15 @@ import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 export const prerender = false;
 
-// 1. 服务端 SSR 阶段自动扫描所有多语言工具页面，全量抽取前台原本定义的 title, description, icon, category
+// 1. 读取模块及文件源码
+const rawToolFiles = import.meta.glob('/src/pages/**/tools/*.astro', { query: '?raw', eager: true });
 const allToolModules = import.meta.glob('/src/pages/**/tools/*.astro', { eager: true });
 
 const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, module]: [string, any]) => {
   const filename = filePath.split('/').pop() || '';
   const slug = filename.replace('.astro', '');
   
-  // 从文件路径提取语言类型 (如: /src/pages/zh/tools/xxx -> zh)
+  // 提取语言
   const pathParts = filePath.split('/');
   const toolsIndex = pathParts.indexOf('tools');
   let lang = 'en';
@@ -21,9 +22,22 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     lang = 'zh';
   }
 
-  // 🔑 重点：全方位提取前台组件导出的元数据 (优先读取 toolMeta -> 其次 frontmatter -> 其次 toolInfo)
-  const meta = module?.toolMeta || module?.frontmatter || module?.toolInfo || {};
+  // 🔑 正则解析：直接读取文件源码中的 toolMeta / toolInfo / meta 对象
+  let meta: any = module?.toolMeta || module?.frontmatter || module?.toolInfo || {};
   
+  const rawContent = (rawToolFiles[filePath] as any)?.default || '';
+  if (rawContent) {
+    try {
+      const match = rawContent.match(/(?:export\s+)?const\s+(?:toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
+      if (match && match[1]) {
+        const parsed = new Function(`return ${match[1]}`)();
+        meta = { ...meta, ...parsed };
+      }
+    } catch (e) {
+      // 解析兜底
+    }
+  }
+
   const pageTitle = meta.title || meta.name || slug;
   const description = meta.description || meta.desc || '';
   const icon = meta.icon || '🛠️';
@@ -33,10 +47,10 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
     slug: slug,
     lang: lang,
     astroComponent: filePath,
-    name: pageTitle,       // 👈 完美同步前台默认名称
-    description: description, // 👈 完美同步前台默认简介
-    icon: icon,            // 👈 完美同步前台默认图标
-    category: category,    // 👈 完美同步前台默认分类
+    name: pageTitle,
+    description: description,
+    icon: icon,
+    category: category,
     priority: meta.priority || 10,
     status: 'active',
     seoTitle: '',
@@ -316,14 +330,11 @@ const autoDiscoveredTools = Object.entries(allToolModules).map(([filePath, modul
 
         const langDiscovered = autoDiscoveredTools.filter(t => t.lang === currentLang || (currentLang === 'zh' && t.lang === 'zh'));
 
-        // 🔑 核心合并规则：
-        // 以物理文件提取出的“前台原生默认值”为底层 base，如果 KV 中有修改记录则覆盖；KV 中未修改的字段自动保持前台默认值！
         currentFilteredTools = (langDiscovered.length > 0 ? langDiscovered : autoDiscoveredTools).map(localTool => {
           const kvData = kvToolsMap.get(localTool.slug);
           if (kvData) {
             return {
               ...localTool,
-              // 仅当 KV 中的字符串不为空时覆盖前台值
               name: (kvData.name && kvData.name.trim() !== '') ? kvData.name : localTool.name,
               description: (kvData.description && kvData.description.trim() !== '') ? kvData.description : localTool.description,
               icon: (kvData.icon && kvData.icon.trim() !== '') ? kvData.icon : localTool.icon,
