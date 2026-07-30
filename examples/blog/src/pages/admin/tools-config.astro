@@ -28,10 +28,18 @@ export const prerender = false;
       cursor: pointer;
       transition: all 0.2s;
     }
+    .btn-primary:hover { background: #2563eb; }
 
-    .btn-primary:hover {
-      background: #2563eb;
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid #374151;
+      padding: 0.4em 0.8em;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
     }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
 
     .tools-table {
       width: 100%;
@@ -43,7 +51,7 @@ export const prerender = false;
     }
 
     .tools-table th, .tools-table td {
-      padding: 1rem;
+      padding: 0.9rem 1rem;
       text-align: left;
       border-bottom: 1px solid var(--admin-border, #1f2937);
       font-size: 0.88rem;
@@ -59,111 +67,198 @@ export const prerender = false;
       background: #0b0f17;
       color: #fff;
       border: 1px solid #374151;
-      padding: 0.35em 0.6em;
+      padding: 0.3em 0.5em;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
 
     .badge-tag {
       display: inline-block;
-      padding: 0.15em 0.5em;
-      border-radius: 6px;
-      font-size: 0.75rem;
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.72rem;
       font-weight: 700;
       margin-right: 0.3rem;
     }
-
     .badge-new { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-featured { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
 
-    .btn-edit-param {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border: 1px solid #374151;
-      padding: 0.3em 0.7em;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
+    /* Modal 编辑弹窗样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     }
 
-    .btn-edit-param:hover { background: rgba(255, 255, 255, 0.15); }
+    .modal-box {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      width: 650px;
+      max-width: 90vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #d1d5db;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #0b0f17;
+      border: 1px solid #374151;
+      color: #fff;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      box-sizing: border-box;
+    }
+
+    .form-control:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #1f2937;
+    }
   </style>
 
   <div class="action-bar">
     <div>
-      <span style="font-weight:700; color:#fff;">全站工具控制台 (KV: config_tools_v2)</span>
-      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">状态控制、推荐标记及预设场景参数</span>
+      <span style="font-weight:700; color:#fff;">🛠️ 全站工具字段配置 (KV: config_tools_v2)</span>
+      <span style="font-size:0.8rem; color:#9ca3af; margin-left:0.8rem;">修改完具体字段后点击保存至 Cloudflare KV</span>
     </div>
-    <button class="btn-primary" id="btnSaveConfig">💾 保存至 Cloudflare KV</button>
+    <div style="display:flex; gap:0.5rem;">
+      <button class="btn-secondary" onclick="addNewTool()">➕ 新增工具</button>
+      <button class="btn-primary" id="btnSaveConfig">💾 保存全量配置</button>
+    </div>
   </div>
 
   <table class="tools-table">
     <thead>
       <tr>
-        <th style="width: 60px;">图标</th>
-        <th>工具名称 & Slug</th>
-        <th>组件路径</th>
-        <th>状态控制</th>
-        <th>标记位</th>
-        <th>预设参数/场景</th>
+        <th style="width: 50px;">图标</th>
+        <th>工具名称 / Slug</th>
+        <th>分类</th>
+        <th style="width: 90px;">排序权重</th>
+        <th>状态</th>
+        <th>标记</th>
+        <th style="width: 100px;">操作</th>
       </tr>
     </thead>
     <tbody id="toolsTableBody">
       <tr>
-        <td colspan="6" style="text-align:center; color:#9ca3af;">正在从 KV 读取配置中...</td>
+        <td colspan="7" style="text-align:center; color:#9ca3af;">正在读取 KV 配置中...</td>
       </tr>
     </tbody>
   </table>
 
+  <!-- ✏️ 编辑工具字段的 Modal 弹窗 -->
+  <div id="editModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+      <h3 style="margin-top:0; color:#fff; font-size:1.1rem;" id="modalTitle">编辑工具详细配置</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>工具名称 *</label>
+          <input type="text" id="editName" class="form-control" placeholder="如: 复利 & FIRE 退休计算器" />
+        </div>
+        <div class="form-group">
+          <label>URL Slug *</label>
+          <input type="text" id="editSlug" class="form-control" placeholder="如: compound-interest-calculator" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>分类 (Category ID) *</label>
+          <input type="text" id="editCategory" class="form-control" placeholder="如: financial / programming / stem" />
+        </div>
+        <div class="form-group">
+          <label>图标 / Emoji</label>
+          <input type="text" id="editIcon" class="form-control" placeholder="如: 📈 或 ⚔️" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-row">
+          <div>
+            <label>默认排序权重 (数值越大越靠前)</label>
+            <input type="number" id="editPriority" class="form-control" value="10" />
+          </div>
+          <div>
+            <label>Astro 组件路径</label>
+            <input type="text" id="editAstroComponent" class="form-control" placeholder="src/components/tools/FinanceCalc.astro" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>工具简短描述 (Description)</label>
+        <textarea id="editDescription" class="form-control" rows="2" placeholder="展示在前台卡片上的简介..."></textarea>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #1f2937; margin: 1.2rem 0;" />
+      <div style="font-weight:700; color:#3b82f6; margin-bottom:0.8rem; font-size:0.88rem;">🔍 SEO 优化字段 (Search Engine Optimization)</div>
+
+      <div class="form-group">
+        <label>SEO Title (自定义网页标题)</label>
+        <input type="text" id="editSeoTitle" class="form-control" placeholder="留空则默认使用工具名称" />
+      </div>
+
+      <div class="form-group">
+        <label>Meta Description (SEO 搜索元描述)</label>
+        <textarea id="editSeoDescription" class="form-control" rows="2" placeholder="专供 Google / AI Search 模型的网页摘要..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn-primary" onclick="saveModalChanges()">确认修改</button>
+      </div>
+    </div>
+  </div>
+
   <script is:inline>
     let toolsList = [];
+    let currentEditIndex = -1;
 
-    // 初始内置工具数据 (当 KV 尚无内容时作为回退)
-    const DEFAULT_TOOLS = [
-      {
-        id: 'compound-interest-fire-calculator',
-        name: '复利 & FIRE 退休计算器',
-        slug: 'compound-interest-fire-calculator',
-        category: 'financial',
-        icon: '📈',
-        astroComponent: 'src/components/tools/FinanceCalc.astro',
-        tags: ['理财', '复利'],
-        status: 'active',
-        isNew: false,
-        isFeatured: true,
-        priority: 10,
-        presetParams: [
-          { key: 'defaultRate', label: '默认年化收益率 (%)', value: 6, type: 'number' }
-        ]
-      },
-      {
-        id: 'c-text-adventure-builder',
-        name: 'C 语言地牢文字冒险构建器',
-        slug: 'c-text-adventure-builder',
-        category: 'programming',
-        icon: '⚔️',
-        astroComponent: 'src/components/tools/CTextAdventure.astro',
-        tags: ['C语言', 'STEM'],
-        status: 'active',
-        isNew: true,
-        isFeatured: true,
-        priority: 20,
-        presetParams: [
-          { key: 'defaultHp', label: '初始玩家血量', value: 100, type: 'number' }
-        ]
-      }
-    ];
-
-    // 从通用 API /api/admin/config 读取 type=tools_v2
+    // 从 /api/admin/config 读取 KV 数据
     async function fetchToolsConfig() {
       try {
         const res = await fetch('/api/admin/config?type=tools_v2');
         const json = await res.json();
-        
         if (json.success && json.data && Array.isArray(json.data)) {
           toolsList = json.data;
         } else {
-          toolsList = DEFAULT_TOOLS;
+          toolsList = [];
         }
         renderTable();
       } catch (e) {
@@ -176,27 +271,28 @@ export const prerender = false;
       if (!tbody) return;
 
       if (toolsList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#9ca3af;">暂无工具数据</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#9ca3af;">暂无工具数据，请点击上方“新增工具”</td></tr>`;
         return;
       }
 
       tbody.innerHTML = toolsList.map((tool, index) => `
         <tr>
-          <td style="font-size:1.5rem; text-align:center;">${tool.icon || '🛠️'}</td>
+          <td style="font-size:1.3rem; text-align:center;">${tool.icon || '🛠️'}</td>
           <td>
-            <div style="font-weight:700; color:#fff;">${tool.name}</div>
-            <div style="font-size:0.78rem; color:#9ca3af; font-family:monospace;">/${tool.slug}</div>
+            <div style="font-weight:700; color:#fff;">${tool.name || '未命名工具'}</div>
+            <div style="font-size:0.75rem; color:#9ca3af; font-family:monospace;">/${tool.slug || ''}</div>
           </td>
-          <td style="font-family:monospace; font-size:0.8rem; color:#9ca3af;">${tool.astroComponent || '-'}</td>
+          <td><span style="background:rgba(255,255,255,0.06); padding:0.2em 0.5em; border-radius:4px; font-size:0.78rem;">${tool.category || '未分类'}</span></td>
+          <td><strong style="color:#3b82f6;">${tool.priority ?? 0}</strong></td>
           <td>
             <select class="status-select" onchange="updateStatus(${index}, this.value)">
-              <option value="active" ${tool.status === 'active' ? 'selected' : ''}>🟢 正常开启</option>
-              <option value="disabled" ${tool.status === 'disabled' ? 'selected' : ''}>🔴 禁用 (404)</option>
-              <option value="maintenance" ${tool.status === 'maintenance' ? 'selected' : ''}>🟡 维护模式</option>
+              <option value="active" ${tool.status === 'active' ? 'selected' : ''}>🟢 开启</option>
+              <option value="disabled" ${tool.status === 'disabled' ? 'selected' : ''}>🔴 禁用(404)</option>
+              <option value="maintenance" ${tool.status === 'maintenance' ? 'selected' : ''}>🟡 维护</option>
             </select>
           </td>
           <td>
-            <label style="cursor:pointer; margin-right:0.5rem;">
+            <label style="cursor:pointer; margin-right:0.3rem;">
               <input type="checkbox" ${tool.isNew ? 'checked' : ''} onchange="toggleFlag(${index}, 'isNew', this.checked)">
               <span class="badge-tag badge-new">NEW</span>
             </label>
@@ -206,37 +302,74 @@ export const prerender = false;
             </label>
           </td>
           <td>
-            <button class="btn-edit-param" onclick="editParams(${index})">
-              ⚙️ 参数配置 (${tool.presetParams ? tool.presetParams.length : 0})
-            </button>
+            <button class="btn-secondary" onclick="openEditModal(${index})">✏️ 编辑</button>
           </td>
         </tr>
       `).join('');
     }
 
-    window.updateStatus = function(index, value) {
-      toolsList[index].status = value;
-    };
+    window.updateStatus = function(index, value) { toolsList[index].status = value; };
+    window.toggleFlag = function(index, flag, checked) { toolsList[index][flag] = checked; };
 
-    window.toggleFlag = function(index, flag, checked) {
-      toolsList[index][flag] = checked;
-    };
-
-    window.editParams = function(index) {
+    // 打开编辑 Modal
+    window.openEditModal = function(index) {
+      currentEditIndex = index;
       const tool = toolsList[index];
-      const paramsText = JSON.stringify(tool.presetParams || [], null, 2);
-      const newText = prompt(`编辑 [${tool.name}] 的预设 JSON 参数:`, paramsText);
-      if (newText !== null) {
-        try {
-          tool.presetParams = JSON.parse(newText);
-          renderTable();
-        } catch (e) {
-          alert('JSON 格式不正确，修改未生效');
-        }
-      }
+
+      document.getElementById('modalTitle').innerText = `编辑工具: ${tool.name || '新工具'}`;
+      document.getElementById('editName').value = tool.name || '';
+      document.getElementById('editSlug').value = tool.slug || '';
+      document.getElementById('editCategory').value = tool.category || '';
+      document.getElementById('editIcon').value = tool.icon || '';
+      document.getElementById('editPriority').value = tool.priority ?? 10;
+      document.getElementById('editAstroComponent').value = tool.astroComponent || '';
+      document.getElementById('editDescription').value = tool.description || '';
+      document.getElementById('editSeoTitle').value = tool.seoTitle || '';
+      document.getElementById('editSeoDescription').value = tool.seoDescription || '';
+
+      document.getElementById('editModal').style.display = 'flex';
     };
 
-    // 保存全量工具配置到 /api/admin/config (type: 'tools_v2')
+    window.addNewTool = function() {
+      toolsList.push({
+        name: '新工具',
+        slug: 'new-tool-' + Date.now(),
+        category: 'general',
+        icon: '🛠️',
+        priority: 10,
+        status: 'active',
+        isNew: true,
+        isFeatured: false,
+        description: '',
+        seoTitle: '',
+        seoDescription: ''
+      });
+      renderTable();
+      openEditModal(toolsList.length - 1);
+    };
+
+    window.closeModal = function() {
+      document.getElementById('editModal').style.display = 'none';
+    };
+
+    window.saveModalChanges = function() {
+      if (currentEditIndex < 0) return;
+
+      toolsList[currentEditIndex].name = document.getElementById('editName').value;
+      toolsList[currentEditIndex].slug = document.getElementById('editSlug').value;
+      toolsList[currentEditIndex].category = document.getElementById('editCategory').value;
+      toolsList[currentEditIndex].icon = document.getElementById('editIcon').value;
+      toolsList[currentEditIndex].priority = parseInt(document.getElementById('editPriority').value) || 0;
+      toolsList[currentEditIndex].astroComponent = document.getElementById('editAstroComponent').value;
+      toolsList[currentEditIndex].description = document.getElementById('editDescription').value;
+      toolsList[currentEditIndex].seoTitle = document.getElementById('editSeoTitle').value;
+      toolsList[currentEditIndex].seoDescription = document.getElementById('editSeoDescription').value;
+
+      renderTable();
+      closeModal();
+    };
+
+    // 保存全量配置写入 Cloudflare KV
     document.getElementById('btnSaveConfig')?.addEventListener('click', async () => {
       try {
         const res = await fetch('/api/admin/config', {
@@ -254,7 +387,7 @@ export const prerender = false;
           alert('❌ 保存失败: ' + (json.message || json.error));
         }
       } catch (e) {
-        alert('提交保存网络异常: ' + e.message);
+        alert('保存网络异常: ' + e.message);
       }
     });
 
