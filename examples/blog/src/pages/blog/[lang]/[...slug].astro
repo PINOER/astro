@@ -1,20 +1,132 @@
 ---
+// src/pages/blog/[lang]/[...slug].astro
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-import BlogPost from '../../layouts/BlogPost.astro';
+// ⚡ 1. 修正路径：4 级深度目录需要 4 个 ../ 才能回到 src/layouts/
+import BlogPost from '../../../../layouts/BlogPost.astro';
 
-export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
-}
+// ⚡ 2. 开启 SSR 动态渲染（开启后自动不需要 getStaticPaths）
+export const prerender = false;
+
 type Props = CollectionEntry<'blog'>;
 
-const post = Astro.props;
-const { Content } = await render(post);
+// 提取路由参数
+const { lang, slug = '' } = Astro.params;
+const currentLang = lang || 'en';
+
+// 剥离多余的前缀与文件后缀
+const cleanSlug = slug
+	.replace(/^(en|zh|es|de|ja|ko)\//, '')
+	.replace(/\.(md|mdx)$/, '')
+	.replace(/\/index$/, '');
+
+// 安全提取本地/网络/Base64 图片 URL
+function resolveImageUrl(imgSrc: any): string {
+	if (!imgSrc) return '';
+	if (typeof imgSrc === 'string') return imgSrc;
+	if (typeof imgSrc === 'object') {
+		return imgSrc.src || (imgSrc.default ? (typeof imgSrc.default === 'string' ? imgSrc.default : imgSrc.default.src) : '');
+	}
+	return String(imgSrc);
+}
+
+// Markdown 简易解析函数
+function renderMarkdownToHtml(md: string): string {
+	if (!md) return '';
+	try {
+		return md
+			.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width:100%; height:auto; border-radius:8px; display:block; margin:1.2rem 0;" />')
+			.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">$1</a>')
+			.replace(/^### (.*$)/gim, '<h3 style="margin-top:1.5em; font-size:1.25rem;">$1</h3>')
+			.replace(/^## (.*$)/gim, '<h2 style="margin-top:1.8em; font-size:1.5rem;">$1</h2>')
+			.replace(/^# (.*$)/gim, '<h1 style="margin-top:2em; font-size:1.75rem;">$1</h1>')
+			.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+			.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1); padding:0.2em 0.4em; border-radius:4px;">$1</code>')
+			.split('\n\n')
+			.map((p) => {
+				const trimmed = p.trim();
+				if (!trimmed || trimmed.startsWith('<h') || trimmed.startsWith('<img')) return trimmed;
+				return `<p style="line-height:1.75; margin-bottom:1.2em;">${trimmed.replace(/\n/g, '<br/>')}</p>`;
+			})
+			.join('');
+	} catch (e) {
+		return md;
+	}
+}
+
+// ==========================================
+// 1️⃣ 先判断 KV (KV 优先)
+// ==========================================
+let kvArticle: any = null;
+
+try {
+	const locals = Astro.locals as any;
+	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+	if (kv) {
+		const rawList = await kv.get(`articles_v1_${currentLang}`);
+		if (rawList) {
+			const articlesList = JSON.parse(rawList);
+			kvArticle = articlesList.find((item: any) => {
+				if (!item) return false;
+				const pureId = item.id ? item.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '') : '';
+				return item.slug === cleanSlug || pureId === cleanSlug || item.id === `${currentLang}/${cleanSlug}.md`;
+			});
+		}
+	}
+} catch (e) {
+	console.warn('读取 KV 失败，准备使用本地数据:', e);
+}
+
+// ==========================================
+// 2️⃣ 若 KV 无有效正文，再读本地 MD (本地兜底)
+// ==========================================
+let localPost: any = null;
+let LocalContent: any = null;
+
+if (!kvArticle || !kvArticle.content || kvArticle.content.trim() === '') {
+	const posts = await getCollection('blog');
+	localPost = posts.find((p) => {
+		const pureId = p.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '');
+		const pureSlug = p.slug ? p.slug.replace(/^(en|zh|es|de|ja|ko)\//, '') : '';
+		const isLangMatch = p.id.startsWith(`${currentLang}/`) || (p.data as any)?.lang === currentLang;
+		return isLangMatch && (pureId === cleanSlug || pureSlug === cleanSlug || p.id.includes(cleanSlug));
+	});
+
+	if (localPost) {
+		const rendered = await render(localPost);
+		LocalContent = rendered.Content;
+	}
+}
+
+// ==========================================
+// 3️⃣ 数据整合
+// ==========================================
+const finalTitle = kvArticle?.title || localPost?.data?.title || cleanSlug;
+const rawHeroImage = (kvArticle?.heroImage !== undefined && kvArticle?.heroImage !== '')
+	? kvArticle.heroImage
+	: localPost?.data?.heroImage;
+const finalHeroImage = resolveImageUrl(rawHeroImage);
+const kvHtml = kvArticle?.content ? renderMarkdownToHtml(kvArticle.content) : null;
+
+const finalPostData = {
+	...(localPost ? localPost.data : {}),
+	title: finalTitle,
+	heroImage: finalHeroImage,
+	pubDate: localPost?.data?.pubDate || new Date()
+};
 ---
 
-<BlogPost {...post.data}>
-	<Content />
+<BlogPost {...finalPostData}>
+	{
+		kvHtml ? (
+			<div class="markdown-body" set:html={kvHtml} />
+		) : LocalContent ? (
+			<LocalContent />
+		) : (
+			<div style="padding: 4rem 1rem; text-align: center; color: #94a3b8;">
+				<h2>⚠️ 文章未找到</h2>
+				<p>无法在后台 KV 或本地 Markdown 中检索到该文章。</p>
+			</div>
+		)
+	}
 </BlogPost>
