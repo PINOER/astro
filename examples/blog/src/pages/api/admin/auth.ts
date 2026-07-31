@@ -5,13 +5,32 @@ import type { APIRoute } from 'astro';
 export const prerender = false;
 
 // 1. 管理员登录接口
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals, cookies }) => {
 	try {
 		const body = await request.json();
 		const { username, password } = body;
 
-		// 校验账号和密码
-		if (username === 'admin' && password === 'admin123') {
+		// ⚡ 1. 从 Cloudflare KV 尝试读取后台修改后保存的账号密码
+		const kv = (locals as any)?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+		let targetUsername = 'admin';    // 默认账号
+		let targetPassword = 'admin123'; // 默认密码
+
+		if (kv) {
+			try {
+				const savedAccount = await kv.get('admin_account_config');
+				if (savedAccount) {
+					const config = JSON.parse(savedAccount);
+					if (config.username) targetUsername = config.username;
+					if (config.password) targetPassword = config.password;
+				}
+			} catch (e) {
+				console.warn('读取 KV 账号配置失败，回退默认账号密码:', e);
+			}
+		}
+
+		// ⚡ 2. 校验账号和密码
+		if (username === targetUsername && password === targetPassword) {
 			// 写入与 login.astro 顶部一致的 Cookie Token
 			cookies.set('admin_session', 'astro_admin_secure_session_token_2026', {
 				path: '/',
