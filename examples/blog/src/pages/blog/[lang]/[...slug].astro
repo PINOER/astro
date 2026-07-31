@@ -8,7 +8,7 @@ export const prerender = false;
 
 type Props = CollectionEntry<'blog'>;
 
-// 提取 URL 参数：访问 /blog/zh/fire 时，lang = "zh", slug = "fire"
+// 提取 URL 参数：例如访问 /blog/zh/fire 时，lang = "zh", slug = "fire"
 const { lang = 'zh', slug = '' } = Astro.params;
 
 // 1. 读取 Content Collections 下的文章
@@ -25,7 +25,7 @@ if (!post) {
 // 2. 动态查询 Cloudflare KV 覆盖层
 let updatedContent: string | null = null;
 let updatedTitle = post.data.title;
-let updatedHeroImage = post.data.heroImage;
+let updatedHeroImage: any = post.data.heroImage;
 
 try {
 	const locals = Astro.locals as any;
@@ -47,7 +47,7 @@ try {
 
 			if (kvArticle) {
 				if (kvArticle.title) updatedTitle = kvArticle.title;
-				if (kvArticle.heroImage) updatedHeroImage = kvArticle.heroImage;
+				if (kvArticle.heroImage !== undefined) updatedHeroImage = kvArticle.heroImage;
 				if (kvArticle.content && kvArticle.content.trim() !== '') {
 					updatedContent = kvArticle.content;
 				}
@@ -81,10 +81,10 @@ function renderMarkdownToHtml(md: string): string {
 
 const { Content } = await render(post);
 const renderedKvHtml = updatedContent ? renderMarkdownToHtml(updatedContent) : null;
-const finalPostData = { 
-	...post.data, 
-	title: updatedTitle, 
-	heroImage: updatedHeroImage 
+const finalPostData = {
+	...post.data,
+	title: updatedTitle,
+	heroImage: updatedHeroImage
 };
 ---
 
