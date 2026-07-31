@@ -6,10 +6,10 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-// ⚡ 1. 强制开启动态 SSR 模式，实时查询 Cloudflare KV
+// ⚡ 1. 开启动态 SSR 模式
 export const prerender = false;
 
-// ⚡ 2. 动态读取当前语言环境 (默认英文 'en')
+// ⚡ 2. 动态获取当前语言
 const { lang } = Astro.params;
 const currentLang = lang || 'en';
 
@@ -23,7 +23,7 @@ const filteredPosts = allPosts
 	})
 	.sort((a, b) => (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0));
 
-// ⚡ 4. 建立万能 Key 匹配 Map（全面兼容带有/不带有语言前缀、.md后缀的各种 KV 保存格式）
+// ⚡ 4. 从 Cloudflare KV 中拉取数据，全维度构建 Map
 let kvMap = new Map<string, any>();
 try {
 	const locals = Astro.locals as any;
@@ -35,54 +35,61 @@ try {
 			const list = JSON.parse(raw);
 			list.forEach((item: any) => {
 				if (item.id) {
-					kvMap.set(item.id, item); // 规则 1: 存原始全名 (如 zh/fire.md 或 en/fire.md)
+					kvMap.set(item.id, item);
 					const pureName = item.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '');
-					kvMap.set(pureName, item); // 规则 2: 存纯名称 (如 fire)
+					kvMap.set(pureName, item);
 				}
 				if (item.slug) {
-					kvMap.set(item.slug, item); // 规则 3: 存 slug 字段
+					kvMap.set(item.slug, item);
 				}
 			});
 		}
 	}
 } catch (e) {
-	console.warn('列表页 SSR 读取 Cloudflare KV 失败，降级回退本地 MD:', e);
+	console.warn('列表页 SSR 读取 KV 失败，降级回退本地 MD:', e);
 }
 
-// ⚡ 5. 组合展示数据，修正图片解析与标准 URL 生成
+// ⚡ SSR 图片安全转换工具函数：完美解开 Astro 本地 Asset 对象、网络 URL、Base64 与相对路径
+function resolveImageUrl(imgSrc: any): string {
+	if (!imgSrc) return '';
+	if (typeof imgSrc === 'string') return imgSrc;
+	if (typeof imgSrc === 'object') {
+		if (imgSrc.src) return imgSrc.src;
+		if (imgSrc.default) return typeof imgSrc.default === 'string' ? imgSrc.default : imgSrc.default.src || '';
+	}
+	return String(imgSrc);
+}
+
+// ⚡ 5. 组合展示数据
 const posts = filteredPosts.map((post) => {
-	// 提取纯粹的文章 slug，剥离路径中的语言前缀和文件后缀
+	// 提取纯 Slug
 	const cleanSlug = post.id
 		.replace(/^(en|zh|es|de|ja|ko)\//, '')
 		.replace(/\.(md|mdx)$/, '')
 		.replace(/\/index$/, '');
 
-	// 万能匹配：多维度尝试获取 KV 覆盖数据
+	// 多重格式回溯检索 KV
 	const kvData = kvMap.get(post.id) || 
 	               kvMap.get(`${currentLang}/${cleanSlug}.md`) || 
 	               kvMap.get(`${currentLang}/${cleanSlug}`) || 
 	               kvMap.get(cleanSlug) || {};
 
-	// 1️⃣ 优先取 KV 中保存的 heroImage
-	let finalHeroImage = kvData.heroImage !== undefined && kvData.heroImage !== '' ? kvData.heroImage : null;
+	// 1️⃣ 优先使用 KV 中保存的 heroImage (支持 Base64 与网络 URL)
+	let rawHeroImage = (kvData.heroImage !== undefined && kvData.heroImage !== '') 
+		? kvData.heroImage 
+		: post.data.heroImage;
 
-	// 2️⃣ 若 KV 无数据，降级解析本地 Markdown 的 heroImage (兼容 src/assets 静态图片导入对象与字符串路径)
-	if (!finalHeroImage && post.data.heroImage) {
-		if (typeof post.data.heroImage === 'object' && (post.data.heroImage as any).src) {
-			finalHeroImage = (post.data.heroImage as any).src;
-		} else if (typeof post.data.heroImage === 'string') {
-			finalHeroImage = post.data.heroImage;
-		}
-	}
+	// 2️⃣ 转换解析出 100% 可用的 img 路径
+	const finalHeroImage = resolveImageUrl(rawHeroImage);
 
-	// ⚡ 核心修复 1：英文与多语言统一输出标准 URL 规范 `/blog/${currentLang}/${cleanSlug}/`
+	// 3️⃣ 标准多语言 URL 规范
 	const postUrl = `/blog/${currentLang}/${cleanSlug}/`;
 
 	return {
 		id: post.id,
 		slug: cleanSlug,
 		title: kvData.title || post.data.title || cleanSlug,
-		heroImage: finalHeroImage || '',
+		heroImage: finalHeroImage,
 		pubDate: post.data.pubDate,
 		url: postUrl
 	};
@@ -184,7 +191,7 @@ const posts = filteredPosts.map((post) => {
 						posts.map((post) => (
 							<li>
 								<a href={post.url}>
-									{/* ⚡ 使用标准 <img> 标签，原生兼容网络 URL、Base64 以及静态构建提取出的 src 路径 */}
+									{/* ⚡ 核心渲染：resolveImageUrl 转换后的有效图片地址 */}
 									{post.heroImage ? (
 										<img src={post.heroImage} alt={post.title} loading="lazy" />
 									) : (
