@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../../components/BaseHead.astro';
 import Footer from '../../../components/Footer.astro';
@@ -7,24 +6,76 @@ import FormattedDate from '../../../components/FormattedDate.astro';
 import Header from '../../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../../consts';
 
-// 1. 设置当前列表页展示语言为中文
-const currentLang = 'zh';
+// ⚡ 1. 开启 dynamic SSR 模式，确保用户访问时实时拉取 Cloudflare KV 中的 heroImage
+export const prerender = false;
 
-// 2. 抓取所有文章并筛选出中文文章
+// ⚡ 2. 动态获取当前语言（兼容 /blog/zh/ 或 URL 参数）
+const { lang } = Astro.params;
+const currentLang = lang || 'zh';
+
+// ⚡ 3. 抓取所有文章并筛选对应语言
 const allPosts = await getCollection('blog');
-const posts = allPosts
+const filteredPosts = allPosts
 	.filter((post) => {
-		const isLangMatch = post.data?.lang === currentLang;
+		const isLangMatch = (post.data as any)?.lang === currentLang;
 		const isPathMatch = post.id.startsWith(`${currentLang}/`);
 		return isLangMatch || isPathMatch;
 	})
-	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+	.sort((a, b) => (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0));
 
-// 3. 规范化生成的文章跳转链接
-const getPostPath = (post: any) => {
-	const cleanId = post.id.replace(/\.(md|mdx)$/, '').replace(/\/index$/, '');
-	return `/blog/${cleanId}/`;
-};
+// ⚡ 4. 从 Cloudflare KV 动态拉取后台修改保存的最新数据 (含 heroImage)
+let kvMap = new Map<string, any>();
+try {
+	const locals = Astro.locals as any;
+	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+	if (kv) {
+		const raw = await kv.get(`articles_v1_${currentLang}`);
+		if (raw) {
+			const list = JSON.parse(raw);
+			list.forEach((item: any) => {
+				if (item.id) kvMap.set(item.id, item);
+				if (item.slug) kvMap.set(item.slug, item);
+			});
+		}
+	}
+} catch (e) {
+	console.warn('列表页 SSR 读取 KV 失败，降级回退本地 MD:', e);
+}
+
+// ⚡ 5. 组合最终展示的数据列表并解析 heroImage 为原生图片 src 路径
+const posts = filteredPosts.map((post) => {
+	const cleanSlug = post.id
+		.replace(new RegExp(`^${currentLang}/`), '')
+		.replace(/\.(md|mdx)$/, '')
+		.replace(/\/index$/, '');
+
+	const kvData = kvMap.get(post.id) || kvMap.get(cleanSlug) || {};
+
+	// 优先提取 KV 保存的封面，次之提取本地 MD 的封面
+	let rawHeroImage = (kvData.heroImage !== undefined && kvData.heroImage !== '') 
+		? kvData.heroImage 
+		: post.data.heroImage;
+
+	// 处理图片对象/路径转换（兼容本地相对图片、网络 URL 与 Base64）
+	let imgUrl = '';
+	if (rawHeroImage) {
+		if (typeof rawHeroImage === 'string') {
+			imgUrl = rawHeroImage;
+		} else if (typeof rawHeroImage === 'object' && rawHeroImage.src) {
+			imgUrl = rawHeroImage.src;
+		}
+	}
+
+	return {
+		id: post.id,
+		slug: cleanSlug,
+		title: kvData.title || post.data.title || cleanSlug,
+		heroImage: imgUrl,
+		pubDate: post.data.pubDate,
+		url: `/blog/${currentLang}/${cleanSlug}/`
+	};
+});
 ---
 
 <!doctype html>
@@ -64,6 +115,13 @@ const getPostPath = (post: any) => {
 			ul li img {
 				margin-bottom: 0.5rem;
 				border-radius: 12px;
+				width: 100%;
+				height: 240px;
+				object-fit: cover;
+				background: #1f2937;
+			}
+			ul li:first-child img {
+				height: 380px;
 			}
 			ul li a {
 				display: block;
@@ -98,6 +156,10 @@ const getPostPath = (post: any) => {
 				ul li:first-child .title {
 					font-size: 1.563em;
 				}
+				ul li img,
+				ul li:first-child img {
+					height: 200px;
+				}
 			}
 		</style>
 	</head>
@@ -109,13 +171,14 @@ const getPostPath = (post: any) => {
 					{
 						posts.map((post) => (
 							<li>
-								<a href={getPostPath(post)}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
+								<a href={post.url}>
+									{/* ⚡ 核心渲染：换用标准 <img> 标签，完美显示 Base64 / URL 封面 */}
+									{post.heroImage && (
+										<img src={post.heroImage} alt={post.title} loading="lazy" />
 									)}
-									<h4 class="title">{post.data.title}</h4>
+									<h4 class="title">{post.title}</h4>
 									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
+										{post.pubDate && <FormattedDate date={post.pubDate} />}
 									</p>
 								</a>
 							</li>
