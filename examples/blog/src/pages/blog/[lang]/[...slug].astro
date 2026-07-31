@@ -1,10 +1,9 @@
 ---
 // src/pages/blog/[lang]/[...slug].astro
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-// ⚡ 1. 修正路径层级：从 src/pages/blog/[lang]/ 推 3 层即可到达 src/layouts/
 import BlogPost from '../../../layouts/BlogPost.astro';
 
-// ⚡ 2. 开启 SSR 动态渲染
+// ⚡ 1. 开启 SSR 动态渲染
 export const prerender = false;
 
 type Props = CollectionEntry<'blog'>;
@@ -19,14 +18,15 @@ const cleanSlug = slug
 	.replace(/\.(md|mdx)$/, '')
 	.replace(/\/index$/, '');
 
-// 安全提取本地/网络/Base64 图片 URL
+// ⚡ 核心修复函数：强效将 Astro Asset 图片对象解包成纯字符串 URL，防止 SSR 崩盘
 function resolveImageUrl(imgSrc: any): string {
 	if (!imgSrc) return '';
 	if (typeof imgSrc === 'string') return imgSrc;
 	if (typeof imgSrc === 'object') {
-		return imgSrc.src || (imgSrc.default ? (typeof imgSrc.default === 'string' ? imgSrc.default : imgSrc.default.src) : '');
+		if (imgSrc.src) return imgSrc.src;
+		if (imgSrc.default) return typeof imgSrc.default === 'string' ? imgSrc.default : (imgSrc.default.src || '');
 	}
-	return String(imgSrc);
+	return '';
 }
 
 // Markdown 简易解析函数
@@ -99,19 +99,27 @@ if (!kvArticle || !kvArticle.content || kvArticle.content.trim() === '') {
 }
 
 // ==========================================
-// 3️⃣ 数据整合 (KV 覆盖优先)
+// 3️⃣ 数据整合 (避开原始对象引发 SSR 崩溃)
 // ==========================================
 const finalTitle = kvArticle?.title || localPost?.data?.title || cleanSlug;
+
+// 优先取 KV 的图片，KV 没有则取本地 MD 的图片
 const rawHeroImage = (kvArticle?.heroImage !== undefined && kvArticle?.heroImage !== '')
 	? kvArticle.heroImage
 	: localPost?.data?.heroImage;
+
+// ⚡ 强效转换成安全的纯字符串路径
 const finalHeroImage = resolveImageUrl(rawHeroImage);
+
 const kvHtml = kvArticle?.content ? renderMarkdownToHtml(kvArticle.content) : null;
 
+// ⚡ 关键修复：从 localPost.data 展开时，安全剔除原来的 heroImage 复杂对象，防止污染 Layout 组件
+const { heroImage: _unusedLocalImage, ...safeLocalData } = localPost ? localPost.data : ({} as any);
+
 const finalPostData = {
-	...(localPost ? localPost.data : {}),
+	...safeLocalData,
 	title: finalTitle,
-	heroImage: finalHeroImage,
+	heroImage: finalHeroImage, // 传入百分之百纯净的字符串 URL 或 Base64
 	pubDate: localPost?.data?.pubDate || new Date()
 };
 ---
