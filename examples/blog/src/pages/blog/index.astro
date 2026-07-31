@@ -9,9 +9,9 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 // ⚡ 1. 强制开启动态 SSR 模式
 export const prerender = false;
 
-// ⚡ 2. 动态获取当前语言（支持动态路由参数或默认 zh）
+// ⚡ 2. 修正：默认语言设为英文 'en'，只有当 URL 参数明确包含 zh/ja/de 等时才切换
 const { lang } = Astro.params;
-const currentLang = lang || 'zh';
+const currentLang = lang || 'en';
 
 // ⚡ 3. 抓取所有文章并筛选对应语言
 const allPosts = await getCollection('blog');
@@ -23,7 +23,7 @@ const filteredPosts = allPosts
 	})
 	.sort((a, b) => (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0));
 
-// ⚡ 4. 从 Cloudflare KV 动态拉取后台修改保存的最新数据 (含 heroImage)
+// ⚡ 4. 从 Cloudflare KV 动态拉取最新数据，并做全路径 Key 映射
 let kvMap = new Map<string, any>();
 try {
 	const locals = Astro.locals as any;
@@ -34,8 +34,14 @@ try {
 		if (raw) {
 			const list = JSON.parse(raw);
 			list.forEach((item: any) => {
-				if (item.id) kvMap.set(item.id, item);
-				if (item.slug) kvMap.set(item.slug, item);
+				if (item.id) {
+					kvMap.set(item.id, item); // 存入完整 ID (如 zh/compound-interest-fire-calculator.md)
+					const pureSlug = item.id.replace(new RegExp(`^${currentLang}/`), '').replace(/\.(md|mdx)$/, '');
+					kvMap.set(pureSlug, item); // 存入纯 Slug
+				}
+				if (item.slug) {
+					kvMap.set(item.slug, item); // 存入 slug 字段
+				}
 			});
 		}
 	}
@@ -43,14 +49,18 @@ try {
 	console.warn('列表页 SSR 读取 KV 失败，降级回退本地 MD:', e);
 }
 
-// ⚡ 5. 组合最终展示的数据列表并解析 heroImage 为原生图片 src 路径
+// ⚡ 5. 组装展示数据，全面增强 KV 图片的精准匹配
 const posts = filteredPosts.map((post) => {
+	// 提取不带语言和后缀的纯 Slug
 	const cleanSlug = post.id
 		.replace(new RegExp(`^${currentLang}/`), '')
 		.replace(/\.(md|mdx)$/, '')
 		.replace(/\/index$/, '');
 
-	const kvData = kvMap.get(post.id) || kvMap.get(cleanSlug) || {};
+	// 多重格式回溯查找 KV 中的数据 (兼容完整 id、带 md 的 id、纯 slug)
+	const kvData = kvMap.get(post.id) || 
+	               kvMap.get(`${currentLang}/${cleanSlug}.md`) || 
+	               kvMap.get(cleanSlug) || {};
 
 	// 优先提取 KV 保存的封面，次之提取本地 MD 的封面
 	let rawHeroImage = (kvData.heroImage !== undefined && kvData.heroImage !== '') 
@@ -62,8 +72,8 @@ const posts = filteredPosts.map((post) => {
 	if (rawHeroImage) {
 		if (typeof rawHeroImage === 'string') {
 			imgUrl = rawHeroImage;
-		} else if (typeof rawHeroImage === 'object' && rawHeroImage.src) {
-			imgUrl = rawHeroImage.src;
+		} else if (typeof rawHeroImage === 'object' && (rawHeroImage as any).src) {
+			imgUrl = (rawHeroImage as any).src;
 		}
 	}
 
@@ -73,7 +83,8 @@ const posts = filteredPosts.map((post) => {
 		title: kvData.title || post.data.title || cleanSlug,
 		heroImage: imgUrl,
 		pubDate: post.data.pubDate,
-		url: `/blog/${currentLang}/${cleanSlug}/`
+		// 路由生成逻辑：如果是默认英文，生成 /blog/xxx/，如果是中文生成 /blog/zh/xxx/ 或 /zh/blog/xxx/
+		url: currentLang === 'en' ? `/blog/${cleanSlug}/` : `/blog/${currentLang}/${cleanSlug}/`
 	};
 });
 ---
@@ -173,7 +184,7 @@ const posts = filteredPosts.map((post) => {
 						posts.map((post) => (
 							<li>
 								<a href={post.url}>
-									{/* ⚡ 使用标准 <img> 标签兼容网络 URL 与 Base64 封面 */}
+									{/* ⚡ 使用标准 <img> 标签，完美兼容网络 URL、本地路径与 Base64 封面 */}
 									{post.heroImage && (
 										<img src={post.heroImage} alt={post.title} loading="lazy" />
 									)}
