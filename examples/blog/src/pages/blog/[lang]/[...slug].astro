@@ -3,37 +3,22 @@
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../../layouts/BlogPost.astro';
 
-// ⚡ 核心：开启 SSR 动态渲染
+// ⚡ 1. 开启 SSR 动态渲染
 export const prerender = false;
 
 type Props = CollectionEntry<'blog'>;
 
-// 从 URL 参数提取：/blog/en/image-base64-converter-guide/ -> lang="en", slug="image-base64-converter-guide"
+// 提取 URL 参数：/blog/en/image-base64-converter-guide/ -> lang="en", slug="image-base64-converter-guide"
 const { lang, slug = '' } = Astro.params;
 const currentLang = lang || 'en';
 
-// ⚡ 1. 彻底剥离 slug 中可能混入的一切语言前缀和文件后缀
+// 彻底剥离 slug 中可能混入的多余语言前缀与后缀
 const cleanSlug = slug
 	.replace(/^(en|zh|es|de|ja|ko)\//, '')
 	.replace(/\.(md|mdx)$/, '')
 	.replace(/\/index$/, '');
 
-// 2. 获取本地 Content Collections
-const posts = await getCollection('blog');
-
-// ⚡ 3. 强效多模式精准查找本地文章
-let post = posts.find((p) => {
-	// 剥离 p.id 里的语言前缀和后缀，拿到最纯粹的文件名
-	const pPureId = p.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '');
-	const pSlug = p.slug ? p.slug.replace(/^(en|zh|es|de|ja|ko)\//, '') : '';
-
-	// 判断语言是否匹配
-	const isLangMatch = p.id.startsWith(`${currentLang}/`) || (p.data as any)?.lang === currentLang;
-
-	return isLangMatch && (pPureId === cleanSlug || pSlug === cleanSlug || p.id.includes(cleanSlug));
-});
-
-// SSR 安全图片路径提取函数
+// SSR 安全图片路径提取工具函数
 function resolveImageUrl(imgSrc: any): string {
 	if (!imgSrc) return '';
 	if (typeof imgSrc === 'string') return imgSrc;
@@ -44,50 +29,7 @@ function resolveImageUrl(imgSrc: any): string {
 	return String(imgSrc);
 }
 
-// 4. 从 Cloudflare KV 读取最新保存的数据
-let updatedContent: string | null = null;
-let updatedTitle = post ? post.data.title : '';
-let rawHeroImage: any = post ? post.data.heroImage : '';
-
-try {
-	const locals = Astro.locals as any;
-	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
-
-	if (kv) {
-		const rawList = await kv.get(`articles_v1_${currentLang}`);
-		if (rawList) {
-			const articlesList = JSON.parse(rawList);
-			
-			// 全维度击中 KV 记录
-			const kvArticle = articlesList.find((item: any) => {
-				if (!item) return false;
-				const itemPureId = item.id ? item.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '') : '';
-				return (
-					item.slug === cleanSlug ||
-					itemPureId === cleanSlug ||
-					(post && item.id === post.id) ||
-					item.id === `${currentLang}/${cleanSlug}.md`
-				);
-			});
-
-			if (kvArticle) {
-				if (kvArticle.title) updatedTitle = kvArticle.title;
-				if (kvArticle.heroImage !== undefined && kvArticle.heroImage !== '') {
-					rawHeroImage = kvArticle.heroImage;
-				}
-				if (kvArticle.content && kvArticle.content.trim() !== '') {
-					updatedContent = kvArticle.content;
-				}
-			}
-		}
-	}
-} catch (e) {
-	console.warn('SSR 读取 KV 失败:', e);
-}
-
-const finalHeroImage = resolveImageUrl(rawHeroImage);
-
-// 5. Markdown 渲染为 HTML
+// Markdown 转 HTML 辅助函数
 function renderMarkdownToHtml(md: string): string {
 	if (!md) return '';
 	try {
@@ -112,32 +54,99 @@ function renderMarkdownToHtml(md: string): string {
 	}
 }
 
-// 渲染本地 MD 的 Content 组件
-let ContentComponent: any = null;
-if (post) {
-	const rendered = await render(post);
-	ContentComponent = rendered.Content;
+// -------------------------------------------------------------
+// 🔍 第一步：首先判断并尝试读取 Cloudflare KV 数据（KV 优先）
+// -------------------------------------------------------------
+let kvArticle: any = null;
+
+try {
+	const locals = Astro.locals as any;
+	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+	if (kv) {
+		const rawList = await kv.get(`articles_v1_${currentLang}`);
+		if (rawList) {
+			const articlesList = JSON.parse(rawList);
+			// 全维度精准匹配 KV 数据
+			kvArticle = articlesList.find((item: any) => {
+				if (!item) return false;
+				const itemPureId = item.id ? item.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '') : '';
+				return (
+					item.slug === cleanSlug ||
+					itemPureId === cleanSlug ||
+					item.id === `${currentLang}/${cleanSlug}.md` ||
+					item.id === `${currentLang}/${cleanSlug}`
+				);
+			});
+		}
+	}
+} catch (e) {
+	console.warn('读取 Cloudflare KV 异常，准备降级回退到本地 Markdown:', e);
 }
 
-const renderedKvHtml = updatedContent ? renderMarkdownToHtml(updatedContent) : null;
+// -------------------------------------------------------------
+// 🔍 第二步：如果 KV 没有数据/读取失败，再读取本地 Markdown（本地兜底）
+// -------------------------------------------------------------
+let localPost: any = null;
+let LocalContentComponent: any = null;
 
+// 只有在 KV 缺乏有效 content 正文时，才需要去渲染本地 Markdown
+if (!kvArticle || !kvArticle.content || kvArticle.content.trim() === '') {
+	const posts = await getCollection('blog');
+	localPost = posts.find((p) => {
+		const pPureId = p.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '');
+		const pSlug = p.slug ? p.slug.replace(/^(en|zh|es|de|ja|ko)\//, '') : '';
+		const isLangMatch = p.id.startsWith(`${currentLang}/`) || (p.data as any)?.lang === currentLang;
+
+		return isLangMatch && (pPureId === cleanSlug || pSlug === cleanSlug || p.id.includes(cleanSlug));
+	});
+
+	if (localPost) {
+		const rendered = await render(localPost);
+		LocalContentComponent = rendered.Content;
+	}
+}
+
+// -------------------------------------------------------------
+// 🎯 第三步：合并数据（KV 字段优先覆盖本地字段）
+// -------------------------------------------------------------
+
+// 1. 标题：KV > 本地 MD > cleanSlug 兜底
+const finalTitle = kvArticle?.title || localPost?.data?.title || cleanSlug;
+
+// 2. 封面图：KV > 本地 MD > 空字符串
+const rawHeroImage = (kvArticle?.heroImage !== undefined && kvArticle?.heroImage !== '')
+	? kvArticle.heroImage
+	: localPost?.data?.heroImage;
+const finalHeroImage = resolveImageUrl(rawHeroImage);
+
+// 3. 正文 HTML：KV 渲染 HTML > 本地 MD
+const kvHtmlContent = kvArticle?.content ? renderMarkdownToHtml(kvArticle.content) : null;
+
+// 组装传给 <BlogPost> Layout 的最终属性
 const finalPostData = {
-	...(post ? post.data : {}),
-	title: updatedTitle || post?.data?.title || cleanSlug,
-	heroImage: finalHeroImage
+	...(localPost ? localPost.data : {}),
+	title: finalTitle,
+	heroImage: finalHeroImage,
+	pubDate: localPost?.data?.pubDate || new Date()
 };
 ---
 
 <BlogPost {...finalPostData}>
 	{
-		renderedKvHtml ? (
-			<div class="markdown-body" set:html={renderedKvHtml} />
-		) : ContentComponent ? (
-			<ContentComponent />
+		// 优先判断展示 KV 里的正文 HTML
+		kvHtmlContent ? (
+			<div class="markdown-body" set:html={kvHtmlContent} />
+		) : LocalContentComponent ? (
+			/* KV 没正文时，展示本地 Markdown 编译出的组件 */
+			<LocalContentComponent />
 		) : (
-			<div style="padding: 3rem 0; text-align: center; color: #94a3b8;">
-				<h3>⚠️ 暂无文章正文内容</h3>
-				<p>无法在本地 Markdown 或 Cloudflare KV 中检索到此文章的正文。</p>
+			/* KV 和本地都找不到该文章时的友好提示 */
+			<div style="padding: 4rem 1rem; text-align: center; color: #94a3b8;">
+				<h2>⚠️ 文章未找到 / 暂无内容</h2>
+				<p>无法在后台 KV 数据库或本地 <code>src/content/blog/{currentLang}/</code> 路径下找到此文章。</p>
+				<p>请求语言: <code>{currentLang}</code> | 文章 Slug: <code>{cleanSlug}</code></p>
+				<a href="/blog/" style="color: #60a5fa; text-decoration: underline;">返回博客列表</a>
 			</div>
 		)
 	}
