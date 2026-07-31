@@ -6,14 +6,14 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-// ⚡ 1. 强制开启动态 SSR 模式，确保实时拉取 Cloudflare KV 中的数据
+// ⚡ 1. 强制开启动态 SSR 模式，实时查询 Cloudflare KV
 export const prerender = false;
 
-// ⚡ 2. 确定当前语言环境（优先读取 URL 参数，未定义时默认 'en'）
+// ⚡ 2. 动态读取当前语言环境 (默认英文 'en')
 const { lang } = Astro.params;
 const currentLang = lang || 'en';
 
-// ⚡ 3. 读取 Content Collection 并精准过滤对应语言的文章
+// ⚡ 3. 抓取文章并按语言精准筛选
 const allPosts = await getCollection('blog');
 const filteredPosts = allPosts
 	.filter((post) => {
@@ -23,7 +23,7 @@ const filteredPosts = allPosts
 	})
 	.sort((a, b) => (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0));
 
-// ⚡ 4. 从 Cloudflare KV 动态拉取数据，并建立多维全格式 Key 映射表
+// ⚡ 4. 建立万能 Key 匹配 Map（全面兼容带有/不带有语言前缀、.md后缀的各种 KV 保存格式）
 let kvMap = new Map<string, any>();
 try {
 	const locals = Astro.locals as any;
@@ -35,58 +35,54 @@ try {
 			const list = JSON.parse(raw);
 			list.forEach((item: any) => {
 				if (item.id) {
-					kvMap.set(item.id, item); // 1. 存全量 ID (如 zh/fire.md 或 en/fire.md)
-					const pureSlug = item.id.replace(new RegExp(`^${currentLang}/`), '').replace(/\.(md|mdx)$/, '');
-					kvMap.set(pureSlug, item); // 2. 存纯 slug
+					kvMap.set(item.id, item); // 规则 1: 存原始全名 (如 zh/fire.md 或 en/fire.md)
+					const pureName = item.id.replace(/^(en|zh|es|de|ja|ko)\//, '').replace(/\.(md|mdx)$/, '');
+					kvMap.set(pureName, item); // 规则 2: 存纯名称 (如 fire)
 				}
 				if (item.slug) {
-					kvMap.set(item.slug, item); // 3. 存 slug 字段
+					kvMap.set(item.slug, item); // 规则 3: 存 slug 字段
 				}
 			});
 		}
 	}
 } catch (e) {
-	console.warn('列表页 SSR 读取 KV 失败，回退使用本地 MD:', e);
+	console.warn('列表页 SSR 读取 Cloudflare KV 失败，降级回退本地 MD:', e);
 }
 
-// ⚡ 5. 组装数据，深度修复图片解析与 URL 路径
+// ⚡ 5. 组合展示数据，修正图片解析与标准 URL 生成
 const posts = filteredPosts.map((post) => {
-	// 提取不带语言和后缀的纯 slug (例如 "en/first-post.md" -> "first-post")
+	// 提取纯粹的文章 slug，剥离路径中的语言前缀和文件后缀
 	const cleanSlug = post.id
-		.replace(new RegExp(`^${currentLang}/`), '')
+		.replace(/^(en|zh|es|de|ja|ko)\//, '')
 		.replace(/\.(md|mdx)$/, '')
 		.replace(/\/index$/, '');
 
-	// 全格式模糊匹配 KV 中的数据覆盖层
+	// 万能匹配：多维度尝试获取 KV 覆盖数据
 	const kvData = kvMap.get(post.id) || 
 	               kvMap.get(`${currentLang}/${cleanSlug}.md`) || 
+	               kvMap.get(`${currentLang}/${cleanSlug}`) || 
 	               kvMap.get(cleanSlug) || {};
 
-	// 优先取 KV 的 heroImage，没有则取本地 MD 的 heroImage
-	let rawHeroImage = (kvData.heroImage !== undefined && kvData.heroImage !== '') 
-		? kvData.heroImage 
-		: post.data.heroImage;
+	// 1️⃣ 优先取 KV 中保存的 heroImage
+	let finalHeroImage = kvData.heroImage !== undefined && kvData.heroImage !== '' ? kvData.heroImage : null;
 
-	// 解析图片路径（兼容对象、相对路径、网络 URL 和 Base64）
-	let imgUrl = '';
-	if (rawHeroImage) {
-		if (typeof rawHeroImage === 'string') {
-			imgUrl = rawHeroImage;
-		} else if (typeof rawHeroImage === 'object') {
-			imgUrl = (rawHeroImage as any).src || '';
+	// 2️⃣ 若 KV 无数据，降级解析本地 Markdown 的 heroImage (兼容 src/assets 静态图片导入对象与字符串路径)
+	if (!finalHeroImage && post.data.heroImage) {
+		if (typeof post.data.heroImage === 'object' && (post.data.heroImage as any).src) {
+			finalHeroImage = (post.data.heroImage as any).src;
+		} else if (typeof post.data.heroImage === 'string') {
+			finalHeroImage = post.data.heroImage;
 		}
 	}
 
-	// 统一生成路由链接路径
-	const postUrl = currentLang === 'en' 
-		? `/blog/${cleanSlug}/` 
-		: `/blog/${currentLang}/${cleanSlug}/`;
+	// ⚡ 核心修复 1：英文与多语言统一输出标准 URL 规范 `/blog/${currentLang}/${cleanSlug}/`
+	const postUrl = `/blog/${currentLang}/${cleanSlug}/`;
 
 	return {
 		id: post.id,
 		slug: cleanSlug,
 		title: kvData.title || post.data.title || cleanSlug,
-		heroImage: imgUrl,
+		heroImage: finalHeroImage || '',
 		pubDate: post.data.pubDate,
 		url: postUrl
 	};
@@ -188,7 +184,7 @@ const posts = filteredPosts.map((post) => {
 						posts.map((post) => (
 							<li>
 								<a href={post.url}>
-									{/* ⚡ 核心渲染：标准 <img> 完美展示 KV Base64 图片与本地解析出的图片路径 */}
+									{/* ⚡ 使用标准 <img> 标签，原生兼容网络 URL、Base64 以及静态构建提取出的 src 路径 */}
 									{post.heroImage ? (
 										<img src={post.heroImage} alt={post.title} loading="lazy" />
 									) : (
