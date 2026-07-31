@@ -1,10 +1,10 @@
 ---
 // src/pages/blog/[lang]/[...slug].astro
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-// ⚡ 1. 修正路径：4 级深度目录需要 4 个 ../ 才能回到 src/layouts/
-import BlogPost from '../../../../layouts/BlogPost.astro';
+// ⚡ 1. 修正路径层级：从 src/pages/blog/[lang]/ 推 3 层即可到达 src/layouts/
+import BlogPost from '../../../layouts/BlogPost.astro';
 
-// ⚡ 2. 开启 SSR 动态渲染（开启后自动不需要 getStaticPaths）
+// ⚡ 2. 开启 SSR 动态渲染
 export const prerender = false;
 
 type Props = CollectionEntry<'blog'>;
@@ -99,7 +99,7 @@ if (!kvArticle || !kvArticle.content || kvArticle.content.trim() === '') {
 }
 
 // ==========================================
-// 3️⃣ 数据整合
+// 3️⃣ 数据整合 (KV 覆盖优先)
 // ==========================================
 const finalTitle = kvArticle?.title || localPost?.data?.title || cleanSlug;
 const rawHeroImage = (kvArticle?.heroImage !== undefined && kvArticle?.heroImage !== '')
