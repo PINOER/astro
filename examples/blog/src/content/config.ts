@@ -9,8 +9,8 @@ const blog = defineCollection({
 			description: z.string().optional(),
 			pubDate: z.coerce.date().optional(),
 			updatedDate: z.coerce.date().optional(),
-			// ⚡ 核心修改：允许填写图片 URL 或 Base64 字符串 (兼容本地相对路径与网络/动态图片)
-			heroImage: z.string().optional(),
+			// ⚡ 完美兼容：既支持 Astro 原生相对路径图片 image()，也支持网络 URL / Base64 字符串
+			heroImage: z.union([image(), z.string()]).optional(),
 			lang: z.enum(['en', 'es', 'de', 'ja', 'zh', 'ko']).default('en'),
 			tag: z.string().optional(),
 			pinned: z.boolean().optional(),
