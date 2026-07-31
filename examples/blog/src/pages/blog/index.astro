@@ -1,11 +1,11 @@
 ---
 // src/pages/[lang]/blog/index.astro
 import { getCollection } from 'astro:content';
-import BaseHead from '../../../components/BaseHead.astro';
-import Footer from '../../../components/Footer.astro';
-import FormattedDate from '../../../components/FormattedDate.astro';
-import Header from '../../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../../consts';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
 // ⚡ 1. 开启 SSR 动态渲染，确保前台访问时实时拉取 Cloudflare KV 中的 heroImage
 export const prerender = false;
