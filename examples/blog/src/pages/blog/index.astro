@@ -1,0 +1,189 @@
+---
+// src/pages/[lang]/blog/index.astro
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import FormattedDate from '../../../components/FormattedDate.astro';
+import Header from '../../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../../consts';
+
+// ⚡ 1. 开启 SSR 动态渲染，确保前台访问时实时拉取 Cloudflare KV 中的 heroImage
+export const prerender = false;
+
+// ⚡ 2. 从动态 URL 中提取当前语言（例如 /zh/blog/ -> lang = "zh"）
+const { lang } = Astro.params;
+const currentLang = lang || 'zh';
+
+// ⚡ 3. 筛选对应语言的 Content Collection 文章
+const allPosts = await getCollection('blog');
+const filteredPosts = allPosts
+	.filter((post) => {
+		const isLangMatch = (post.data as any)?.lang === currentLang;
+		const isPathMatch = post.id.startsWith(`${currentLang}/`);
+		return isLangMatch || isPathMatch;
+	})
+	.sort((a, b) => (b.data.pubDate?.valueOf() || 0) - (a.data.pubDate?.valueOf() || 0));
+
+// ⚡ 4. 从 Cloudflare KV 读取最新保存的覆盖配置 (含 heroImage)
+let kvMap = new Map<string, any>();
+try {
+	const locals = Astro.locals as any;
+	const kv = locals?.runtime?.env?.ADMIN_KV || (globalThis as any)?.ADMIN_KV;
+
+	if (kv) {
+		const raw = await kv.get(`articles_v1_${currentLang}`);
+		if (raw) {
+			const list = JSON.parse(raw);
+			list.forEach((item: any) => {
+				if (item.id) kvMap.set(item.id, item);
+				if (item.slug) kvMap.set(item.slug, item);
+			});
+		}
+	}
+} catch (e) {
+	console.warn('列表页 SSR 读取 KV 失败，降级回退本地 MD:', e);
+}
+
+// ⚡ 5. 组合展示数据并强效解析 heroImage 为字符串 URL
+const posts = filteredPosts.map((post) => {
+	const cleanSlug = post.id
+		.replace(new RegExp(`^${currentLang}/`), '')
+		.replace(/\.(md|mdx)$/, '')
+		.replace(/\/index$/, '');
+
+	const kvData = kvMap.get(post.id) || kvMap.get(cleanSlug) || {};
+
+	// 优先提取 KV 保存的封面，次之提取本地 MD 的封面
+	let rawHeroImage = (kvData.heroImage !== undefined && kvData.heroImage !== '') 
+		? kvData.heroImage 
+		: post.data.heroImage;
+
+	// 核心修复：把 Astro ImageMetadata 对象转为字符串 src 路径
+	let imgUrl = '';
+	if (rawHeroImage) {
+		if (typeof rawHeroImage === 'string') {
+			imgUrl = rawHeroImage;
+		} else if (typeof rawHeroImage === 'object' && rawHeroImage.src) {
+			imgUrl = rawHeroImage.src;
+		}
+	}
+
+	return {
+		id: post.id,
+		slug: cleanSlug,
+		title: kvData.title || post.data.title || cleanSlug,
+		heroImage: imgUrl,
+		pubDate: post.data.pubDate,
+		url: `/blog/${currentLang}/${cleanSlug}/`
+	};
+});
+---
+
+<!doctype html>
+<html lang={currentLang}>
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			main {
+				width: 960px;
+				margin: 0 auto;
+				padding: 2rem 1rem;
+			}
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 2rem;
+				list-style-type: none;
+				margin: 0;
+				padding: 0;
+			}
+			ul li {
+				width: calc(50% - 1rem);
+			}
+			ul li * {
+				text-decoration: none;
+				transition: 0.2s ease;
+			}
+			ul li:first-child {
+				width: 100%;
+				margin-bottom: 1rem;
+				text-align: center;
+			}
+			ul li img {
+				margin-bottom: 0.5rem;
+				border-radius: 12px;
+				width: 100%;
+				height: 240px;
+				object-fit: cover;
+				background: #1f2937;
+			}
+			ul li:first-child img {
+				height: 380px;
+			}
+			ul li a {
+				display: block;
+			}
+			.title {
+				margin: 0.5rem 0 0 0;
+				color: rgb(var(--black));
+				line-height: 1.2;
+				font-size: 1.25rem;
+			}
+			.date {
+				margin: 0.4rem 0 0 0;
+				color: rgb(var(--gray));
+				font-size: 0.88rem;
+			}
+			ul li a:hover h4,
+			ul li a:hover .date {
+				color: rgb(var(--accent));
+			}
+			ul a:hover img {
+				box-shadow: var(--box-shadow);
+			}
+			@media (max-width: 720px) {
+				ul {
+					gap: 1rem;
+				}
+				ul li {
+					width: 100%;
+					text-align: center;
+				}
+				ul li img,
+				ul li:first-child img {
+					height: 200px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section>
+				<ul>
+					{
+						posts.map((post) => (
+							<li>
+								<a href={post.url}>
+									{/* ⚡ 无论本地还是网络/Base64 图片，统一使用标准 <img> 渲染 */}
+									{post.heroImage ? (
+										<img src={post.heroImage} alt={post.title} loading="lazy" />
+									) : (
+										<div style="width:100%; height:200px; background:#1e293b; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#64748b;">
+											🖼️ 暂无封面图
+										</div>
+									)}
+									<h4 class="title">{post.title}</h4>
+									<p class="date">
+										{post.pubDate && <FormattedDate date={post.pubDate} />}
+									</p>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
