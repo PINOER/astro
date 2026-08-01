@@ -16,12 +16,48 @@ export const frontmatter = {
 
 const pageTitle = `图片在线去水印工具 — ${SITE_TITLE}`;
 const pageDescription = "免费、100% 本地运行的纯前端图片去水印工具，支持涂抹擦除文字、Logo 及仿制图章修复。";
+
+// ⚡ 针对去水印工具定制的 SEO FAQ 问答库
+const faqList = [
+	{
+		question: "在线去水印会把我的图片上传到远程服务器吗？",
+		answer: "绝对不会。本工具基于 HTML5 Canvas 纯前端技术开发，所有的涂抹、像素分析与图像修复均 100% 在您的浏览器本地完成。您的图片和私密数据永远不会离开您的设备。"
+	},
+	{
+		question: "什么样的图片去水印效果最好？",
+		answer: "对于纯色背景、单色渐变或背景纹理规则的图片（例如表格截图、公文印章、角落账号 ID、日期标记等），智能填充模式可以做到近乎完美的无痕擦除；对于带有特定纹理的背景，建议使用“仿制图章”模式按住 Alt 键取样后覆盖。"
+	},
+	{
+		question: "为什么有些复杂背景图片去水印后会出现模糊或光斑？",
+		answer: "纯前端算法主要通过分析选区外围的像素进行边缘均值平滑与重组。当背景过于复杂（如人脸、复杂的风景线条）时，传统算法无法生成不存在的细节。建议分批次、小范围涂抹，或配合仿制图章模式多次精细修复。"
+	},
+	{
+		question: "使用本去水印工具是否限制图片大小或收取费用？",
+		answer: "完全免费，且没有任何图片数量或导出次数限制。您无需注册或登录账号，打开网页即可无限次使用。"
+	}
+];
+
+// ⚡ 生成给 Google 爬虫阅读的 Schema.org 结构化数据代码
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
+		<!-- 注入 Schema 结构化数据，提升 Google 富文本展台展示几率 -->
+		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 		<style>
 			main {
 				width: 900px;
@@ -178,6 +214,45 @@ const pageDescription = "免费、100% 本地运行的纯前端图片去水印�
 				margin-top: 1em;
 				line-height: 1.5;
 			}
+
+			/* ⚡ 定制 FAQ 样式块 */
+			.faq-section {
+				margin-top: 3.5em;
+				padding-top: 2em;
+				border-top: 1px solid var(--card-border);
+			}
+			.faq-title {
+				font-size: 1.4rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1em;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			.faq-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+				gap: 1.2rem;
+			}
+			.faq-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2em;
+			}
+			.faq-card h3 {
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin: 0 0 0.5rem 0;
+			}
+			.faq-card p {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.6;
+			}
 		</style>
 	</head>
 	<body>
@@ -242,6 +317,19 @@ const pageDescription = "免费、100% 本地运行的纯前端图片去水印�
 					• <strong>仿制图章模式：</strong> 适合有纹理的背景，按住 <code>Alt</code> 键并点击一块干净背景作为源点，再涂抹水印区域进行纹理复制。
 				</div>
 			</div>
+
+			<!-- ⚡ 页面底部定制 FAQ 区域 -->
+			<section class="faq-section">
+				<div class="faq-title">❓ 常见问题解答 (FAQ)</div>
+				<div class="faq-grid">
+					{faqList.map(item => (
+						<div class="faq-card">
+							<h3>{item.question}</h3>
+							<p>{item.answer}</p>
+						</div>
+					))}
+				</div>
+			</section>
 		</main>
 		<Footer />
 
