@@ -5,48 +5,50 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-	title: "图片在线去水印工具",
-	description: "免费、100% 本地运行的纯前端图片去水印工具，支持涂抹擦除文字、Logo 及仿制图章修复。",
-	icon: "🧹",
-	tag: "媒体工具",
-	keywords: "图片去水印 消除笔 仿制图章 去 Logo 图片修图 纯前端去水印",
+	title: '图片本地修复与去水印工具',
+	description: '100% 本地运行的图片修复工具，支持智能修复、仿制图章、触摸涂抹、撤销重做和 PNG/JPEG 导出。',
+	icon: '🧹',
+	tag: '媒体工具',
+	keywords: '图片去水印 图片修复 消除笔 仿制图章 去Logo 本地图片编辑 Canvas',
 	pinned: false,
 	priority: 88
 };
 
-const pageTitle = `图片在线去水印工具 — ${SITE_TITLE}`;
-const pageDescription = "免费、100% 本地运行的纯前端图片去水印工具，支持涂抹擦除文字、Logo 及仿制图章修复。";
+const pageTitle = `图片本地修复与去水印工具 — ${SITE_TITLE}`;
+const pageDescription = '图片无需上传服务器，直接在浏览器中使用智能修复或仿制图章移除有权编辑图片中的文字、Logo和日期标记。';
 
-// ⚡ 针对去水印工具定制的 SEO FAQ 问答库
 const faqList = [
 	{
-		question: "在线去水印会把我的图片上传到远程服务器吗？",
-		answer: "绝对不会。本工具基于 HTML5 Canvas 纯前端技术开发，所有的涂抹、像素分析与图像修复均 100% 在您的浏览器本地完成。您的图片和私密数据永远不会离开您的设备。"
+		question: '处理图片时会上传到服务器吗？',
+		answer: '不会。图片读取、涂抹、修复和导出均在当前浏览器中完成。除非网站另外接入了第三方上传或分析代码，否则本工具本身不会把图片发送到服务器。'
 	},
 	{
-		question: "什么样的图片去水印效果最好？",
-		answer: "对于纯色背景、单色渐变或背景纹理规则的图片（例如表格截图、公文印章、角落账号 ID、日期标记等），智能填充模式可以做到近乎完美的无痕擦除；对于带有特定纹理的背景，建议使用“仿制图章”模式按住 Alt 键取样后覆盖。"
+		question: '智能修复适合什么图片？',
+		answer: '它更适合纯色、渐变、天空、墙面和纹理变化较小的背景。复杂人脸、文字密集区域或精细线条可能需要使用仿制图章多次修整。'
 	},
 	{
-		question: "为什么有些复杂背景图片去水印后会出现模糊或光斑？",
-		answer: "纯前端算法主要通过分析选区外围的像素进行边缘均值平滑与重组。当背景过于复杂（如人脸、复杂的风景线条）时，传统算法无法生成不存在的细节。建议分批次、小范围涂抹，或配合仿制图章模式多次精细修复。"
+		question: '仿制图章如何使用？',
+		answer: '切换到仿制图章后，按住 Alt 点击干净区域，或点击“设置取样点”再点图片。随后在目标区域涂抹，工具会按固定偏移复制取样区域的纹理。'
 	},
 	{
-		question: "使用本去水印工具是否限制图片大小或收取费用？",
-		answer: "完全免费，且没有任何图片数量或导出次数限制。您无需注册或登录账号，打开网页即可无限次使用。"
+		question: '为什么超大图片可能被缩小？',
+		answer: '浏览器处理超大 Canvas 会消耗大量内存。为了避免手机或低内存设备崩溃，工具会在必要时按比例缩小工作尺寸，并在状态栏明确提示。'
+	},
+	{
+		question: '可以处理任何来源的水印吗？',
+		answer: '请只处理您拥有、已获授权或法律允许编辑的图片。移除他人版权标识、署名或来源信息可能侵犯权利人的合法权益。'
 	}
 ];
 
-// ⚡ 生成给 Google 爬虫阅读的 Schema.org 结构化数据代码
 const faqSchema = {
-	"@context": "https://schema.org",
-	"@type": "FAQPage",
-	"mainEntity": faqList.map(item => ({
-		"@type": "Question",
-		"name": item.question,
-		"acceptedAnswer": {
-			"@type": "Answer",
-			"text": item.answer
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqList.map((item) => ({
+		'@type': 'Question',
+		name: item.question,
+		acceptedAnswer: {
+			'@type': 'Answer',
+			text: item.answer
 		}
 	}))
 };
@@ -56,202 +58,408 @@ const faqSchema = {
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
-		<!-- 注入 Schema 结构化数据，提升 Google 富文本展台展示几率 -->
 		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 		<style>
 			main {
-				width: 900px;
+				width: 1120px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 3em 1em 5em;
+				padding: 2.5em 1em 5em;
+				box-sizing: border-box;
 			}
+
 			.tool-header {
 				text-align: center;
-				margin-bottom: 2em;
+				margin-bottom: 1.5em;
 			}
+
 			.tool-header h1 {
-				font-size: 2.2rem;
+				font-size: clamp(1.65rem, 4vw, 2.3rem);
 				font-weight: 800;
 				margin-bottom: 0.3em;
 				background: var(--hero-title-gradient);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
+
 			.tool-header p {
 				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.8em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+				font-size: 1rem;
+				margin: 0;
 			}
 
-			/* 控制条设置 */
+			.tool-box {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 18px;
+				padding: 1.25rem;
+				box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+			}
+
 			.control-bar {
-				display: flex;
-				gap: 1rem;
-				align-items: center;
-				justify-content: space-between;
-				flex-wrap: wrap;
-				padding-bottom: 1.2em;
-				margin-bottom: 1.2em;
+				display: grid;
+				grid-template-columns: repeat(4, minmax(0, 1fr));
+				gap: 0.75rem;
+				padding-bottom: 1rem;
+				margin-bottom: 1rem;
 				border-bottom: 1px solid var(--card-border);
 			}
+
 			.control-group {
 				display: flex;
 				align-items: center;
-				gap: 0.6rem;
+				gap: 0.45rem;
+				min-width: 0;
 			}
+
 			.control-group label {
-				font-size: 0.9rem;
-				font-weight: 600;
+				font-size: 0.82rem;
+				font-weight: 700;
 				color: var(--text-main);
+				white-space: nowrap;
 			}
-			select, input[type="range"] {
-				background: var(--code-bg) !important;
+
+			.control-group select,
+			.control-group input[type='range'] {
+				min-width: 0;
+				flex: 1;
+			}
+
+			select,
+			input[type='range'] {
+				background: var(--code-bg);
 				border: 1px solid var(--card-border);
 				border-radius: 8px;
 				color: var(--text-main);
-				padding: 0.4em 0.6em;
+				padding: 0.42em 0.55em;
 				outline: none;
 			}
 
-			/* Canvas 工作台区域 */
+			.value-badge {
+				min-width: 38px;
+				text-align: center;
+				font-size: 0.78rem;
+				font-weight: 700;
+				color: var(--text-main);
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 7px;
+				padding: 0.3em 0.4em;
+			}
+
+			.workspace-layout {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 230px;
+				gap: 1rem;
+				align-items: stretch;
+			}
+
 			.stage-container {
 				position: relative;
 				width: 100%;
-				min-height: 320px;
+				min-height: 460px;
+				max-height: 70vh;
 				background: var(--code-bg);
 				border: 2px dashed var(--card-border);
-				border-radius: 12px;
+				border-radius: 14px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				overflow: hidden;
+				overflow: auto;
 				user-select: none;
+				touch-action: none;
 			}
+
 			.stage-container.has-image {
 				border-style: solid;
+				align-items: flex-start;
+				justify-content: flex-start;
 			}
+
 			.drop-prompt {
 				text-align: center;
 				cursor: pointer;
 				padding: 3em 1em;
+				width: 100%;
 			}
+
 			.drop-icon {
-				font-size: 2.5rem;
+				font-size: 3rem;
 				margin-bottom: 0.4em;
 			}
+
 			.drop-text {
 				color: var(--text-muted);
 				font-size: 0.95rem;
-			}
-			.drop-text span {
-				color: var(--accent);
-				font-weight: 600;
+				line-height: 1.7;
 			}
 
-			/* 画板堆叠层 */
+			.drop-text strong {
+				color: var(--accent);
+			}
+
 			.canvas-wrapper {
 				position: relative;
 				display: inline-block;
-				max-width: 100%;
-				max-height: 550px;
+				transform-origin: top left;
+				line-height: 0;
 			}
+
 			.canvas-wrapper canvas {
 				display: block;
-				max-width: 100%;
-				max-height: 550px;
-				object-fit: contain;
 			}
+
 			#maskCanvas {
 				position: absolute;
 				top: 0;
 				left: 0;
 				cursor: crosshair;
+				touch-action: none;
+				opacity: 0.55;
 			}
 
-			/* 底部按钮栏 */
-			.btn-group {
-				display: flex;
-				gap: 0.8rem;
-				margin-top: 1.2rem;
-				align-items: center;
-				justify-content: space-between;
-				flex-wrap: wrap;
+			#sourceMarker,
+			#brushPreview {
+				position: absolute;
+				pointer-events: none;
+				border-radius: 50%;
+				transform: translate(-50%, -50%);
+				display: none;
+				z-index: 5;
 			}
+
+			#sourceMarker {
+				width: 18px;
+				height: 18px;
+				border: 2px solid #22c55e;
+				box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 10px rgba(34, 197, 94, 0.8);
+			}
+
+			#sourceMarker::before,
+			#sourceMarker::after {
+				content: '';
+				position: absolute;
+				background: #22c55e;
+			}
+
+			#sourceMarker::before {
+				width: 26px;
+				height: 2px;
+				left: -6px;
+				top: 6px;
+			}
+
+			#sourceMarker::after {
+				width: 2px;
+				height: 26px;
+				left: 6px;
+				top: -6px;
+			}
+
+			#brushPreview {
+				border: 1.5px solid rgba(255, 255, 255, 0.95);
+				box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.75);
+			}
+
+			.side-panel {
+				display: flex;
+				flex-direction: column;
+				gap: 0.7rem;
+			}
+
+			.panel-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 0.8rem;
+			}
+
+			.panel-title {
+				font-size: 0.82rem;
+				font-weight: 800;
+				color: var(--text-main);
+				margin-bottom: 0.55rem;
+			}
+
+			.panel-actions {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.5rem;
+			}
+
 			.btn {
 				background: var(--accent);
-				color: #ffffff !important;
-				border: none;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: background 0.2s, opacity 0.2s;
-			}
-			.btn:hover { background: var(--accent-hover); }
-			.btn:disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-			.btn-secondary {
-				background: var(--gray-light);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-			}
-			.btn-secondary:hover {
-				border-color: var(--accent);
-				color: var(--accent);
-			}
-			.tip-box {
+				color: #fff;
+				border: 1px solid transparent;
+				padding: 0.62em 0.7em;
+				border-radius: 9px;
+				font-weight: 700;
 				font-size: 0.82rem;
-				color: var(--text-muted);
-				margin-top: 1em;
-				line-height: 1.5;
+				cursor: pointer;
+				transition: transform 0.15s, opacity 0.15s, border-color 0.15s;
 			}
 
-			/* ⚡ 定制 FAQ 样式块 */
+			.btn:hover:not(:disabled) {
+				transform: translateY(-1px);
+			}
+
+			.btn:disabled {
+				opacity: 0.45;
+				cursor: not-allowed;
+			}
+
+			.btn-secondary {
+				background: var(--bg-card);
+				border-color: var(--card-border);
+				color: var(--text-main);
+			}
+
+			.btn-danger {
+				background: #ef4444;
+			}
+
+			.btn-wide {
+				width: 100%;
+			}
+
+			.btn.active {
+				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+				border-color: #3b82f6;
+			}
+
+			.status-box {
+				font-size: 0.78rem;
+				line-height: 1.55;
+				color: var(--text-muted);
+				min-height: 3.1em;
+			}
+
+			.status-box.success { color: #059669; }
+			.status-box.warning { color: #d97706; }
+			.status-box.error { color: #dc2626; }
+
+			.progress-wrap {
+				display: none;
+				margin-top: 0.55rem;
+			}
+
+			.progress-track {
+				height: 7px;
+				background: rgba(148, 163, 184, 0.25);
+				border-radius: 999px;
+				overflow: hidden;
+			}
+
+			.progress-bar {
+				height: 100%;
+				width: 0;
+				background: var(--accent);
+				transition: width 0.15s;
+			}
+
+			.image-meta {
+				font-size: 0.75rem;
+				line-height: 1.55;
+				color: var(--text-muted);
+				word-break: break-word;
+			}
+
+			.export-row {
+				display: flex;
+				gap: 0.45rem;
+				margin-bottom: 0.55rem;
+			}
+
+			.export-row select,
+			.export-row input {
+				min-width: 0;
+				flex: 1;
+			}
+
+			.tip-box {
+				font-size: 0.79rem;
+				color: var(--text-muted);
+				margin-top: 1rem;
+				line-height: 1.65;
+				padding: 0.85rem 1rem;
+				background: var(--code-bg);
+				border-radius: 10px;
+			}
+
 			.faq-section {
 				margin-top: 3.5em;
 				padding-top: 2em;
 				border-top: 1px solid var(--card-border);
 			}
+
 			.faq-title {
 				font-size: 1.4rem;
 				font-weight: 700;
 				color: var(--text-main);
 				margin-bottom: 1em;
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
 			}
+
 			.faq-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-				gap: 1.2rem;
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 1rem;
 			}
+
 			.faq-card {
 				background: var(--code-bg);
 				border: 1px solid var(--card-border);
 				border-radius: 12px;
-				padding: 1.2em;
+				padding: 1.1em;
 			}
+
 			.faq-card h3 {
 				font-size: 0.95rem;
 				font-weight: 700;
 				color: var(--text-main);
-				margin: 0 0 0.5rem 0;
+				margin: 0 0 0.45rem;
 			}
+
 			.faq-card p {
-				font-size: 0.85rem;
+				font-size: 0.84rem;
 				color: var(--text-muted);
 				margin: 0;
-				line-height: 1.6;
+				line-height: 1.65;
+			}
+
+			@media (max-width: 900px) {
+				.control-bar {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+
+				.workspace-layout {
+					grid-template-columns: 1fr;
+				}
+
+				.side-panel {
+					display: grid;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+				}
+			}
+
+			@media (max-width: 600px) {
+				main {
+					max-width: 100%;
+					padding: 1.1em 0.55em 3em;
+				}
+
+				.tool-box {
+					padding: 0.7rem;
+				}
+
+				.control-bar,
+				.side-panel {
+					grid-template-columns: 1fr;
+				}
+
+				.stage-container {
+					min-height: 330px;
+					max-height: 58vh;
+				}
 			}
 		</style>
 	</head>
@@ -259,70 +467,115 @@ const faqSchema = {
 		<Header />
 		<main>
 			<div class="tool-header">
-				<h1>🧹 图片在线去水印工具</h1>
-				<p>100% 纯浏览器本地处理，快速涂抹擦除图片上的多余文字、Logo 或日期标记</p>
+				<h1>🧹 图片本地修复与去水印工具</h1>
+				<p>图片不上传服务器；支持鼠标、触摸屏和手写笔操作</p>
 			</div>
 
 			<div class="tool-box">
-				<!-- 参数控制栏 -->
-				<div class="control-bar" id="controlBar" style="display: none;">
+				<div class="control-bar" id="controlBar" hidden>
 					<div class="control-group">
-						<label for="modeSelect">修复模式：</label>
+						<label for="modeSelect">修复模式</label>
 						<select id="modeSelect">
-							<option value="smooth" selected>智能填充 (边缘平滑融合)</option>
-							<option value="stamp">仿制图章 (取样纹理覆盖)</option>
+							<option value="heal">智能修复</option>
+							<option value="stamp">仿制图章</option>
 						</select>
 					</div>
 
 					<div class="control-group">
-						<label for="brushSize">画笔大小：</label>
-						<input type="range" id="brushSize" min="5" max="100" value="25" />
-						<span id="brushSizeVal" style="font-size:0.85rem; color:var(--text-muted); width:25px;">25</span>
+						<label for="brushSize">画笔</label>
+						<input type="range" id="brushSize" min="6" max="160" value="32" />
+						<span class="value-badge" id="brushSizeVal">32</span>
 					</div>
 
-					<div class="control-group" id="stampInfo" style="display: none; font-size: 0.82rem; color: var(--accent);">
-						💡 按住 Alt 键并点击图片可设置复制取样点。
+					<div class="control-group">
+						<label for="zoomRange">缩放</label>
+						<input type="range" id="zoomRange" min="25" max="200" step="5" value="100" />
+						<span class="value-badge" id="zoomVal">100%</span>
+					</div>
+
+					<div class="control-group">
+						<button type="button" class="btn btn-secondary btn-wide" id="btnCompare">按住查看原图</button>
 					</div>
 				</div>
 
-				<!-- 画板主体 -->
-				<div class="stage-container" id="stageContainer">
-					<div class="drop-prompt" id="dropPrompt">
-						<div class="drop-icon">📁</div>
-						<div class="drop-text">将图片拖拽至此处，或 <span>点击选择文件</span></div>
-						<input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;" />
+				<div class="workspace-layout">
+					<div class="stage-container" id="stageContainer">
+						<div class="drop-prompt" id="dropPrompt">
+							<div class="drop-icon">📁</div>
+							<div class="drop-text">
+								将图片拖到这里，或 <strong>点击选择文件</strong><br />
+								也可以直接粘贴剪贴板中的图片
+							</div>
+							<input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" hidden />
+						</div>
+
+						<div class="canvas-wrapper" id="canvasWrapper" hidden>
+							<canvas id="imageCanvas"></canvas>
+							<canvas id="maskCanvas"></canvas>
+							<div id="sourceMarker" aria-hidden="true"></div>
+							<div id="brushPreview" aria-hidden="true"></div>
+						</div>
 					</div>
 
-					<div class="canvas-wrapper" id="canvasWrapper" style="display: none;">
-						<canvas id="imageCanvas"></canvas>
-						<canvas id="maskCanvas"></canvas>
-					</div>
-				</div>
+					<aside class="side-panel" id="sidePanel" hidden>
+						<div class="panel-card">
+							<div class="panel-title">编辑操作</div>
+							<div class="panel-actions">
+								<button type="button" class="btn btn-secondary" id="btnUndo">↩ 撤销</button>
+								<button type="button" class="btn btn-secondary" id="btnRedo">↪ 重做</button>
+								<button type="button" class="btn btn-secondary" id="btnReset">还原原图</button>
+								<button type="button" class="btn btn-secondary" id="btnNew">重新传图</button>
+							</div>
+						</div>
 
-				<!-- 底部操作按钮 -->
-				<div class="btn-group" id="actionGroup" style="display: none;">
-					<div style="display: flex; gap: 0.6rem;">
-						<button class="btn btn-secondary" id="btnUndo">撤销涂抹</button>
-						<button class="btn btn-secondary" id="btnReset">还原原图</button>
-					</div>
-					<div style="display: flex; gap: 0.6rem;">
-						<button class="btn btn-secondary" id="btnNew">重新传图</button>
-						<button class="btn" id="btnDownload">下载处理后的图片</button>
-					</div>
+						<div class="panel-card" id="stampPanel" hidden>
+							<div class="panel-title">仿制图章</div>
+							<button type="button" class="btn btn-secondary btn-wide" id="btnSample">设置取样点</button>
+							<div class="status-box" style="margin-top:0.5rem;">
+								电脑端也可按住 Alt 点击图片取样；手机端使用上方按钮。
+							</div>
+						</div>
+
+						<div class="panel-card">
+							<div class="panel-title">图片信息</div>
+							<div class="image-meta" id="imageMeta">尚未载入图片</div>
+						</div>
+
+						<div class="panel-card">
+							<div class="panel-title">导出图片</div>
+							<div class="export-row">
+								<select id="exportFormat" aria-label="导出格式">
+									<option value="png">PNG</option>
+									<option value="jpeg">JPEG</option>
+								</select>
+								<select id="jpegQuality" aria-label="JPEG质量" disabled>
+									<option value="0.92">高质量</option>
+									<option value="0.82">标准</option>
+									<option value="0.7">较小文件</option>
+								</select>
+							</div>
+							<button type="button" class="btn btn-wide" id="btnDownload">下载处理后的图片</button>
+						</div>
+
+						<div class="panel-card">
+							<div class="panel-title">运行状态</div>
+							<div class="status-box" id="statusBox" aria-live="polite">请选择一张图片。</div>
+							<div class="progress-wrap" id="progressWrap">
+								<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+							</div>
+						</div>
+					</aside>
 				</div>
 
 				<div class="tip-box">
-					📌 <strong>使用小技巧：</strong><br/>
-					• <strong>智能填充模式：</strong> 适合纯色或渐变背景上的水印（如角落文字、公文印章、日期等），直接涂抹即可。<br/>
-					• <strong>仿制图章模式：</strong> 适合有纹理的背景，按住 <code>Alt</code> 键并点击一块干净背景作为源点，再涂抹水印区域进行纹理复制。
+					<strong>使用建议：</strong>智能修复适合纯色、渐变和简单纹理；复杂背景请使用仿制图章。画笔尽量只覆盖需要修复的区域，并采用多次小范围处理。请仅编辑您拥有或获授权处理的图片。
 				</div>
 			</div>
 
-			<!-- ⚡ 页面底部定制 FAQ 区域 -->
 			<section class="faq-section">
-				<div class="faq-title">❓ 常见问题解答 (FAQ)</div>
+				<div class="faq-title">❓ 常见问题</div>
 				<div class="faq-grid">
-					{faqList.map(item => (
+					{faqList.map((item) => (
 						<div class="faq-card">
 							<h3>{item.question}</h3>
 							<p>{item.answer}</p>
@@ -333,247 +586,793 @@ const faqSchema = {
 		</main>
 		<Footer />
 
-		<script>
-			const dropPrompt = document.getElementById('dropPrompt');
-			const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-			const stageContainer = document.getElementById('stageContainer');
-			const canvasWrapper = document.getElementById('canvasWrapper');
-			const controlBar = document.getElementById('controlBar');
-			const actionGroup = document.getElementById('actionGroup');
+		<script is:inline>
+			(function () {
+				'use strict';
 
-			const imageCanvas = document.getElementById('imageCanvas') as HTMLCanvasElement;
-			const maskCanvas = document.getElementById('maskCanvas') as HTMLCanvasElement;
-			const imgCtx = imageCanvas.getContext('2d')!;
-			const maskCtx = maskCanvas.getContext('2d')!;
+				const MAX_FILE_BYTES = 40 * 1024 * 1024;
+				const MAX_DIMENSION = 4096;
+				const MAX_PIXELS = 4000000;
+				const DEFAULT_HISTORY_LIMIT = 10;
 
-			const modeSelect = document.getElementById('modeSelect') as HTMLSelectElement;
-			const brushSize = document.getElementById('brushSize') as HTMLInputElement;
-			const brushSizeVal = document.getElementById('brushSizeVal');
-			const stampInfo = document.getElementById('stampInfo');
+				const dropPrompt = document.getElementById('dropPrompt');
+				const fileInput = document.getElementById('fileInput');
+				const stageContainer = document.getElementById('stageContainer');
+				const canvasWrapper = document.getElementById('canvasWrapper');
+				const controlBar = document.getElementById('controlBar');
+				const sidePanel = document.getElementById('sidePanel');
+				const imageCanvas = document.getElementById('imageCanvas');
+				const maskCanvas = document.getElementById('maskCanvas');
+				const imageCtx = imageCanvas.getContext('2d', { willReadFrequently: true });
+				const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
+				const originalCanvas = document.createElement('canvas');
+				const originalCtx = originalCanvas.getContext('2d');
+				const strokeSnapshot = document.createElement('canvas');
+				const strokeSnapshotCtx = strokeSnapshot.getContext('2d');
 
-			const btnUndo = document.getElementById('btnUndo') as HTMLButtonElement;
-			const btnReset = document.getElementById('btnReset') as HTMLButtonElement;
-			const btnNew = document.getElementById('btnNew') as HTMLButtonElement;
-			const btnDownload = document.getElementById('btnDownload') as HTMLButtonElement;
+				const modeSelect = document.getElementById('modeSelect');
+				const brushSize = document.getElementById('brushSize');
+				const brushSizeVal = document.getElementById('brushSizeVal');
+				const zoomRange = document.getElementById('zoomRange');
+				const zoomVal = document.getElementById('zoomVal');
+				const sourceMarker = document.getElementById('sourceMarker');
+				const brushPreview = document.getElementById('brushPreview');
+				const stampPanel = document.getElementById('stampPanel');
+				const btnSample = document.getElementById('btnSample');
+				const btnCompare = document.getElementById('btnCompare');
+				const btnUndo = document.getElementById('btnUndo');
+				const btnRedo = document.getElementById('btnRedo');
+				const btnReset = document.getElementById('btnReset');
+				const btnNew = document.getElementById('btnNew');
+				const btnDownload = document.getElementById('btnDownload');
+				const exportFormat = document.getElementById('exportFormat');
+				const jpegQuality = document.getElementById('jpegQuality');
+				const imageMeta = document.getElementById('imageMeta');
+				const statusBox = document.getElementById('statusBox');
+				const progressWrap = document.getElementById('progressWrap');
+				const progressBar = document.getElementById('progressBar');
 
-			let loadedImg: HTMLImageElement | null = null;
-			let historyStack: ImageData[] = [];
-			let isDrawing = false;
-			let stampSource: { x: number; y: number } | null = null;
+				let currentFileName = 'edited-image';
+				let loaded = false;
+				let busy = false;
+				let drawing = false;
+				let activePointerId = null;
+				let lastPoint = null;
+				let stampSource = null;
+				let cloneOffset = null;
+				let sampleArmed = false;
+				let history = [];
+				let redoHistory = [];
+				let historyLimit = DEFAULT_HISTORY_LIMIT;
 
-			// 切换模式提示
-			modeSelect?.addEventListener('change', () => {
-				if (stampInfo) {
-					stampInfo.style.display = modeSelect.value === 'stamp' ? 'inline-block' : 'none';
+				function setStatus(message, type) {
+					statusBox.textContent = message;
+					statusBox.className = 'status-box' + (type ? ' ' + type : '');
 				}
-			});
 
-			brushSize?.addEventListener('input', () => {
-				if (brushSizeVal) brushSizeVal.textContent = brushSize.value;
-			});
-
-			// 上传与加载图片
-			dropPrompt?.addEventListener('click', () => fileInput?.click());
-			stageContainer?.addEventListener('dragover', (e) => e.preventDefault());
-			stageContainer?.addEventListener('drop', (e) => {
-				e.preventDefault();
-				if (e.dataTransfer?.files.length) loadImage(e.dataTransfer.files[0]);
-			});
-			fileInput?.addEventListener('change', () => {
-				if (fileInput.files?.length) loadImage(fileInput.files[0]);
-			});
-
-			function loadImage(file: File) {
-				if (!file.type.startsWith('image/')) return;
-				const reader = new FileReader();
-				reader.onload = (e) => {
-					const img = new Image();
-					img.onload = () => {
-						loadedImg = img;
-						initCanvas(img);
-					};
-					img.src = e.target?.result as string;
-				};
-				reader.readAsDataURL(file);
-			}
-
-			function initCanvas(img: HTMLImageElement) {
-				imageCanvas.width = img.width;
-				imageCanvas.height = img.height;
-				maskCanvas.width = img.width;
-				maskCanvas.height = img.height;
-
-				imgCtx.drawImage(img, 0, 0);
-				saveState();
-
-				if (dropPrompt && canvasWrapper && controlBar && actionGroup && stageContainer) {
-					dropPrompt.style.display = 'none';
-					canvasWrapper.style.display = 'block';
-					controlBar.style.display = 'flex';
-					actionGroup.style.display = 'flex';
-					stageContainer.classList.add('has-image');
-				}
-			}
-
-			function saveState() {
-				historyStack.push(imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height));
-				if (btnUndo) btnUndo.disabled = historyStack.length <= 1;
-			}
-
-			// 画笔涂抹交互
-			maskCanvas?.addEventListener('mousedown', (e) => {
-				const pos = getCanvasPos(e);
-				if (e.altKey && modeSelect.value === 'stamp') {
-					stampSource = pos;
-					alert(`取样点已设置在坐标 (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
-					return;
-				}
-				isDrawing = true;
-				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-				drawStroke(e);
-			});
-
-			maskCanvas?.addEventListener('mousemove', (e) => {
-				if (!isDrawing) return;
-				drawStroke(e);
-			});
-
-			window.addEventListener('mouseup', () => {
-				if (!isDrawing) return;
-				isDrawing = false;
-				applyRemover();
-				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-				saveState();
-			});
-
-			function getCanvasPos(e: MouseEvent) {
-				const rect = maskCanvas.getBoundingClientRect();
-				const scaleX = maskCanvas.width / rect.width;
-				const scaleY = maskCanvas.height / rect.height;
-				return {
-					x: (e.clientX - rect.left) * scaleX,
-					y: (e.clientY - rect.top) * scaleY
-				};
-			}
-
-			function drawStroke(e: MouseEvent) {
-				const pos = getCanvasPos(e);
-				const radius = parseInt(brushSize.value) / 2;
-
-				maskCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
-				maskCtx.beginPath();
-				maskCtx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-				maskCtx.fill();
-			}
-
-			// 核心去水印算法逻辑
-			function applyRemover() {
-				const mode = modeSelect.value;
-				const size = parseInt(brushSize.value);
-
-				if (mode === 'stamp') {
-					if (!stampSource) {
-						alert('请先按住 Alt 键并点击图片干净区域设置取样源点！');
+				function setProgress(value) {
+					if (value === null) {
+						progressWrap.style.display = 'none';
+						progressBar.style.width = '0%';
 						return;
 					}
-					// 仿制图章算法
-					const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
-					const sourceData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
-					const targetData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+					progressWrap.style.display = 'block';
+					progressBar.style.width = Math.max(0, Math.min(100, value)) + '%';
+				}
 
-					for (let i = 3; i < maskData.data.length; i += 4) {
-						if (maskData.data[i] > 0) { // 涂抹区域
-							const pixelIdx = i / 4;
-							const x = pixelIdx % maskCanvas.width;
-							const y = Math.floor(pixelIdx / maskCanvas.width);
+				function setBusy(value) {
+					busy = value;
+					[
+						modeSelect, brushSize, zoomRange, btnSample, btnCompare,
+						btnUndo, btnRedo, btnReset, btnNew, btnDownload,
+						exportFormat, jpegQuality
+					].forEach(function (element) {
+						if (element) element.disabled = value;
+					});
+					if (!value) updateButtons();
+				}
 
-							const srcX = Math.min(Math.max(0, Math.round(stampSource.x + (x - stampSource.x))), imageCanvas.width - 1);
-							const srcY = Math.min(Math.max(0, Math.round(stampSource.y + (y - stampSource.y))), imageCanvas.height - 1);
-							const srcIdx = (srcY * imageCanvas.width + srcX) * 4;
+				function updateButtons() {
+					btnUndo.disabled = busy || history.length <= 1;
+					btnRedo.disabled = busy || redoHistory.length === 0;
+					btnReset.disabled = busy || !loaded;
+					btnNew.disabled = busy || !loaded;
+					btnDownload.disabled = busy || !loaded;
+					btnCompare.disabled = busy || !loaded;
+					btnSample.disabled = busy || !loaded;
+					jpegQuality.disabled = busy || exportFormat.value !== 'jpeg';
+				}
 
-							targetData.data[i - 3] = sourceData.data[srcIdx];
-							targetData.data[i - 2] = sourceData.data[srcIdx + 1];
-							targetData.data[i - 1] = sourceData.data[srcIdx + 2];
+				function nextFrame() {
+					return new Promise(function (resolve) {
+						window.requestAnimationFrame(resolve);
+					});
+				}
+
+				function cloneImageData(data) {
+					const copy = imageCtx.createImageData(data.width, data.height);
+					copy.data.set(data.data);
+					return copy;
+				}
+
+				function captureState(clearRedo) {
+					if (!loaded) return;
+					const state = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+					history.push(state);
+					while (history.length > historyLimit) history.shift();
+					if (clearRedo !== false) redoHistory = [];
+					updateButtons();
+				}
+
+				function restoreState(state) {
+					imageCtx.putImageData(state, 0, 0);
+				}
+
+				function undo() {
+					if (busy || history.length <= 1) return;
+					const current = history.pop();
+					redoHistory.push(cloneImageData(current));
+					restoreState(history[history.length - 1]);
+					setStatus('已撤销上一次操作。', 'success');
+					updateButtons();
+				}
+
+				function redo() {
+					if (busy || redoHistory.length === 0) return;
+					const state = redoHistory.pop();
+					restoreState(state);
+					history.push(cloneImageData(state));
+					setStatus('已恢复操作。', 'success');
+					updateButtons();
+				}
+
+				function resetEditor() {
+					if (!loaded || busy) return;
+					imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+					imageCtx.drawImage(originalCanvas, 0, 0);
+					history = [];
+					redoHistory = [];
+					stampSource = null;
+					sourceMarker.style.display = 'none';
+					captureState();
+					setStatus('已还原为最初载入的图片。', 'success');
+				}
+
+				function clearEditor() {
+					loaded = false;
+					drawing = false;
+					activePointerId = null;
+					stampSource = null;
+					cloneOffset = null;
+					history = [];
+					redoHistory = [];
+					fileInput.value = '';
+					imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+					maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+					dropPrompt.hidden = false;
+					canvasWrapper.hidden = true;
+					controlBar.hidden = true;
+					sidePanel.hidden = true;
+					stageContainer.classList.remove('has-image');
+					sourceMarker.style.display = 'none';
+					brushPreview.style.display = 'none';
+					imageMeta.textContent = '尚未载入图片';
+					setStatus('请选择一张图片。');
+					setProgress(null);
+				}
+
+				function calculateWorkingSize(width, height) {
+					let scale = 1;
+					if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+						scale = Math.min(scale, MAX_DIMENSION / Math.max(width, height));
+					}
+					if (width * height * scale * scale > MAX_PIXELS) {
+						scale = Math.min(scale, Math.sqrt(MAX_PIXELS / (width * height)));
+					}
+					return {
+						width: Math.max(1, Math.round(width * scale)),
+						height: Math.max(1, Math.round(height * scale)),
+						scale: scale
+					};
+				}
+
+				async function decodeImage(file) {
+					if ('createImageBitmap' in window) {
+						try {
+							return await createImageBitmap(file, { imageOrientation: 'from-image' });
+						} catch (error) {
+							// 继续使用 Image 回退方案。
 						}
 					}
-					imgCtx.putImageData(targetData, 0, 0);
-				} else {
-					// 智能填充 / 边缘均值平滑算法
-					const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
-					const imgData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
-					const pixels = imgData.data;
 
-					for (let y = 0; y < imageCanvas.height; y++) {
-						for (let x = 0; x < imageCanvas.width; x++) {
-							const idx = (y * imageCanvas.width + x) * 4;
-							if (maskData.data[idx + 3] > 0) {
-								let r = 0, g = 0, b = 0, count = 0;
-								const radius = Math.max(2, Math.floor(size / 3));
+					return await new Promise(function (resolve, reject) {
+						const reader = new FileReader();
+						reader.onerror = function () { reject(new Error('读取图片失败。')); };
+						reader.onload = function () {
+							const image = new Image();
+							image.onload = function () { resolve(image); };
+							image.onerror = function () { reject(new Error('图片格式无法解析。')); };
+							image.src = reader.result;
+						};
+						reader.readAsDataURL(file);
+					});
+				}
 
-								for (let dy = -radius; dy <= radius; dy++) {
-									for (let dx = -radius; dx <= radius; dx++) {
-										const nx = x + dx;
-										const ny = y + dy;
-										if (nx >= 0 && nx < imageCanvas.width && ny >= 0 && ny < imageCanvas.height) {
-											const nIdx = (ny * imageCanvas.width + nx) * 4;
-											// 提取未被涂抹的周围边缘像素
-											if (maskData.data[nIdx + 3] === 0) {
-												r += pixels[nIdx];
-												g += pixels[nIdx + 1];
-												b += pixels[nIdx + 2];
-												count++;
-											}
-										}
-									}
+				async function loadFile(file) {
+					if (!file) return;
+					if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+						setStatus('仅支持 PNG、JPEG 和 WebP 图片。', 'error');
+						return;
+					}
+					if (file.size > MAX_FILE_BYTES) {
+						setStatus('图片文件超过 40 MB，请先压缩后再试。', 'error');
+						return;
+					}
+
+					setBusy(true);
+					setProgress(15);
+					setStatus('正在读取图片…');
+
+					try {
+						const image = await decodeImage(file);
+						setProgress(45);
+						const naturalWidth = image.naturalWidth || image.width;
+						const naturalHeight = image.naturalHeight || image.height;
+						const working = calculateWorkingSize(naturalWidth, naturalHeight);
+
+						imageCanvas.width = working.width;
+						imageCanvas.height = working.height;
+						maskCanvas.width = working.width;
+						maskCanvas.height = working.height;
+						originalCanvas.width = working.width;
+						originalCanvas.height = working.height;
+						strokeSnapshot.width = working.width;
+						strokeSnapshot.height = working.height;
+
+						imageCtx.clearRect(0, 0, working.width, working.height);
+						imageCtx.drawImage(image, 0, 0, working.width, working.height);
+						originalCtx.clearRect(0, 0, working.width, working.height);
+						originalCtx.drawImage(imageCanvas, 0, 0);
+						maskCtx.clearRect(0, 0, working.width, working.height);
+
+						currentFileName = (file.name || 'edited-image').replace(/\.[^.]+$/, '') || 'edited-image';
+						loaded = true;
+						const workingPixels = working.width * working.height;
+						historyLimit = workingPixels > 2500000 ? 3 : (workingPixels > 1500000 ? 5 : DEFAULT_HISTORY_LIMIT);
+						history = [];
+						redoHistory = [];
+						stampSource = null;
+						sourceMarker.style.display = 'none';
+						captureState();
+
+						dropPrompt.hidden = true;
+						canvasWrapper.hidden = false;
+						controlBar.hidden = false;
+						sidePanel.hidden = false;
+						stageContainer.classList.add('has-image');
+						applyZoom();
+
+						const resizeNote = working.scale < 0.999
+							? `；为保证浏览器稳定，已缩放到 ${working.width}×${working.height}`
+							: '';
+						imageMeta.textContent = `${file.name || '剪贴板图片'} · 原始 ${naturalWidth}×${naturalHeight} · 工作 ${working.width}×${working.height}${resizeNote}`;
+						setProgress(100);
+						setStatus(working.scale < 0.999 ? '图片已载入并按比例缩小。' : '图片已载入，可以开始涂抹。', working.scale < 0.999 ? 'warning' : 'success');
+						window.setTimeout(function () { setProgress(null); }, 350);
+
+						if (image.close) image.close();
+					} catch (error) {
+						setProgress(null);
+						setStatus(error && error.message ? error.message : '图片加载失败。', 'error');
+					} finally {
+						setBusy(false);
+					}
+				}
+
+				function getCanvasPoint(event) {
+					const rect = maskCanvas.getBoundingClientRect();
+					return {
+						x: Math.max(0, Math.min(maskCanvas.width - 1, (event.clientX - rect.left) * maskCanvas.width / rect.width)),
+						y: Math.max(0, Math.min(maskCanvas.height - 1, (event.clientY - rect.top) * maskCanvas.height / rect.height))
+					};
+				}
+
+				function updateBrushPreview(event) {
+					if (!loaded || busy) return;
+					const rect = maskCanvas.getBoundingClientRect();
+					const point = getCanvasPoint(event);
+					const displayScale = rect.width / maskCanvas.width;
+					const diameter = Number(brushSize.value) * displayScale;
+					brushPreview.style.width = diameter + 'px';
+					brushPreview.style.height = diameter + 'px';
+					brushPreview.style.left = (point.x * displayScale) + 'px';
+					brushPreview.style.top = (point.y * displayScale) + 'px';
+					brushPreview.style.display = 'block';
+				}
+
+				function updateSourceMarker() {
+					if (!stampSource || modeSelect.value !== 'stamp') {
+						sourceMarker.style.display = 'none';
+						return;
+					}
+					const rect = maskCanvas.getBoundingClientRect();
+					const scale = rect.width / maskCanvas.width;
+					sourceMarker.style.left = (stampSource.x * scale) + 'px';
+					sourceMarker.style.top = (stampSource.y * scale) + 'px';
+					sourceMarker.style.display = 'block';
+				}
+
+				function drawMaskSegment(from, to) {
+					maskCtx.save();
+					maskCtx.globalCompositeOperation = 'source-over';
+					maskCtx.strokeStyle = 'rgba(239, 68, 68, 1)';
+					maskCtx.fillStyle = 'rgba(239, 68, 68, 1)';
+					maskCtx.lineWidth = Number(brushSize.value);
+					maskCtx.lineCap = 'round';
+					maskCtx.lineJoin = 'round';
+					maskCtx.beginPath();
+					maskCtx.moveTo(from.x, from.y);
+					maskCtx.lineTo(to.x, to.y);
+					maskCtx.stroke();
+					maskCtx.beginPath();
+					maskCtx.arc(to.x, to.y, Number(brushSize.value) / 2, 0, Math.PI * 2);
+					maskCtx.fill();
+					maskCtx.restore();
+				}
+
+				function applyCloneDab(point) {
+					const radius = Number(brushSize.value) / 2;
+					imageCtx.save();
+					imageCtx.beginPath();
+					imageCtx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+					imageCtx.clip();
+					imageCtx.drawImage(strokeSnapshot, -cloneOffset.x, -cloneOffset.y);
+					imageCtx.restore();
+				}
+
+				function applyCloneSegment(from, to) {
+					const distance = Math.hypot(to.x - from.x, to.y - from.y);
+					const spacing = Math.max(1, Number(brushSize.value) * 0.18);
+					const steps = Math.max(1, Math.ceil(distance / spacing));
+					for (let index = 0; index <= steps; index++) {
+						const ratio = index / steps;
+						applyCloneDab({
+							x: from.x + (to.x - from.x) * ratio,
+							y: from.y + (to.y - from.y) * ratio
+						});
+					}
+				}
+
+				function setSamplePoint(point) {
+					stampSource = { x: point.x, y: point.y };
+					sampleArmed = false;
+					btnSample.classList.remove('active');
+					btnSample.textContent = '重新设置取样点';
+					updateSourceMarker();
+					setStatus(`取样点已设置：${Math.round(point.x)}, ${Math.round(point.y)}。现在可在目标区域涂抹。`, 'success');
+				}
+
+				async function inpaintMask() {
+					const width = imageCanvas.width;
+					const height = imageCanvas.height;
+					const maskData = maskCtx.getImageData(0, 0, width, height);
+					const imageData = imageCtx.getImageData(0, 0, width, height);
+					const originalPixels = new Uint8ClampedArray(imageData.data);
+					const output = imageData.data;
+					const total = width * height;
+					const known = new Uint8Array(total);
+					const maskAlpha = new Uint8Array(total);
+					let maskedCount = 0;
+					let minX = width;
+					let minY = height;
+					let maxX = -1;
+					let maxY = -1;
+
+					for (let index = 0; index < total; index++) {
+						const alpha = maskData.data[index * 4 + 3];
+						maskAlpha[index] = alpha;
+						if (alpha > 8) {
+							maskedCount++;
+							const x = index % width;
+							const y = Math.floor(index / width);
+							if (x < minX) minX = x;
+							if (x > maxX) maxX = x;
+							if (y < minY) minY = y;
+							if (y > maxY) maxY = y;
+						} else {
+							known[index] = 1;
+						}
+					}
+
+					if (maskedCount === 0) return false;
+					if (maskedCount > total * 0.45 || maskedCount > 600000) {
+						throw new Error('涂抹区域过大。请撤销后分成多个较小区域处理。');
+					}
+
+					const padding = Math.max(3, Math.ceil(Number(brushSize.value) / 2));
+					minX = Math.max(0, minX - padding);
+					minY = Math.max(0, minY - padding);
+					maxX = Math.min(width - 1, maxX + padding);
+					maxY = Math.min(height - 1, maxY + padding);
+
+					let remaining = maskedCount;
+					let pass = 0;
+					const maxPasses = Math.max(width, height);
+					const neighbors = [
+						[-1, -1], [0, -1], [1, -1],
+						[-1, 0],           [1, 0],
+						[-1, 1],  [0, 1],  [1, 1]
+					];
+
+					while (remaining > 0 && pass < maxPasses) {
+						const newlyFilled = [];
+						const reverse = pass % 2 === 1;
+						const yStart = reverse ? maxY : minY;
+						const yEnd = reverse ? minY - 1 : maxY + 1;
+						const yStep = reverse ? -1 : 1;
+
+						for (let y = yStart; y !== yEnd; y += yStep) {
+							const xStart = reverse ? maxX : minX;
+							const xEnd = reverse ? minX - 1 : maxX + 1;
+							const xStep = reverse ? -1 : 1;
+							for (let x = xStart; x !== xEnd; x += xStep) {
+								const pixelIndex = y * width + x;
+								if (known[pixelIndex]) continue;
+
+								let red = 0;
+								let green = 0;
+								let blue = 0;
+								let weightTotal = 0;
+
+								for (let n = 0; n < neighbors.length; n++) {
+									const nx = x + neighbors[n][0];
+									const ny = y + neighbors[n][1];
+									if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+									const neighborIndex = ny * width + nx;
+									if (!known[neighborIndex]) continue;
+									const diagonal = neighbors[n][0] !== 0 && neighbors[n][1] !== 0;
+									const weight = diagonal ? 0.7 : 1;
+									const dataIndex = neighborIndex * 4;
+									red += output[dataIndex] * weight;
+									green += output[dataIndex + 1] * weight;
+									blue += output[dataIndex + 2] * weight;
+									weightTotal += weight;
 								}
 
-								if (count > 0) {
-									pixels[idx] = r / count;
-									pixels[idx + 1] = g / count;
-									pixels[idx + 2] = b / count;
+								if (weightTotal >= 1.7) {
+									const dataIndex = pixelIndex * 4;
+									newlyFilled.push({
+										index: pixelIndex,
+										r: red / weightTotal,
+										g: green / weightTotal,
+										b: blue / weightTotal
+									});
 								}
 							}
 						}
+
+						if (newlyFilled.length === 0) break;
+						for (let index = 0; index < newlyFilled.length; index++) {
+							const item = newlyFilled[index];
+							const dataIndex = item.index * 4;
+							output[dataIndex] = item.r;
+							output[dataIndex + 1] = item.g;
+							output[dataIndex + 2] = item.b;
+							known[item.index] = 1;
+						}
+						remaining -= newlyFilled.length;
+						pass++;
+						setProgress(Math.min(92, 10 + (1 - remaining / maskedCount) * 82));
+						if (pass % 3 === 0) await nextFrame();
 					}
-					imgCtx.putImageData(imgData, 0, 0);
-				}
-			}
 
-			// 撤销 / 重置 / 下载等操作
-			btnUndo?.addEventListener('click', () => {
-				if (historyStack.length > 1) {
-					historyStack.pop();
-					const prevState = historyStack[historyStack.length - 1];
-					imgCtx.putImageData(prevState, 0, 0);
-					btnUndo.disabled = historyStack.length <= 1;
-				}
-			});
+					if (remaining > 0) {
+						throw new Error('该区域无法稳定修复，请缩小画笔范围后重试。');
+					}
 
-			btnReset?.addEventListener('click', () => {
-				if (loadedImg) {
-					initCanvas(loadedImg);
-				}
-			});
+					for (let index = 0; index < total; index++) {
+						const alpha = maskAlpha[index] / 255;
+						if (alpha <= 0) continue;
+						const dataIndex = index * 4;
+						output[dataIndex] = originalPixels[dataIndex] * (1 - alpha) + output[dataIndex] * alpha;
+						output[dataIndex + 1] = originalPixels[dataIndex + 1] * (1 - alpha) + output[dataIndex + 1] * alpha;
+						output[dataIndex + 2] = originalPixels[dataIndex + 2] * (1 - alpha) + output[dataIndex + 2] * alpha;
+						output[dataIndex + 3] = originalPixels[dataIndex + 3];
+					}
 
-			btnNew?.addEventListener('click', () => {
-				if (dropPrompt && canvasWrapper && controlBar && actionGroup && stageContainer) {
-					dropPrompt.style.display = 'block';
-					canvasWrapper.style.display = 'none';
-					controlBar.style.display = 'none';
-					actionGroup.style.display = 'none';
-					stageContainer.classList.remove('has-image');
-					fileInput.value = '';
-					historyStack = [];
-					stampSource = null;
+					imageCtx.putImageData(imageData, 0, 0);
+					return true;
 				}
-			});
 
-			btnDownload?.addEventListener('click', () => {
-				const link = document.createElement('a');
-				link.download = `erased_image_${Date.now()}.png`;
-				link.href = imageCanvas.toDataURL('image/png');
-				link.click();
-			});
+				async function finishStroke() {
+					if (!drawing) return;
+					drawing = false;
+					activePointerId = null;
+					lastPoint = null;
+
+					if (modeSelect.value === 'stamp') {
+						captureState();
+						setStatus('仿制图章已应用。', 'success');
+						return;
+					}
+
+					setBusy(true);
+					setProgress(5);
+					setStatus('正在分析涂抹区域并执行智能修复…');
+					try {
+						const changed = await inpaintMask();
+						if (changed) {
+							captureState();
+							setStatus('智能修复完成。复杂区域可继续小范围修整。', 'success');
+						}
+					} catch (error) {
+						restoreState(history[history.length - 1]);
+						setStatus(error && error.message ? error.message : '修复失败。', 'error');
+					} finally {
+						maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+						setProgress(null);
+						setBusy(false);
+					}
+				}
+
+				maskCanvas.addEventListener('pointerdown', function (event) {
+					if (!loaded || busy) return;
+					const point = getCanvasPoint(event);
+
+					if (modeSelect.value === 'stamp' && (sampleArmed || event.altKey)) {
+						setSamplePoint(point);
+						return;
+					}
+
+					if (modeSelect.value === 'stamp' && !stampSource) {
+						setStatus('请先设置仿制图章取样点。', 'warning');
+						return;
+					}
+
+					drawing = true;
+					activePointerId = event.pointerId;
+					lastPoint = point;
+					maskCanvas.setPointerCapture(event.pointerId);
+
+					if (modeSelect.value === 'stamp') {
+						cloneOffset = {
+							x: stampSource.x - point.x,
+							y: stampSource.y - point.y
+						};
+						strokeSnapshotCtx.clearRect(0, 0, strokeSnapshot.width, strokeSnapshot.height);
+						strokeSnapshotCtx.drawImage(imageCanvas, 0, 0);
+						applyCloneDab(point);
+					} else {
+						maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+						drawMaskSegment(point, point);
+					}
+					event.preventDefault();
+				});
+
+				maskCanvas.addEventListener('pointermove', function (event) {
+					updateBrushPreview(event);
+					if (!drawing || event.pointerId !== activePointerId || busy) return;
+					const point = getCanvasPoint(event);
+					if (modeSelect.value === 'stamp') {
+						applyCloneSegment(lastPoint, point);
+					} else {
+						drawMaskSegment(lastPoint, point);
+					}
+					lastPoint = point;
+					event.preventDefault();
+				});
+
+				maskCanvas.addEventListener('pointerup', function (event) {
+					if (event.pointerId === activePointerId) finishStroke();
+				});
+
+				maskCanvas.addEventListener('pointercancel', function (event) {
+					if (event.pointerId === activePointerId) {
+						drawing = false;
+						activePointerId = null;
+						maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+						restoreState(history[history.length - 1]);
+					}
+				});
+
+				maskCanvas.addEventListener('pointerleave', function () {
+					if (!drawing) brushPreview.style.display = 'none';
+				});
+
+				function applyZoom() {
+					const zoom = Number(zoomRange.value) / 100;
+					canvasWrapper.style.width = (imageCanvas.width * zoom) + 'px';
+					canvasWrapper.style.height = (imageCanvas.height * zoom) + 'px';
+					imageCanvas.style.width = (imageCanvas.width * zoom) + 'px';
+					imageCanvas.style.height = (imageCanvas.height * zoom) + 'px';
+					maskCanvas.style.width = (maskCanvas.width * zoom) + 'px';
+					maskCanvas.style.height = (maskCanvas.height * zoom) + 'px';
+					zoomVal.textContent = zoomRange.value + '%';
+					updateSourceMarker();
+				}
+
+				function showOriginal(show) {
+					if (!loaded || busy) return;
+					if (show) {
+						imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+						imageCtx.drawImage(originalCanvas, 0, 0);
+					} else if (history.length) {
+						restoreState(history[history.length - 1]);
+					}
+				}
+
+				async function exportImage() {
+					if (!loaded || busy) return;
+					setBusy(true);
+					setStatus('正在生成下载文件…');
+					try {
+						const format = exportFormat.value;
+						const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+						const quality = format === 'jpeg' ? Number(jpegQuality.value) : undefined;
+						let exportCanvas = imageCanvas;
+						if (format === 'jpeg') {
+							exportCanvas = document.createElement('canvas');
+							exportCanvas.width = imageCanvas.width;
+							exportCanvas.height = imageCanvas.height;
+							const exportCtx = exportCanvas.getContext('2d');
+							exportCtx.fillStyle = '#ffffff';
+							exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+							exportCtx.drawImage(imageCanvas, 0, 0);
+						}
+						const blob = await new Promise(function (resolve, reject) {
+							if (exportCanvas.toBlob) {
+								exportCanvas.toBlob(function (result) {
+									if (result) resolve(result);
+									else reject(new Error('导出失败。'));
+								}, mime, quality);
+							} else {
+								try {
+									const dataUrl = exportCanvas.toDataURL(mime, quality);
+									const parts = dataUrl.split(',');
+									const binary = atob(parts[1]);
+									const bytes = new Uint8Array(binary.length);
+									for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+									resolve(new Blob([bytes], { type: mime }));
+								} catch (error) {
+									reject(error);
+								}
+							}
+						});
+
+						const url = URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.href = url;
+						link.download = `${currentFileName}-repaired.${format === 'jpeg' ? 'jpg' : 'png'}`;
+						document.body.appendChild(link);
+						link.click();
+						link.remove();
+						window.setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+						setStatus('图片已导出。', 'success');
+					} catch (error) {
+						setStatus(error && error.message ? error.message : '导出失败。', 'error');
+					} finally {
+						setBusy(false);
+					}
+				}
+
+				modeSelect.addEventListener('change', function () {
+					const stampMode = modeSelect.value === 'stamp';
+					stampPanel.hidden = !stampMode;
+					maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+					sampleArmed = false;
+					btnSample.classList.remove('active');
+					updateSourceMarker();
+					setStatus(stampMode
+						? '请先设置取样点，再在需要覆盖的位置涂抹。'
+						: '智能修复模式：涂抹后松开，工具会从边缘向内重建颜色。');
+				});
+
+				brushSize.addEventListener('input', function () {
+					brushSizeVal.textContent = brushSize.value;
+				});
+
+				zoomRange.addEventListener('input', applyZoom);
+
+				btnSample.addEventListener('click', function () {
+					if (!loaded || busy) return;
+					sampleArmed = !sampleArmed;
+					btnSample.classList.toggle('active', sampleArmed);
+					btnSample.textContent = sampleArmed ? '请点击图片取样' : (stampSource ? '重新设置取样点' : '设置取样点');
+					setStatus(sampleArmed ? '请点击一块干净背景作为取样点。' : '已取消取样。');
+				});
+
+				btnUndo.addEventListener('click', undo);
+				btnRedo.addEventListener('click', redo);
+				btnReset.addEventListener('click', resetEditor);
+				btnNew.addEventListener('click', clearEditor);
+				btnDownload.addEventListener('click', exportImage);
+
+				exportFormat.addEventListener('change', updateButtons);
+				btnCompare.addEventListener('pointerdown', function (event) {
+					showOriginal(true);
+					btnCompare.setPointerCapture(event.pointerId);
+				});
+				btnCompare.addEventListener('pointerup', function () { showOriginal(false); });
+				btnCompare.addEventListener('pointercancel', function () { showOriginal(false); });
+				btnCompare.addEventListener('pointerleave', function () { showOriginal(false); });
+
+				dropPrompt.addEventListener('click', function () { fileInput.click(); });
+				fileInput.addEventListener('change', function () {
+					if (fileInput.files && fileInput.files[0]) loadFile(fileInput.files[0]);
+				});
+
+				stageContainer.addEventListener('dragover', function (event) {
+					event.preventDefault();
+				});
+				stageContainer.addEventListener('drop', function (event) {
+					event.preventDefault();
+					if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
+						loadFile(event.dataTransfer.files[0]);
+					}
+				});
+
+				window.addEventListener('paste', function (event) {
+					if (busy || !event.clipboardData) return;
+					const items = Array.from(event.clipboardData.items || []);
+					const imageItem = items.find(function (item) { return item.type.indexOf('image/') === 0; });
+					if (imageItem) {
+						const file = imageItem.getAsFile();
+						if (file) loadFile(file);
+					}
+				});
+
+				window.addEventListener('keydown', function (event) {
+					if (!loaded || busy) return;
+					const targetName = event.target && event.target.tagName ? event.target.tagName.toLowerCase() : '';
+					if (targetName === 'input' || targetName === 'select' || targetName === 'textarea') return;
+
+					if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+						event.preventDefault();
+						if (event.shiftKey) redo(); else undo();
+					} else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+						event.preventDefault();
+						redo();
+					} else if (event.key === '[') {
+						brushSize.value = Math.max(Number(brushSize.min), Number(brushSize.value) - 4);
+						brushSizeVal.textContent = brushSize.value;
+					} else if (event.key === ']') {
+						brushSize.value = Math.min(Number(brushSize.max), Number(brushSize.value) + 4);
+						brushSizeVal.textContent = brushSize.value;
+					}
+				});
+
+				window.addEventListener('resize', function () {
+					updateSourceMarker();
+				});
+
+				clearEditor();
+				updateButtons();
+
+				window.__watermarkToolTest = {
+					calculateWorkingSize: calculateWorkingSize,
+					getHistoryLength: function () { return history.length; },
+					isLoaded: function () { return loaded; },
+					loadFile: loadFile,
+					readPixel: function (x, y) {
+						return Array.from(imageCtx.getImageData(x, y, 1, 1).data);
+					},
+					testClone: function (source, target, size) {
+						brushSize.value = String(size || 12);
+						strokeSnapshotCtx.clearRect(0, 0, strokeSnapshot.width, strokeSnapshot.height);
+						strokeSnapshotCtx.drawImage(imageCanvas, 0, 0);
+						cloneOffset = { x: source.x - target.x, y: source.y - target.y };
+						applyCloneDab(target);
+					},
+					testHealCircle: async function (x, y, radius) {
+						maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+						maskCtx.fillStyle = 'rgba(239, 68, 68, 1)';
+						maskCtx.beginPath();
+						maskCtx.arc(x, y, radius, 0, Math.PI * 2);
+						maskCtx.fill();
+						return await inpaintMask();
+					}
+				};
+			})();
 		</script>
 	</body>
 </html>
