@@ -5,17 +5,17 @@ import Footer from 'src/components/Footer.astro';
 import { SITE_TITLE } from 'src/consts';
 
 export const frontmatter = {
-    title: "AI Watermark Remover & Object Eraser",
-    description: "Fast, 100% private client-side tool. Brush over unwanted watermarks, logos, or text to erase them instantly.",
-    icon: "🎨",
-    tag: "Productivity",
-    keywords: "watermark remover object eraser photo inpainting photo cleanup developer tools",
-    pinned: false,
-    priority: 95
+	title: "Client-Side Watermark Remover",
+	description: "Fast, 100% private online tool to remove simple watermarks and logos directly in your browser.",
+	icon: "🧹",
+	tag: "Media",
+	keywords: "watermark remover erase logo canvas clone stamp photo retouch",
+	pinned: false,
+	priority: 88
 };
 
-const pageTitle = `AI Watermark Remover & Object Eraser — ${SITE_TITLE}`;
-const pageDescription = "Fast, 100% private client-side tool. Brush over unwanted watermarks, logos, or text to erase them instantly.";
+const pageTitle = `Watermark Remover — ${SITE_TITLE}`;
+const pageDescription = "Fast, 100% private online tool to remove simple watermarks and logos directly in your browser.";
 ---
 
 <!doctype html>
@@ -24,17 +24,17 @@ const pageDescription = "Fast, 100% private client-side tool. Brush over unwante
 		<BaseHead title={pageTitle} description={pageDescription} />
 		<style>
 			main {
-				width: 1000px;
+				width: 900px;
 				max-width: calc(100% - 2em);
 				margin: auto;
-				padding: 2.5em 1em 4em;
+				padding: 3em 1em 5em;
 			}
 			.tool-header {
 				text-align: center;
 				margin-bottom: 2em;
 			}
 			.tool-header h1 {
-				font-size: 2.5rem;
+				font-size: 2.2rem;
 				font-weight: 800;
 				margin-bottom: 0.3em;
 				background: var(--hero-title-gradient);
@@ -43,149 +43,140 @@ const pageDescription = "Fast, 100% private client-side tool. Brush over unwante
 			}
 			.tool-header p {
 				color: var(--text-muted);
-				font-size: 0.95rem;
+				font-size: 1.05rem;
 			}
-
-			/* Upload Zone */
-			.drop-zone {
+			.tool-box {
 				background: var(--bg-card);
 				backdrop-filter: blur(12px);
-				border: 2px dashed var(--card-border);
+				border: 1px solid var(--card-border);
 				border-radius: 16px;
-				padding: 2.5em 1.5em;
-				text-align: center;
-				cursor: pointer;
-				transition: all 0.3s ease;
-				margin-bottom: 1.5rem;
-				position: relative;
-			}
-			.drop-zone:hover, .drop-zone.dragover {
-				border-color: var(--accent);
-				background: var(--dropdown-hover);
-				box-shadow: 0 0 20px var(--accent-glow);
-			}
-			.drop-zone input[type="file"] {
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				opacity: 0;
-				cursor: pointer;
+				padding: 1.8em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 			}
 
-			/* Workspace */
-			.workspace {
-				display: none;
-				flex-direction: column;
+			/* Controls & Settings */
+			.control-bar {
+				display: flex;
+				gap: 1rem;
 				align-items: center;
-				gap: 1.2rem;
+				justify-content: space-between;
+				flex-wrap: wrap;
+				padding-bottom: 1.2em;
+				margin-bottom: 1.2em;
+				border-bottom: 1px solid var(--card-border);
 			}
-			.canvas-container {
-				position: relative;
+			.control-group {
+				display: flex;
+				align-items: center;
+				gap: 0.6rem;
+			}
+			.control-group label {
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			select, input[type="range"] {
+				background: var(--code-bg) !important;
 				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				overflow: hidden;
-				background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-				max-width: 100%;
+				border-radius: 8px;
+				color: var(--text-main);
+				padding: 0.4em 0.6em;
+				outline: none;
 			}
-			canvas {
+
+			/* Canvas Stage Area */
+			.stage-container {
+				position: relative;
+				width: 100%;
+				min-height: 320px;
+				background: var(--code-bg);
+				border: 2px dashed var(--card-border);
+				border-radius: 12px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+				user-select: none;
+			}
+			.stage-container.has-image {
+				border-style: solid;
+			}
+			.drop-prompt {
+				text-align: center;
+				cursor: pointer;
+				padding: 3em 1em;
+			}
+			.drop-icon {
+				font-size: 2.5rem;
+				margin-bottom: 0.4em;
+			}
+			.drop-text {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+			.drop-text span {
+				color: var(--accent);
+				font-weight: 600;
+			}
+
+			/* Workspace Layer Stack */
+			.canvas-wrapper {
+				position: relative;
+				display: inline-block;
+				max-width: 100%;
+				max-height: 550px;
+			}
+			.canvas-wrapper canvas {
 				display: block;
 				max-width: 100%;
-				height: auto;
-				cursor: crosshair;
+				max-height: 550px;
+				object-fit: contain;
 			}
 			#maskCanvas {
 				position: absolute;
 				top: 0;
 				left: 0;
-				opacity: 0.6;
+				cursor: crosshair;
 			}
 
-			/* Toolbar */
-			.toolbar {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 0.8rem 1.2rem;
+			/* Action Buttons */
+			.btn-group {
 				display: flex;
-				flex-wrap: wrap;
-				gap: 1rem 1.5rem;
+				gap: 0.8rem;
+				margin-top: 1.2rem;
 				align-items: center;
 				justify-content: space-between;
-				width: 100%;
-				box-sizing: border-box;
+				flex-wrap: wrap;
 			}
-			.tool-group {
-				display: flex;
-				align-items: center;
-				gap: 0.8rem;
-			}
-			.tool-label {
-				font-size: 0.88rem;
-				font-weight: 600;
-				color: var(--text-main);
-			}
-			input[type="range"] {
-				accent-color: var(--accent);
-				cursor: pointer;
-			}
-
 			.btn {
+				background: var(--accent);
+				color: #ffffff !important;
+				border: none;
 				padding: 0.6em 1.2em;
 				border-radius: 8px;
-				font-size: 0.88rem;
 				font-weight: 600;
 				cursor: pointer;
-				border: 1px solid var(--card-border);
-				transition: all 0.2s ease;
+				transition: background 0.2s, opacity 0.2s;
 			}
-			.btn-primary {
-				background: var(--accent);
-				color: #ffffff;
-				border-color: var(--accent);
-			}
-			.btn-primary:hover {
-				opacity: 0.9;
-				transform: translateY(-1px);
+			.btn:hover { background: var(--accent-hover); }
+			.btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
 			}
 			.btn-secondary {
 				background: var(--gray-light);
+				border: 1px solid var(--card-border);
 				color: var(--text-main);
 			}
 			.btn-secondary:hover {
 				border-color: var(--accent);
+				color: var(--accent);
 			}
-			.btn-success {
-				background: #10b981;
-				color: #ffffff;
-				border-color: #10b981;
-			}
-			.btn-success:hover {
-				opacity: 0.9;
-			}
-
-			.toast {
-				position: fixed;
-				bottom: 2rem;
-				right: 2rem;
-				background: var(--accent);
-				color: #fff;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-size: 0.88rem;
-				font-weight: 600;
-				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-				opacity: 0;
-				transform: translateY(10px);
-				transition: all 0.3s ease;
-				pointer-events: none;
-				z-index: 100;
-			}
-			.toast.show {
-				opacity: 1;
-				transform: translateY(0);
+			.tip-box {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				margin-top: 1em;
+				line-height: 1.5;
 			}
 		</style>
 	</head>
@@ -193,134 +184,181 @@ const pageDescription = "Fast, 100% private client-side tool. Brush over unwante
 		<Header />
 		<main>
 			<div class="tool-header">
-				<h1>🎨 AI Watermark Remover & Object Eraser</h1>
-				<p>100% private & client-side. Brush over watermarks or text to remove them instantly.</p>
+				<h1>🧹 Client-Side Watermark Remover</h1>
+				<p>100% private in-browser tool to erase unwanted text, logos, or date stamps.</p>
 			</div>
 
-			<!-- Drop Zone -->
-			<div class="drop-zone" id="dropZone">
-				<input type="file" id="fileInput" accept="image/*" />
-				<div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🖼️</div>
-				<div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.3rem;">
-					Click to select an image, or drag & drop here
-				</div>
-				<div style="font-size: 0.85rem; color: var(--text-muted);">
-					Supports PNG, JPG, WEBP (100% private & client-side processing)
-				</div>
-			</div>
+			<div class="tool-box">
+				<!-- Control Panel -->
+				<div class="control-bar" id="controlBar" style="display: none;">
+					<div class="control-group">
+						<label for="modeSelect">Removal Mode:</label>
+						<select id="modeSelect">
+							<option value="smooth" selected>Smart Fill (Smooth Blurring)</option>
+							<option value="stamp">Clone Stamp (Sample Texture)</option>
+						</select>
+					</div>
 
-			<!-- Workspace -->
-			<div class="workspace" id="workspace">
-				<!-- Toolbar -->
-				<div class="toolbar">
-					<div class="tool-group">
-						<span class="tool-label">Brush Size:</span>
+					<div class="control-group">
+						<label for="brushSize">Brush Size:</label>
 						<input type="range" id="brushSize" min="5" max="100" value="25" />
-						<span id="brushSizeVal" style="font-size: 0.85rem; color: var(--text-muted); min-width: 30px;">25px</span>
+						<span id="brushSizeVal" style="font-size:0.85rem; color:var(--text-muted); width:25px;">25</span>
 					</div>
 
-					<div class="tool-group">
-						<button id="btnClearMask" class="btn btn-secondary">Clear Mask</button>
-						<button id="btnProcess" class="btn btn-primary">✨ Erase Watermark</button>
-						<button id="btnDownload" class="btn btn-success">💾 Download Image</button>
-						<button id="btnReset" class="btn btn-secondary">Upload Another</button>
+					<div class="control-group" id="stampInfo" style="display: none; font-size: 0.82rem; color: var(--accent);">
+						💡 Alt + Click on image to set source sample point.
 					</div>
 				</div>
 
-				<!-- Canvas Container -->
-				<div class="canvas-container" id="canvasContainer">
-					<canvas id="imageCanvas"></canvas>
-					<canvas id="maskCanvas"></canvas>
+				<!-- Canvas Stage -->
+				<div class="stage-container" id="stageContainer">
+					<div class="drop-prompt" id="dropPrompt">
+						<div class="drop-icon">📁</div>
+						<div class="drop-text">Drag and drop an image here, or <span>browse file</span></div>
+						<input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" style="display: none;" />
+					</div>
+
+					<div class="canvas-wrapper" id="canvasWrapper" style="display: none;">
+						<canvas id="imageCanvas"></canvas>
+						<canvas id="maskCanvas"></canvas>
+					</div>
+				</div>
+
+				<!-- Bottom Action Bar -->
+				<div class="btn-group" id="actionGroup" style="display: none;">
+					<div style="display: flex; gap: 0.6rem;">
+						<button class="btn btn-secondary" id="btnUndo">Undo Paint</button>
+						<button class="btn btn-secondary" id="btnReset">Reset Original</button>
+					</div>
+					<div style="display: flex; gap: 0.6rem;">
+						<button class="btn btn-secondary" id="btnNew">New Image</button>
+						<button class="btn" id="btnDownload">Download Image</button>
+					</div>
+				</div>
+
+				<div class="tip-box">
+					📌 <strong>Best Usage Tips:</strong><br/>
+					• <strong>Smart Fill Mode:</strong> Paint over watermarks on plain or gradient backgrounds (text, logos, dates).<br/>
+					• <strong>Clone Stamp Mode:</strong> Hold <code>Alt</code> key and click to pick a clean area, then brush over the watermark to cover textured backgrounds.
 				</div>
 			</div>
 		</main>
-
-		<div id="toast" class="toast">Watermark erased successfully!</div>
-
 		<Footer />
 
-		<script is:inline>
-			const dropZone = document.getElementById('dropZone');
-			const fileInput = document.getElementById('fileInput');
-			const workspace = document.getElementById('workspace');
-			const imageCanvas = document.getElementById('imageCanvas');
-			const maskCanvas = document.getElementById('maskCanvas');
-			const imgCtx = imageCanvas.getContext('2d');
-			const maskCtx = maskCanvas.getContext('2d');
+		<script>
+			const dropPrompt = document.getElementById('dropPrompt');
+			const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+			const stageContainer = document.getElementById('stageContainer');
+			const canvasWrapper = document.getElementById('canvasWrapper');
+			const controlBar = document.getElementById('controlBar');
+			const actionGroup = document.getElementById('actionGroup');
 
-			const brushSize = document.getElementById('brushSize');
+			const imageCanvas = document.getElementById('imageCanvas') as HTMLCanvasElement;
+			const maskCanvas = document.getElementById('maskCanvas') as HTMLCanvasElement;
+			const imgCtx = imageCanvas.getContext('2d')!;
+			const maskCtx = maskCanvas.getContext('2d')!;
+
+			const modeSelect = document.getElementById('modeSelect') as HTMLSelectElement;
+			const brushSize = document.getElementById('brushSize') as HTMLInputElement;
 			const brushSizeVal = document.getElementById('brushSizeVal');
-			const btnClearMask = document.getElementById('btnClearMask');
-			const btnProcess = document.getElementById('btnProcess');
-			const btnDownload = document.getElementById('btnDownload');
-			const btnReset = document.getElementById('btnReset');
-			const toast = document.getElementById('toast');
+			const stampInfo = document.getElementById('stampInfo');
 
+			const btnUndo = document.getElementById('btnUndo') as HTMLButtonElement;
+			const btnReset = document.getElementById('btnReset') as HTMLButtonElement;
+			const btnNew = document.getElementById('btnNew') as HTMLButtonElement;
+			const btnDownload = document.getElementById('btnDownload') as HTMLButtonElement;
+
+			let loadedImg: HTMLImageElement | null = null;
+			let historyStack: ImageData[] = [];
 			let isDrawing = false;
-			let originalImage = null;
+			let stampSource: { x: number; y: number } | null = null;
 
-			brushSize?.addEventListener('input', (e) => {
-				brushSizeVal.textContent = `${e.target.value}px`;
+			// Mode switch
+			modeSelect?.addEventListener('change', () => {
+				if (stampInfo) {
+					stampInfo.style.display = modeSelect.value === 'stamp' ? 'inline-block' : 'none';
+				}
 			});
 
-			function showToast(msg) {
-				toast.textContent = msg;
-				toast.classList.add('show');
-				setTimeout(() => toast.classList.remove('show'), 2000);
-			}
+			brushSize?.addEventListener('input', () => {
+				if (brushSizeVal) brushSizeVal.textContent = brushSize.value;
+			});
 
-			function initCanvas(img) {
-				originalImage = img;
-				const width = img.width;
-				const height = img.height;
+			// File Upload Logic
+			dropPrompt?.addEventListener('click', () => fileInput?.click());
+			stageContainer?.addEventListener('dragover', (e) => e.preventDefault());
+			stageContainer?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				if (e.dataTransfer?.files.length) loadImage(e.dataTransfer.files[0]);
+			});
+			fileInput?.addEventListener('change', () => {
+				if (fileInput.files?.length) loadImage(fileInput.files[0]);
+			});
 
-				imageCanvas.width = width;
-				imageCanvas.height = height;
-				maskCanvas.width = width;
-				maskCanvas.height = height;
-
-				imgCtx.drawImage(img, 0, 0);
-				maskCtx.clearRect(0, 0, width, height);
-
-				dropZone.style.display = 'none';
-				workspace.style.display = 'flex';
-			}
-
-			function processFile(file) {
-				if (!file || !file.type.startsWith('image/')) return;
+			function loadImage(file: File) {
+				if (!file.type.startsWith('image/')) return;
 				const reader = new FileReader();
 				reader.onload = (e) => {
 					const img = new Image();
-					img.onload = () => initCanvas(img);
-					img.src = e.target.result;
+					img.onload = () => {
+						loadedImg = img;
+						initCanvas(img);
+					};
+					img.src = e.target?.result as string;
 				};
 				reader.readAsDataURL(file);
 			}
 
-			fileInput?.addEventListener('change', (e) => {
-				if (e.target.files && e.target.files[0]) processFile(e.target.files[0]);
+			function initCanvas(img: HTMLImageElement) {
+				imageCanvas.width = img.width;
+				imageCanvas.height = img.height;
+				maskCanvas.width = img.width;
+				maskCanvas.height = img.height;
+
+				imgCtx.drawImage(img, 0, 0);
+				saveState();
+
+				if (dropPrompt && canvasWrapper && controlBar && actionGroup && stageContainer) {
+					dropPrompt.style.display = 'none';
+					canvasWrapper.style.display = 'block';
+					controlBar.style.display = 'flex';
+					actionGroup.style.display = 'flex';
+					stageContainer.classList.add('has-image');
+				}
+			}
+
+			function saveState() {
+				historyStack.push(imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height));
+				if (btnUndo) btnUndo.disabled = historyStack.length <= 1;
+			}
+
+			// Drawing & Erasing Interactions
+			maskCanvas?.addEventListener('mousedown', (e) => {
+				const pos = getCanvasPos(e);
+				if (e.altKey && modeSelect.value === 'stamp') {
+					stampSource = pos;
+					alert(`Sample point set at (${Math.round(pos.x)}, ${Math.round(pos.y)})`);
+					return;
+				}
+				isDrawing = true;
+				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+				drawStroke(e);
 			});
 
-			['dragenter', 'dragover'].forEach(name => {
-				dropZone?.addEventListener(name, (e) => {
-					e.preventDefault();
-					dropZone.classList.add('dragover');
-				});
+			maskCanvas?.addEventListener('mousemove', (e) => {
+				if (!isDrawing) return;
+				drawStroke(e);
 			});
 
-			['dragleave', 'drop'].forEach(name => {
-				dropZone?.addEventListener(name, (e) => {
-					e.preventDefault();
-					dropZone.classList.remove('dragover');
-				});
+			window.addEventListener('mouseup', () => {
+				if (!isDrawing) return;
+				isDrawing = false;
+				applyRemover();
+				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+				saveState();
 			});
 
-			dropZone?.addEventListener('drop', (e) => {
-				const files = e.dataTransfer.files;
-				if (files && files[0]) processFile(files[0]);
-			});
-
-			function getCanvasCoords(e) {
+			function getCanvasPos(e: MouseEvent) {
 				const rect = maskCanvas.getBoundingClientRect();
 				const scaleX = maskCanvas.width / rect.width;
 				const scaleY = maskCanvas.height / rect.height;
@@ -330,118 +368,124 @@ const pageDescription = "Fast, 100% private client-side tool. Brush over unwante
 				};
 			}
 
-			function startDrawing(e) {
-				isDrawing = true;
-				draw(e);
-			}
+			function drawStroke(e: MouseEvent) {
+				const pos = getCanvasPos(e);
+				const radius = parseInt(brushSize.value) / 2;
 
-			function stopDrawing() {
-				isDrawing = false;
+				maskCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
 				maskCtx.beginPath();
+				maskCtx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+				maskCtx.fill();
 			}
 
-			function draw(e) {
-				if (!isDrawing) return;
-				const { x, y } = getCanvasCoords(e);
+			// Core Frontend Removal Algorithm
+			function applyRemover() {
+				const mode = modeSelect.value;
+				const size = parseInt(brushSize.value);
 
-				maskCtx.lineWidth = parseInt(brushSize.value);
-				maskCtx.lineCap = 'round';
-				maskCtx.lineJoin = 'round';
-				maskCtx.strokeStyle = 'red';
-
-				maskCtx.lineTo(x, y);
-				maskCtx.stroke();
-				maskCtx.beginPath();
-				maskCtx.moveTo(x, y);
-			}
-
-			maskCanvas.addEventListener('mousedown', startDrawing);
-			maskCanvas.addEventListener('mouseup', stopDrawing);
-			maskCanvas.addEventListener('mousemove', draw);
-			maskCanvas.addEventListener('mouseleave', stopDrawing);
-
-			btnClearMask?.addEventListener('click', () => {
-				maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-			});
-
-			btnProcess?.addEventListener('click', () => {
-				const w = imageCanvas.width;
-				const h = imageCanvas.height;
-
-				const imgData = imgCtx.getImageData(0, 0, w, h);
-				const maskData = maskCtx.getImageData(0, 0, w, h);
-
-				let hasMask = false;
-				for (let i = 0; i < maskData.data.length; i += 4) {
-					if (maskData.data[i + 3] > 0) {
-						hasMask = true;
-						break;
+				if (mode === 'stamp') {
+					if (!stampSource) {
+						alert('Please hold Alt and click on a clean area to pick a sample source first!');
+						return;
 					}
-				}
+					// Clone Stamp Process
+					const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+					const sourceData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+					const targetData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
 
-				if (!hasMask) {
-					alert('Please brush over the watermark area first!');
-					return;
-				}
+					for (let i = 3; i < maskData.data.length; i += 4) {
+						if (maskData.data[i] > 0) { // Painted area
+							const pixelIdx = i / 4;
+							const x = pixelIdx % maskCanvas.width;
+							const y = Math.floor(pixelIdx / maskCanvas.width);
 
-				const data = imgData.data;
-				const mask = maskData.data;
+							const srcX = Math.min(Math.max(0, Math.round(stampSource.x + (x - stampSource.x))), imageCanvas.width - 1);
+							const srcY = Math.min(Math.max(0, Math.round(stampSource.y + (y - stampSource.y))), imageCanvas.height - 1);
+							const srcIdx = (srcY * imageCanvas.width + srcX) * 4;
 
-				for (let pass = 0; pass < 8; pass++) {
-					for (let y = 1; y < h - 1; y++) {
-						for (let x = 1; x < w - 1; x++) {
-							const idx = (y * w + x) * 4;
+							targetData.data[i - 3] = sourceData.data[srcIdx];
+							targetData.data[i - 2] = sourceData.data[srcIdx + 1];
+							targetData.data[i - 1] = sourceData.data[srcIdx + 2];
+						}
+					}
+					imgCtx.putImageData(targetData, 0, 0);
+				} else {
+					// Smart Fill / Edge Blur Processing
+					const maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+					const imgData = imgCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+					const pixels = imgData.data;
 
-							if (mask[idx + 3] > 0) {
+					// Simple Neighbor Averaging & Feathering
+					for (let y = 0; y < imageCanvas.height; y++) {
+						for (let x = 0; x < imageCanvas.width; x++) {
+							const idx = (y * imageCanvas.width + x) * 4;
+							if (maskData.data[idx + 3] > 0) {
 								let r = 0, g = 0, b = 0, count = 0;
+								const radius = Math.max(2, Math.floor(size / 3));
 
-								const neighbors = [
-									((y - 1) * w + x) * 4,
-									((y + 1) * w + x) * 4,
-									(y * w + (x - 1)) * 4,
-									(y * w + (x + 1)) * 4,
-									((y - 1) * w + (x - 1)) * 4,
-									((y - 1) * w + (x + 1)) * 4,
-									((y + 1) * w + (x - 1)) * 4,
-									((y + 1) * w + (x + 1)) * 4
-								];
-
-								for (let nIdx of neighbors) {
-									if (mask[nIdx + 3] === 0) {
-										r += data[nIdx];
-										g += data[nIdx + 1];
-										b += data[nIdx + 2];
-										count++;
+								for (let dy = -radius; dy <= radius; dy++) {
+									for (let dx = -radius; dx <= radius; dx++) {
+										const nx = x + dx;
+										const ny = y + dy;
+										if (nx >= 0 && nx < imageCanvas.width && ny >= 0 && ny < imageCanvas.height) {
+											const nIdx = (ny * imageCanvas.width + nx) * 4;
+											// Pick non-painted outer pixels
+											if (maskData.data[nIdx + 3] === 0) {
+												r += pixels[nIdx];
+												g += pixels[nIdx + 1];
+												b += pixels[nIdx + 2];
+												count++;
+											}
+										}
 									}
 								}
 
 								if (count > 0) {
-									data[idx] = Math.round(r / count);
-									data[idx + 1] = Math.round(g / count);
-									data[idx + 2] = Math.round(b / count);
-									mask[idx + 3] = 0;
+									pixels[idx] = r / count;
+									pixels[idx + 1] = g / count;
+									pixels[idx + 2] = b / count;
 								}
 							}
 						}
 					}
+					imgCtx.putImageData(imgData, 0, 0);
 				}
+			}
 
-				imgCtx.putImageData(imgData, 0, 0);
-				maskCtx.clearRect(0, 0, w, h);
-				showToast('Watermark erased successfully!');
+			// Undo / Reset / Download Actions
+			btnUndo?.addEventListener('click', () => {
+				if (historyStack.length > 1) {
+					historyStack.pop();
+					const prevState = historyStack[historyStack.length - 1];
+					imgCtx.putImageData(prevState, 0, 0);
+					btnUndo.disabled = historyStack.length <= 1;
+				}
+			});
+
+			btnReset?.addEventListener('click', () => {
+				if (loadedImg) {
+					initCanvas(loadedImg);
+				}
+			});
+
+			btnNew?.addEventListener('click', () => {
+				if (dropPrompt && canvasWrapper && controlBar && actionGroup && stageContainer) {
+					dropPrompt.style.display = 'block';
+					canvasWrapper.style.display = 'none';
+					controlBar.style.display = 'none';
+					actionGroup.style.display = 'none';
+					stageContainer.classList.remove('has-image');
+					fileInput.value = '';
+					historyStack = [];
+					stampSource = null;
+				}
 			});
 
 			btnDownload?.addEventListener('click', () => {
 				const link = document.createElement('a');
-				link.download = 'watermark-removed.png';
+				link.download = `erased_image_${Date.now()}.png`;
 				link.href = imageCanvas.toDataURL('image/png');
 				link.click();
-			});
-
-			btnReset?.addEventListener('click', () => {
-				fileInput.value = '';
-				workspace.style.display = 'none';
-				dropZone.style.display = 'block';
 			});
 		</script>
 	</body>
