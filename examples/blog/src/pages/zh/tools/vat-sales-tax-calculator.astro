@@ -1,0 +1,369 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "VAT 增值税与 Sales Tax 计算器",
+	description: "免费在线计算欧盟/英国增值税（VAT）与美国消费税（Sales Tax），支持正向加税与反向倒扣税算净价。",
+	icon: "🧮",
+	tag: "财务工具",
+	keywords: "VAT计算器 增值税计算器 倒扣税计算器 Sales Tax计算器 英国VAT 欧盟VAT 跨境电商算税",
+	pinned: false,
+	priority: 88
+};
+
+const pageTitle = `VAT 增值税与 Sales Tax 计算器 — ${SITE_TITLE}`;
+const pageDescription = "免费在线计算欧盟/英国增值税（VAT）与美国消费税（Sales Tax），支持正向加税与反向倒扣税算净价。";
+
+const faqList = [
+	{
+		question: "什么是“倒扣税计算（Remove VAT）”？",
+		answer: "倒扣税计算是指已知含税总价（Gross Amount）时，反推计算出商品原来的不含税净价（Net Amount）和其中包含的增值税额。例如：英国含 20% VAT 的总价为 £120，倒扣税计算可得出净价为 £100，税额为 £20。"
+	},
+	{
+		question: "欧洲各国的标准 VAT 增值税率是多少？",
+		answer: "欧洲各国的 VAT 费率有所不同：英国为 20%，德国为 19%，法国为 20%，意大利为 22%，西班牙为 21%。本工具内置了这些主流国家快捷选项，也可手动自定义费率。"
+	},
+	{
+		question: "计算过程中的财务数据安全吗？",
+		answer: "非常安全。本工具采用 100% 纯前端计算，所有的数值解析均在您的浏览器本地进行，数据绝不上传服务器，完全符合欧盟 GDPR 隐私保护规范。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+		<style>
+			main {
+				width: 850px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+
+			/* 模式选择与预设 */
+			.tab-group {
+				display: flex;
+				gap: 0.8rem;
+				margin-bottom: 1.5em;
+				border-bottom: 1px solid var(--card-border);
+				padding-bottom: 0.8em;
+			}
+			.tab-btn {
+				background: none;
+				border: 1px solid transparent;
+				color: var(--text-muted);
+				font-size: 0.95rem;
+				font-weight: 600;
+				cursor: pointer;
+				padding: 0.5em 1em;
+				border-radius: 8px;
+				transition: all 0.2s ease;
+			}
+			.tab-btn.active {
+				background: var(--badge-bg);
+				color: var(--accent);
+				border-color: var(--badge-border);
+			}
+
+			.preset-row {
+				display: flex;
+				gap: 0.5rem;
+				margin-bottom: 1.5rem;
+				flex-wrap: wrap;
+			}
+			.preset-btn {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.4em 0.8em;
+				border-radius: 8px;
+				font-size: 0.85rem;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.preset-btn:hover, .preset-btn.active {
+				border-color: var(--accent);
+				color: var(--accent);
+				background: var(--badge-bg);
+			}
+
+			/* 表单网格 */
+			.form-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+				gap: 1.2rem;
+				margin-bottom: 1.5rem;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+			.form-group label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="number"] {
+				width: 100%;
+				padding: 0.6em 0.8em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.95rem;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s;
+			}
+			input[type="number"]:focus {
+				border-color: var(--accent);
+			}
+
+			/* 计算卡片展现 */
+			.result-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.5em;
+				margin-top: 1rem;
+			}
+			.result-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.6rem 0;
+				border-bottom: 1px dashed var(--card-border);
+				font-size: 0.95rem;
+			}
+			.result-row:last-child {
+				border-bottom: none;
+				padding-top: 0.8rem;
+				font-weight: 800;
+				font-size: 1.15rem;
+			}
+			.val-highlight { color: var(--accent); }
+			.val-tax { color: #f59e0b; }
+
+			.faq-section {
+				margin-top: 3.5em;
+				padding-top: 2em;
+				border-top: 1px solid var(--card-border);
+			}
+			.faq-title {
+				font-size: 1.4rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1em;
+			}
+			.faq-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+				gap: 1.2rem;
+			}
+			.faq-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2em;
+			}
+			.faq-card h3 {
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin: 0 0 0.5rem 0;
+			}
+			.faq-card p {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.6;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🧮 VAT 增值税与 Sales Tax 计算器</h1>
+				<p>支持正向加税与倒扣税模式，快速计算欧盟、英国及美国交易税额与净价</p>
+			</div>
+
+			<div class="tool-box">
+				<!-- 计算模式切换 -->
+				<div class="tab-group">
+					<button class="tab-btn active" id="modeAdd">加税模式 (Add VAT / Tax)</button>
+					<button class="tab-btn" id="modeRemove">倒扣税模式 (Remove VAT / Tax)</button>
+				</div>
+
+				<!-- 主流国家/地区快捷预设 -->
+				<div class="form-group" style="margin-bottom: 0.8rem;">
+					<label>快捷预设税率：</label>
+					<div class="preset-row">
+						<button class="preset-btn active" data-rate="20">英国 UK (20%)</button>
+						<button class="preset-btn" data-rate="19">德国 DE (19%)</button>
+						<button class="preset-btn" data-rate="20">法国 FR (20%)</button>
+						<button class="preset-btn" data-rate="22">意大利 IT (22%)</button>
+						<button class="preset-btn" data-rate="21">西班牙 ES (21%)</button>
+						<button class="preset-btn" data-rate="7">美国平均州税 US (~7%)</button>
+					</div>
+				</div>
+
+				<!-- 参数输入 -->
+				<div class="form-grid">
+					<div class="form-group">
+						<label id="amountLabel" for="amountInput">不含税净价 Net Amount ($ / £ / €)</label>
+						<input type="number" id="amountInput" value="100" min="0" step="any" placeholder="输入金额..." />
+					</div>
+					<div class="form-group">
+						<label for="taxRate">税率 Tax / VAT Rate (%)</label>
+						<input type="number" id="taxRate" value="20" min="0" step="0.1" />
+					</div>
+				</div>
+
+				<!-- 动态结果展示 -->
+				<div class="result-card">
+					<div class="result-row">
+						<span>不含税净价 (Net Amount)</span>
+						<span id="resNet" style="font-weight:600;">$100.00</span>
+					</div>
+					<div class="result-row">
+						<span>增值税 / 消费税额 (Tax Amount)</span>
+						<span class="val-tax" id="resTax">+$20.00</span>
+					</div>
+					<div class="result-row">
+						<span>含税总价 (Gross Amount / Total Due)</span>
+						<span class="val-highlight" id="resGross">$120.00</span>
+					</div>
+				</div>
+			</div>
+
+			<section class="faq-section">
+				<div class="faq-title">❓ 常见问题解答 (FAQ)</div>
+				<div class="faq-grid">
+					{faqList.map(item => (
+						<div class="faq-card">
+							<h3>{item.question}</h3>
+							<p>{item.answer}</p>
+						</div>
+					))}
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<script>
+			let calcMode: 'add' | 'remove' = 'add';
+
+			const modeAdd = document.getElementById('modeAdd');
+			const modeRemove = document.getElementById('modeRemove');
+			const amountLabel = document.getElementById('amountLabel');
+			const amountInput = document.getElementById('amountInput') as HTMLInputElement;
+			const taxRate = document.getElementById('taxRate') as HTMLInputElement;
+
+			const presetBtns = document.querySelectorAll('.preset-btn');
+			const resNet = document.getElementById('resNet');
+			const resTax = document.getElementById('resTax');
+			const resGross = document.getElementById('resGross');
+
+			modeAdd?.addEventListener('click', () => {
+				calcMode = 'add';
+				modeAdd.classList.add('active');
+				modeRemove?.classList.remove('active');
+				if (amountLabel) amountLabel.textContent = '不含税净价 Net Amount ($ / £ / €)';
+				calculate();
+			});
+
+			modeRemove?.addEventListener('click', () => {
+				calcMode = 'remove';
+				modeRemove.classList.add('active');
+				modeAdd?.classList.remove('active');
+				if (amountLabel) amountLabel.textContent = '含税总价 Gross Amount ($ / £ / €)';
+				calculate();
+			});
+
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					presetBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+
+					const rate = (btn as HTMLElement).dataset.rate || '20';
+					taxRate.value = rate;
+					calculate();
+				});
+			});
+
+			amountInput?.addEventListener('input', calculate);
+			taxRate?.addEventListener('input', calculate);
+
+			function calculate() {
+				const val = parseFloat(amountInput.value) || 0;
+				const rate = (parseFloat(taxRate.value) || 0) / 100;
+
+				let net = 0;
+				let tax = 0;
+				let gross = 0;
+
+				if (calcMode === 'add') {
+					net = val;
+					tax = net * rate;
+					gross = net + tax;
+				} else {
+					gross = val;
+					net = gross / (1 + rate);
+					tax = gross - net;
+				}
+
+				if (resNet) resNet.textContent = `$${net.toFixed(2)}`;
+				if (resTax) resTax.textContent = `${calcMode === 'add' ? '+' : ''}$${tax.toFixed(2)}`;
+				if (resGross) resGross.textContent = `$${gross.toFixed(2)}`;
+			}
+
+			calculate();
+		</script>
+	</body>
+</html>
