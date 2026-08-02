@@ -1,0 +1,660 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "图片格式批量互转工具",
+	description: "免费、100% 本地运行的图片格式批量转换工具，支持 PNG, JPG, WEBP, AVIF, GIF 格式间自由互转与打包下载。",
+	icon: "🔄",
+	tag: "媒体工具",
+	keywords: "图片格式转换 png转jpg jpg转webp webp转png avif转换 gif转换 批量图片转换",
+	pinned: false,
+	priority: 89
+};
+
+const pageTitle = `图片格式批量互转工具 — ${SITE_TITLE}`;
+const pageDescription = "免费、100% 本地运行的图片格式批量转换工具，支持 PNG, JPG, WEBP, AVIF, GIF 格式间自由互转与打包下载。";
+
+// ⚡ 针对图片格式互转定制的 FAQ
+const faqList = [
+	{
+		question: "在各种图片格式（PNG、JPG、WEBP、AVIF）之间转换该如何选择？",
+		answer: "PNG 适合需要透明背景或高精度的图示/图标；JPG 适合没有透明度的摄影图片；WEBP 和 AVIF 是现代化高压缩率网页格式，可以在保持高清画质的同时大幅减少文件体积，非常适合建站与网页优化。"
+	},
+	{
+		question: "将透明 PNG 转换为 JPG 格式时背景会变成什么颜色？",
+		answer: "因为 JPG 格式本身不支持透明度（Alpha 通道），当您将带有透明背景的 PNG 转为 JPG 时，系统会自动将透明区域填充为白色背景，确保画面不会失真。"
+	},
+	{
+		question: "批量转换图片时我的隐私安全吗？图片会传到服务器吗？",
+		answer: "100% 安全。本工具完全利用您浏览器的 JavaScript 和 HTML5 Canvas 在本地设备进行格式解包和重新编码，没有任何数据会被上传到远程服务器，您可以放心转换敏感图像。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+
+// ⚡ 相关工具推荐列表（增加内部链接，提升 SEO 权重）
+const relatedTools = [
+	{
+		name: "图片转 WebP 格式工具",
+		desc: "专为网页与电商优化打造的 WebP 极速批量压缩器。",
+		link: "/tools/image-to-webp-zh/",
+		icon: "🖼️"
+	},
+	{
+		name: "图片在线去水印工具",
+		desc: "纯前端涂抹擦除图片上的多余文字、Logo 与标记。",
+		link: "/tools/watermark-remover-zh/",
+		icon: "🧹"
+	},
+	{
+		name: "SVG 图标在线压缩工具",
+		desc: "清理 SVG 代码元数据与注释，大幅精简矢量图体积。",
+		link: "/tools/svg-optimizer-zh/",
+		icon: "⚡"
+	},
+	{
+		name: "Base64 & URL 编解码工具",
+		desc: "快速将文本或图片转为 Base64 data URI 或编码字符串。",
+		link: "/tools/base64-encoder-zh/",
+		icon: "🔤"
+	}
+];
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" is:inline></script>
+		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+		<style>
+			main {
+				width: 850px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+
+			/* 参数配置网格 */
+			.config-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1.2rem;
+				margin-bottom: 1.5em;
+				padding-bottom: 1.2em;
+				border-bottom: 1px solid var(--card-border);
+			}
+			.config-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+			.config-group label {
+				font-weight: 600;
+				font-size: 0.9rem;
+				color: var(--text-main);
+			}
+			select, input[type="number"] {
+				width: 100%;
+				padding: 0.6em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.9rem;
+				outline: none;
+				box-sizing: border-box;
+				transition: border-color 0.2s;
+			}
+			select:focus, input[type="number"]:focus {
+				border-color: var(--accent);
+			}
+
+			/* 上传拖拽区域 */
+			.drop-zone {
+				border: 2px dashed var(--card-border);
+				background: var(--code-bg);
+				border-radius: 12px;
+				padding: 2.5em 1em;
+				text-align: center;
+				cursor: pointer;
+				transition: border-color 0.2s, background 0.2s;
+				margin-bottom: 1.5em;
+			}
+			.drop-zone:hover, .drop-zone.dragover {
+				border-color: var(--accent);
+				background: var(--badge-bg);
+			}
+			.drop-icon {
+				font-size: 2.2rem;
+				margin-bottom: 0.3em;
+			}
+			.drop-text {
+				color: var(--text-muted);
+				font-size: 0.95rem;
+			}
+			.drop-text span {
+				color: var(--accent);
+				font-weight: 600;
+			}
+
+			/* 按钮栏 */
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+				margin: 1.2rem 0;
+				align-items: center;
+				justify-content: space-between;
+				flex-wrap: wrap;
+			}
+			.btn {
+				background: var(--accent);
+				color: #ffffff !important;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+			.btn:hover { background: var(--accent-hover); }
+			.btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+			.btn-secondary {
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			/* 文件转换列表 */
+			.file-list {
+				display: flex;
+				flex-direction: column;
+				gap: 0.8rem;
+				margin-top: 1em;
+			}
+			.file-item {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				padding: 0.9em;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
+			.file-info {
+				display: flex;
+				align-items: center;
+				gap: 0.9rem;
+			}
+			.file-preview {
+				width: 46px;
+				height: 46px;
+				border-radius: 6px;
+				object-fit: cover;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+			}
+			.file-details h4 {
+				margin: 0 0 0.2rem 0;
+				font-size: 0.9rem;
+				color: var(--text-main);
+				word-break: break-all;
+			}
+			.file-details p {
+				margin: 0;
+				font-size: 0.8rem;
+				color: var(--text-muted);
+			}
+			.file-status {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+			}
+			.badge {
+				padding: 0.25rem 0.6rem;
+				border-radius: 6px;
+				font-size: 0.75rem;
+				font-weight: 600;
+			}
+			.badge-success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+			.badge-pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+			.btn-sm {
+				padding: 0.35em 0.8em;
+				font-size: 0.8rem;
+			}
+
+			/* 相关工具推荐样式 */
+			.related-section {
+				margin-top: 3.5em;
+				padding-top: 2em;
+				border-top: 1px solid var(--card-border);
+			}
+			.section-title {
+				font-size: 1.3rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1em;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+			.related-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+				gap: 1rem;
+			}
+			.related-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1em;
+				text-decoration: none !important;
+				transition: transform 0.2s, border-color 0.2s;
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+			.related-card:hover {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+			}
+			.related-card-header {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-weight: 700;
+				font-size: 0.92rem;
+				color: var(--text-main);
+			}
+			.related-card p {
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.4;
+			}
+
+			/* FAQ 区域 */
+			.faq-section {
+				margin-top: 2.5em;
+				padding-top: 2em;
+				border-top: 1px dashed var(--card-border);
+			}
+			.faq-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+				gap: 1.2rem;
+			}
+			.faq-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2em;
+			}
+			.faq-card h3 {
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin: 0 0 0.5rem 0;
+			}
+			.faq-card p {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.6;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🔄 图片格式批量互转工具</h1>
+				<p>100% 本地处理，支持 PNG、JPG、WEBP、AVIF、GIF 批量任意格式互转与压缩</p>
+			</div>
+
+			<div class="tool-box">
+				<!-- 参数设置 -->
+				<div class="config-grid">
+					<div class="config-group">
+						<label for="targetFormat">目标输出格式</label>
+						<select id="targetFormat">
+							<option value="image/webp" selected>WebP (网页推荐/高压缩率)</option>
+							<option value="image/jpeg">JPG / JPEG (通用相机格式)</option>
+							<option value="image/png">PNG (透明图/无损格式)</option>
+							<option value="image/avif">AVIF (下一代超级压缩格式)</option>
+							<option value="image/gif">GIF (静态/普通图像)</option>
+						</select>
+					</div>
+
+					<div class="config-group">
+						<label for="qualitySelect">图片压缩质量</label>
+						<select id="qualitySelect">
+							<option value="0.92">高画质 (92%)</option>
+							<option value="0.80" selected>平衡推荐 (80%)</option>
+							<option value="0.65">高压缩率 (65%)</option>
+							<option value="1.0">无损/最高品质 (100%)</option>
+						</select>
+					</div>
+
+					<div class="config-group">
+						<label for="maxWidthInput">最大宽度限制 (像素, 可选)</label>
+						<input type="number" id="maxWidthInput" placeholder="原图宽度 (留空不缩放)" min="1" />
+					</div>
+				</div>
+
+				<!-- 上传区域 -->
+				<div class="drop-zone" id="dropZone">
+					<div class="drop-icon">📁</div>
+					<div class="drop-text">将任意图片拖拽至此处，或 <span>点击选择文件</span></div>
+					<input type="file" id="fileInput" multiple accept="image/png, image/jpeg, image/webp, image/avif, image/gif, image/bmp" style="display: none;" />
+				</div>
+
+				<!-- 操作控制栏 -->
+				<div class="btn-group" id="actionBar" style="display: none;">
+					<div style="font-size: 0.9rem; color: var(--text-muted);">
+						已加载: <strong id="fileCount" style="color: var(--text-main);">0</strong> 张图片
+					</div>
+					<div style="display: flex; gap: 0.6rem;">
+						<button class="btn btn-secondary" id="btnClear">清空列表</button>
+						<button class="btn" id="btnDownloadZip" disabled>打包下载 ZIP</button>
+					</div>
+				</div>
+
+				<!-- 转换任务列表 -->
+				<div class="file-list" id="fileList"></div>
+			</div>
+
+			<!-- ⚡ 相关工具推荐 -->
+			<section class="related-section">
+				<div class="section-title">🔗 您可能还需要这些办公与开发工具：</div>
+				<div class="related-grid">
+					{relatedTools.map(item => (
+						<a href={item.link} class="related-card">
+							<div class="related-card-header">
+								<span>{item.icon}</span>
+								<span>{item.name}</span>
+							</div>
+							<p>{item.desc}</p>
+						</a>
+					))}
+				</div>
+			</section>
+
+			<!-- ⚡ 定制 FAQ 区域 -->
+			<section class="faq-section">
+				<div class="section-title">❓ 常见问题解答 (FAQ)</div>
+				<div class="faq-grid">
+					{faqList.map(item => (
+						<div class="faq-card">
+							<h3>{item.question}</h3>
+							<p>{item.answer}</p>
+						</div>
+					))}
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<script>
+			declare const JSZip: any;
+
+			interface Task {
+				id: string;
+				file: File;
+				name: string;
+				originalSize: number;
+				status: 'pending' | 'done';
+				blob: Blob | null;
+				ratio?: string;
+				outputInfo?: string;
+				targetName: string;
+			}
+
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+			const fileList = document.getElementById('fileList');
+			const actionBar = document.getElementById('actionBar');
+			const fileCount = document.getElementById('fileCount');
+			const btnClear = document.getElementById('btnClear');
+			const btnDownloadZip = document.getElementById('btnDownloadZip') as HTMLButtonElement;
+
+			const targetFormat = document.getElementById('targetFormat') as HTMLSelectElement;
+			const qualitySelect = document.getElementById('qualitySelect') as HTMLSelectElement;
+			const maxWidthInput = document.getElementById('maxWidthInput') as HTMLInputElement;
+
+			let tasks: Task[] = [];
+
+			const extMap: Record<string, string> = {
+				'image/webp': '.webp',
+				'image/jpeg': '.jpg',
+				'image/png': '.png',
+				'image/avif': '.avif',
+				'image/gif': '.gif'
+			};
+
+			targetFormat?.addEventListener('change', reprocessAll);
+			qualitySelect?.addEventListener('change', reprocessAll);
+			maxWidthInput?.addEventListener('input', reprocessAll);
+
+			dropZone?.addEventListener('click', () => fileInput?.click());
+			dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+			dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+			dropZone?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				dropZone.classList.remove('dragover');
+				if (e.dataTransfer?.files.length) handleFiles(e.dataTransfer.files);
+			});
+
+			fileInput?.addEventListener('change', () => {
+				if (fileInput.files?.length) handleFiles(fileInput.files);
+			});
+
+			btnClear?.addEventListener('click', () => {
+				tasks = [];
+				renderList();
+			});
+
+			function getTargetExt(): string {
+				const mime = targetFormat?.value || 'image/webp';
+				return extMap[mime] || '.img';
+			}
+
+			function handleFiles(files: FileList) {
+				const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+				const ext = getTargetExt();
+
+				newFiles.forEach(file => {
+					const id = Math.random().toString(36).substring(2, 9);
+					tasks.push({
+						id,
+						file,
+						name: file.name,
+						originalSize: file.size,
+						status: 'pending',
+						blob: null,
+						targetName: file.name.replace(/\.[^/.]+$/, "") + ext
+					});
+				});
+				renderList();
+				processQueue();
+			}
+
+			function reprocessAll() {
+				const ext = getTargetExt();
+				tasks.forEach(t => {
+					t.status = 'pending';
+					t.targetName = t.name.replace(/\.[^/.]+$/, "") + ext;
+				});
+				renderList();
+				processQueue();
+			}
+
+			function renderList() {
+				if (!fileList || !fileCount || !actionBar || !btnDownloadZip) return;
+				fileList.innerHTML = '';
+				fileCount.textContent = tasks.length.toString();
+				actionBar.style.display = tasks.length ? 'flex' : 'none';
+
+				const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
+				btnDownloadZip.disabled = !allDone;
+
+				tasks.forEach(task => {
+					const item = document.createElement('div');
+					item.className = 'file-item';
+					item.innerHTML = `
+						<div class="file-info">
+							<img class="file-preview" id="prev-${task.id}" src="" alt="" />
+							<div class="file-details">
+								<h4>${task.name}</h4>
+								<p>原始体积: ${formatBytes(task.originalSize)} ${task.outputInfo ? ' ➔ <strong>' + task.outputInfo + '</strong>' : ''}</p>
+							</div>
+						</div>
+						<div class="file-status">
+							${task.status === 'done' && task.blob
+								? `<span class="badge badge-success">已转为 ${task.targetName.split('.').pop()?.toUpperCase()}</span>
+								   <a class="btn btn-sm" href="${URL.createObjectURL(task.blob)}" download="${task.targetName}">下载文件</a>`
+								: `<span class="badge badge-pending">转换中...</span>`
+							}
+						</div>
+					`;
+					fileList.appendChild(item);
+
+					const imgEl = item.querySelector(`#prev-${task.id}`) as HTMLImageElement;
+					if (imgEl && task.file) {
+						imgEl.src = URL.createObjectURL(task.file);
+					}
+				});
+			}
+
+			async function processQueue() {
+				const mime = targetFormat?.value || 'image/webp';
+				const quality = parseFloat(qualitySelect?.value || '0.8');
+				const maxW = parseInt(maxWidthInput?.value || '0') || 0;
+
+				for (let task of tasks) {
+					if (task.status === 'done') continue;
+
+					try {
+						const blob = await convertImage(task.file, mime, quality, maxW);
+						task.blob = blob;
+						task.status = 'done';
+						
+						const diff = ((task.originalSize - blob.size) / task.originalSize * 100).toFixed(1);
+						task.outputInfo = `${formatBytes(blob.size)} (${parseFloat(diff) > 0 ? '-' + diff + '%' : '+' + Math.abs(parseFloat(diff)) + '%'})`;
+					} catch (e) {
+						console.error('转换失败:', e);
+					}
+				}
+				renderList();
+			}
+
+			function convertImage(file: File, mime: string, quality: number, maxW: number): Promise<Blob> {
+				return new Promise((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => {
+						let w = img.width;
+						let h = img.height;
+
+						if (maxW > 0 && w > maxW) {
+							h = Math.round((h * maxW) / w);
+							w = maxW;
+						}
+
+						const canvas = document.createElement('canvas');
+						canvas.width = w;
+						canvas.height = h;
+						const ctx = canvas.getContext('2d');
+
+						// JPG 格式不支持透明通道，填充白色背景
+						if (mime === 'image/jpeg') {
+							if (ctx) {
+								ctx.fillStyle = '#FFFFFF';
+								ctx.fillRect(0, 0, w, h);
+							}
+						}
+
+						ctx?.drawImage(img, 0, 0, w, h);
+
+						canvas.toBlob((blob) => {
+							if (blob) resolve(blob);
+							else reject(new Error('Canvas 转换导出失败'));
+						}, mime, quality);
+					};
+					img.onerror = reject;
+					img.src = URL.createObjectURL(file);
+				});
+			}
+
+			btnDownloadZip?.addEventListener('click', async () => {
+				if (typeof JSZip === 'undefined') {
+					alert('JSZip 依赖库加载失败，请检查网络！');
+					return;
+				}
+				const zip = new JSZip();
+				tasks.forEach(t => {
+					if (t.blob) zip.file(t.targetName, t.blob);
+				});
+				const content = await zip.generateAsync({ type: 'blob' });
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(content);
+				link.download = `converted_images_${Date.now()}.zip`;
+				link.click();
+			});
+
+			function formatBytes(bytes: number): string {
+				if (bytes === 0) return '0 B';
+				const k = 1024;
+				const sizes = ['B', 'KB', 'MB', 'GB'];
+				const i = Math.floor(Math.log(bytes) / Math.log(k));
+				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+			}
+		</script>
+	</body>
+</html>
