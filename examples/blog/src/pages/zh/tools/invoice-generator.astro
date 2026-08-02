@@ -1,0 +1,572 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "自由职业者在线 PDF 发票/账单生成器",
+	description: "免费在线制作专业 PDF 发票与账单，100% 本地生成，数据不出浏览器，支持自定义 Logo、税率计算与一键导出 PDF。",
+	icon: "🧾",
+	tag: "财务工具",
+	keywords: "PDF发票生成器 账单生成器 自由职业者发票 在线Invoice制作 商业发票模板 GDPR隐私发票",
+	pinned: false,
+	priority: 90
+};
+
+const pageTitle = `自由职业者在线 PDF 发票生成器 — ${SITE_TITLE}`;
+const pageDescription = "免费在线制作专业 PDF 发票与账单，100% 本地生成，数据不出浏览器，支持自定义 Logo、税率计算与一键导出 PDF。";
+
+const faqList = [
+	{
+		question: "生成发票时输入的客户与银行数据安全吗？",
+		answer: "绝对安全。本工具采用 100% 纯前端浏览器本地渲染技术，所有填写的开票信息、金额与银行账号均仅在您的浏览器中处理，绝不上传到任何远程服务器，完全符合欧盟 GDPR 隐私保护标准。"
+	},
+	{
+		question: "如何将生成的发票保存为 PDF 文件？",
+		answer: "填好发票内容后，点击底部的“导出为 PDF 发票”按钮，系统会自动调用浏览器的标准打印窗口，您只需将目标打印机选择为“保存为 PDF（Save as PDF）”即可一键下载高清 PDF 发票文件。"
+	},
+	{
+		question: "发票上可以添加我自己的公司 Logo 吗？",
+		answer: "可以。点击 Logo 上传区域，您可以自由上传您的个人或公司 Logo 图标，系统会自动裁剪适应发票排版。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+		<style>
+			main {
+				width: 900px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+
+			/* 打印区域排版 - 标准发票 */
+			.invoice-paper {
+				background: #ffffff;
+				color: #1e293b;
+				border-radius: 8px;
+				padding: 2.5em;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+				font-family: system-ui, -apple-system, sans-serif;
+			}
+
+			.invoice-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				gap: 1.5rem;
+				border-bottom: 2px solid #e2e8f0;
+				padding-bottom: 1.5em;
+				margin-bottom: 1.5em;
+			}
+
+			.logo-upload {
+				width: 140px;
+				height: 70px;
+				border: 2px dashed #cbd5e1;
+				border-radius: 6px;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				background: #f8fafc;
+				overflow: hidden;
+				position: relative;
+			}
+			.logo-upload img {
+				width: 100%;
+				height: 100%;
+				object-fit: contain;
+			}
+			.logo-upload span {
+				font-size: 0.75rem;
+				color: #64748b;
+			}
+
+			.invoice-title {
+				text-align: right;
+			}
+			.invoice-title h2 {
+				font-size: 2rem;
+				font-weight: 900;
+				color: #0f172a;
+				margin: 0;
+				letter-spacing: 1px;
+			}
+			.invoice-title input {
+				text-align: right;
+				font-size: 0.9rem;
+				border: none;
+				border-bottom: 1px solid #cbd5e1;
+				outline: none;
+				padding: 0.2em;
+				margin-top: 0.3em;
+			}
+
+			.address-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+				gap: 1.5rem;
+				margin-bottom: 2em;
+			}
+			.address-block h4 {
+				margin: 0 0 0.5rem 0;
+				font-size: 0.85rem;
+				color: #64748b;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+			}
+			.address-block textarea, .address-block input {
+				width: 100%;
+				border: 1px solid #e2e8f0;
+				border-radius: 6px;
+				padding: 0.5em;
+				font-size: 0.9rem;
+				outline: none;
+				box-sizing: border-box;
+				background: #f8fafc;
+				color: #1e293b;
+			}
+			.address-block textarea {
+				height: 80px;
+				resize: vertical;
+			}
+
+			/* 条目表格 */
+			.items-table {
+				width: 100%;
+				border-collapse: collapse;
+				margin-bottom: 1.5em;
+			}
+			.items-table th {
+				background: #f1f5f9;
+				color: #475569;
+				text-align: left;
+				padding: 0.75em 0.5em;
+				font-size: 0.85rem;
+				font-weight: 700;
+			}
+			.items-table td {
+				padding: 0.6em 0.5em;
+				border-bottom: 1px solid #e2e8f0;
+			}
+			.items-table input {
+				width: 100%;
+				border: 1px solid #e2e8f0;
+				border-radius: 4px;
+				padding: 0.4em;
+				font-size: 0.88rem;
+				outline: none;
+				box-sizing: border-box;
+			}
+			.btn-del-item {
+				background: #fee2e2;
+				color: #ef4444;
+				border: none;
+				padding: 0.3em 0.6em;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 700;
+			}
+
+			/* 统计与备注 */
+			.summary-section {
+				display: flex;
+				justify-content: space-between;
+				gap: 2rem;
+				flex-wrap: wrap;
+			}
+			.notes-block {
+				flex: 1;
+				min-width: 250px;
+			}
+			.notes-block textarea {
+				width: 100%;
+				height: 100px;
+				border: 1px solid #e2e8f0;
+				border-radius: 6px;
+				padding: 0.5em;
+				font-size: 0.85rem;
+				background: #f8fafc;
+				box-sizing: border-box;
+			}
+
+			.totals-block {
+				width: 280px;
+			}
+			.total-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.4em 0;
+				font-size: 0.9rem;
+			}
+			.total-row.due {
+				font-size: 1.15rem;
+				font-weight: 800;
+				border-top: 2px solid #0f172a;
+				margin-top: 0.5em;
+				padding-top: 0.6em;
+				color: #0f172a;
+			}
+			.totals-block input {
+				width: 70px;
+				text-align: right;
+				border: 1px solid #cbd5e1;
+				border-radius: 4px;
+				padding: 0.2em;
+			}
+
+			/* 操作栏 */
+			.action-bar {
+				display: flex;
+				gap: 1rem;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 1.5em;
+			}
+			.btn {
+				background: var(--accent);
+				color: #ffffff !important;
+				border: none;
+				padding: 0.7em 1.4em;
+				border-radius: 8px;
+				font-weight: 700;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+			.btn:hover { background: var(--accent-hover); }
+			.btn-secondary {
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+			}
+
+			/* 打印样式覆盖 */
+			@media print {
+				body * {
+					visibility: hidden;
+				}
+				.invoice-paper, .invoice-paper * {
+					visibility: visible;
+				}
+				.invoice-paper {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 100%;
+					box-shadow: none;
+					padding: 0;
+				}
+				.btn-del-item, #btnAddItem, .action-bar, Header, Footer, .faq-section, .tool-header {
+					display: none !important;
+				}
+				.invoice-paper input, .invoice-paper textarea {
+					border: none !important;
+					background: transparent !important;
+				}
+			}
+
+			.faq-section {
+				margin-top: 3.5em;
+				padding-top: 2em;
+				border-top: 1px solid var(--card-border);
+			}
+			.faq-title {
+				font-size: 1.4rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1em;
+			}
+			.faq-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+				gap: 1.2rem;
+			}
+			.faq-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				padding: 1.2em;
+			}
+			.faq-card h3 {
+				font-size: 0.95rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin: 0 0 0.5rem 0;
+			}
+			.faq-card p {
+				font-size: 0.85rem;
+				color: var(--text-muted);
+				margin: 0;
+				line-height: 1.6;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🧾 自由职业者 PDF 发票/账单生成器</h1>
+				<p>100% 纯前端本地生成，快速开具专业商业发票，完美支持 GDPR 隐私合规</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="invoice-paper" id="invoicePaper">
+					<!-- 头部区域 -->
+					<div class="invoice-header">
+						<div class="logo-upload" id="logoBox">
+							<span id="logoText">点击上传 Logo</span>
+							<img id="logoImg" style="display:none;" alt="Company Logo" />
+							<input type="file" id="logoInput" accept="image/*" style="display:none;" />
+						</div>
+
+						<div class="invoice-title">
+							<h2>INVOICE</h2>
+							<div>发票编号: <input type="text" id="invNumber" value="INV-2026-001" /></div>
+							<div>开票日期: <input type="date" id="invDate" /></div>
+							<div>付款截止: <input type="date" id="dueDate" /></div>
+						</div>
+					</div>
+
+					<!-- 开票双方信息 -->
+					<div class="address-grid">
+						<div class="address-block">
+							<h4>开票方信息 (FROM):</h4>
+							<textarea id="fromInfo" placeholder="您的公司/姓名&#10;地址与联系电话&#10;Tax ID / VAT 号码"></textarea>
+						</div>
+						<div class="address-block">
+							<h4>收款客户信息 (BILL TO):</h4>
+							<textarea id="toInfo" placeholder="客户公司/姓名&#10;客户账单地址&#10;客户联系邮箱"></textarea>
+						</div>
+					</div>
+
+					<!-- 发票条目明细 -->
+					<table class="items-table">
+						<thead>
+							<tr>
+								<th style="width: 45%;">服务项目 / 商品描述</th>
+								<th style="width: 15%;">数量</th>
+								<th style="width: 20%;">单价 ($)</th>
+								<th style="width: 15%;">金额 ($)</th>
+								<th style="width: 5%;"></th>
+							</tr>
+						</thead>
+						<tbody id="itemsBody">
+							<tr>
+								<td><input type="text" class="item-desc" value="网站 UI/UX 设计与开发服务" /></td>
+								<td><input type="number" class="item-qty" value="1" min="1" /></td>
+								<td><input type="number" class="item-rate" value="800.00" min="0" step="0.01" /></td>
+								<td class="item-total" style="font-weight:600; text-align:right;">$800.00</td>
+								<td><button class="btn-del-item">×</button></td>
+							</tr>
+						</tbody>
+					</table>
+
+					<button class="btn-secondary" id="btnAddItem" style="font-size:0.85rem; padding:0.4em 0.8em; margin-bottom:1.5em;">+ 添加新条目</button>
+
+					<!-- 备注与费用小计 -->
+					<div class="summary-section">
+						<div class="notes-block">
+							<h4 style="margin:0 0 0.4rem 0; font-size:0.85rem; color:#64748b;">支付方式 & 备注条款:</h4>
+							<textarea id="notesInput" placeholder="请输入您的银行收款账号（IBAN/SWIFT）、PayPal 账号或付款备注条款..."></textarea>
+						</div>
+
+						<div class="totals-block">
+							<div class="total-row">
+								<span>小计 (Subtotal):</span>
+								<span id="subTotalDisplay" style="font-weight:600;">$800.00</span>
+							</div>
+							<div class="total-row">
+								<span>折扣 (Discount %):</span>
+								<input type="number" id="discountInput" value="0" min="0" max="100" />
+							</div>
+							<div class="total-row">
+								<span>税率 (Tax / VAT %):</span>
+								<input type="number" id="taxInput" value="0" min="0" />
+							</div>
+							<div class="total-row due">
+								<span>应付总额 (Total Due):</span>
+								<span id="grandTotalDisplay">$800.00</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 操作工具栏 -->
+				<div class="action-bar">
+					<button class="btn btn-secondary" id="btnReset">清空重填</button>
+					<button class="btn" id="btnPrintPdf">📄 导出为 PDF 发票 / 打印</button>
+				</div>
+			</div>
+
+			<section class="faq-section">
+				<div class="faq-title">❓ 常见问题解答 (FAQ)</div>
+				<div class="faq-grid">
+					{faqList.map(item => (
+						<div class="faq-card">
+							<h3>{item.question}</h3>
+							<p>{item.answer}</p>
+						</div>
+					))}
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<script>
+			const logoBox = document.getElementById('logoBox');
+			const logoInput = document.getElementById('logoInput') as HTMLInputElement;
+			const logoImg = document.getElementById('logoImg') as HTMLImageElement;
+			const logoText = document.getElementById('logoText');
+
+			const itemsBody = document.getElementById('itemsBody');
+			const btnAddItem = document.getElementById('btnAddItem');
+			const btnPrintPdf = document.getElementById('btnPrintPdf');
+			const btnReset = document.getElementById('btnReset');
+
+			const subTotalDisplay = document.getElementById('subTotalDisplay');
+			const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+			const discountInput = document.getElementById('discountInput') as HTMLInputElement;
+			const taxInput = document.getElementById('taxInput') as HTMLInputElement;
+
+			// 设置默认日期为今天
+			const today = new Date().toISOString().split('T')[0];
+			(document.getElementById('invDate') as HTMLInputElement).value = today;
+
+			// Logo 上传
+			logoBox?.addEventListener('click', () => logoInput?.click());
+			logoInput?.addEventListener('change', () => {
+				if (logoInput.files?.length) {
+					const file = logoInput.files[0];
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						if (logoImg && logoText) {
+							logoImg.src = e.target?.result as string;
+							logoImg.style.display = 'block';
+							logoText.style.display = 'none';
+						}
+					};
+					reader.readAsDataURL(file);
+				}
+			});
+
+			// 动态增加条目
+			btnAddItem?.addEventListener('click', () => {
+				const tr = document.createElement('tr');
+				tr.innerHTML = `
+					<td><input type="text" class="item-desc" placeholder="条目描述..." /></td>
+					<td><input type="number" class="item-qty" value="1" min="1" /></td>
+					<td><input type="number" class="item-rate" value="0.00" min="0" step="0.01" /></td>
+					<td class="item-total" style="font-weight:600; text-align:right;">$0.00</td>
+					<td><button class="btn-del-item">×</button></td>
+				`;
+				itemsBody?.appendChild(tr);
+				bindTableEvents();
+				calculateTotals();
+			});
+
+			function bindTableEvents() {
+				const qtyInputs = document.querySelectorAll('.item-qty');
+				const rateInputs = document.querySelectorAll('.item-rate');
+				const delBtns = document.querySelectorAll('.btn-del-item');
+
+				qtyInputs.forEach(input => input.addEventListener('input', calculateTotals));
+				rateInputs.forEach(input => input.addEventListener('input', calculateTotals));
+
+				delBtns.forEach(btn => {
+					btn.onclick = (e) => {
+						const tr = (e.target as HTMLElement).closest('tr');
+						tr?.remove();
+						calculateTotals();
+					};
+				});
+			}
+
+			discountInput?.addEventListener('input', calculateTotals);
+			taxInput?.addEventListener('input', calculateTotals);
+
+			function calculateTotals() {
+				let subtotal = 0;
+				const rows = itemsBody?.querySelectorAll('tr');
+
+				rows?.forEach(row => {
+					const qty = parseFloat((row.querySelector('.item-qty') as HTMLInputElement)?.value || '0');
+					const rate = parseFloat((row.querySelector('.item-rate') as HTMLInputElement)?.value || '0');
+					const itemTotal = qty * rate;
+
+					const totalTd = row.querySelector('.item-total');
+					if (totalTd) totalTd.textContent = `$${itemTotal.toFixed(2)}`;
+
+					subtotal += itemTotal;
+				});
+
+				const discount = parseFloat(discountInput?.value || '0') / 100;
+				const tax = parseFloat(taxInput?.value || '0') / 100;
+
+				const afterDiscount = subtotal * (1 - discount);
+				const grandTotal = afterDiscount * (1 + tax);
+
+				if (subTotalDisplay) subTotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+				if (grandTotalDisplay) grandTotalDisplay.textContent = `$${grandTotal.toFixed(2)}`;
+			}
+
+			btnPrintPdf?.addEventListener('click', () => {
+				window.print();
+			});
+
+			btnReset?.addEventListener('click', () => {
+				if (confirm('确定要清空发票数据重填吗？')) {
+					location.reload();
+				}
+			});
+
+			bindTableEvents();
+			calculateTotals();
+		</script>
+	</body>
+</html>
