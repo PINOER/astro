@@ -1,0 +1,49 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+const pageTitle = `Privacy Policy — ${SITE_TITLE}`;
+const pageDescription = "HelpMini Privacy Policy. 100% client-side privacy, zero server uploads.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+				color: var(--text-muted);
+				line-height: 1.7;
+			}
+			h1, h2 { color: var(--text-main); }
+			h1 { font-size: 2.2rem; margin-bottom: 0.2em; }
+			h2 { font-size: 1.3rem; margin-top: 1.8em; }
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Privacy Policy</h1>
+			<p><em>Last updated: August 2026</em></p>
+
+			<h2>1. Zero Server Upload Policy</h2>
+			<p>At HelpMini, your privacy is our top priority. All our web utilities operate 100% client-side directly within your web browser. Your uploaded images, financial figures, text snippets, and document files are processed locally on your device and are <strong>never uploaded to any remote server</strong>.</p>
+
+			<h2>2. Information We Do Not Collect</h2>
+			<p>We do not collect personal identification information, user accounts, passwords, or payment card details. No sign-up or registration is required to use our services.</p>
+
+			<h2>3. Cookies and Local Storage</h2>
+			<p>We use local browser storage strictly to remember your site preferences (such as Light/Dark theme mode) and selected language preferences.</p>
+
+			<h2>4. Contact Us</h2>
+			<p>If you have any questions regarding this Privacy Policy, please reach out through our <a href="/feedback/" style="color:var(--accent);">Feedback page</a>.</p>
+		</main>
+		<Footer />
+	</body>
+</html>
