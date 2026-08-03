@@ -2,13 +2,24 @@
 
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import cloudflare from '@astrojs/cloudflare'; // 👈 1. 新增：引入 Cloudflare 适配器
+import cloudflare from '@astrojs/cloudflare';
 import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://helpmini.com',
-	adapter: cloudflare(), // 👈 3. 新增：指定部署到 Cloudflare Pages
+	
+	// ⚡【关键新增 1】：开启服务端/SSR 动态渲染模式
+	// 只有开启了 'server' 或 'hybrid'，/api/ 接口才会变成真正的后端动态 API 端点！
+	output: 'server',
+
+	// ⚡【关键修改 2】：配置 Cloudflare 适配器并启用平台代理
+	adapter: cloudflare({
+		platformProxy: {
+			enabled: true, // 允许在开发和构建层继承 Cloudflare 的 KV 绑定上下文
+		},
+	}),
+
 	integrations: [mdx(), sitemap()],
 	fonts: [
 		{
