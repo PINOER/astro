@@ -478,6 +478,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		gap: 1rem;
 	}
 
+	/* 1. 左侧 Brand Logo：防挤压 */
 	.nav-left {
 		display: flex;
 		align-items: center;
@@ -498,9 +499,11 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		opacity: 0.85;
 	}
 
+	/* 2. 中间搜索框：增加 Safari 伸缩保护 */
 	.nav-center {
 		flex: 1;
 		max-width: 460px;
+		min-width: 0; /* ⚡ 允许 Flex 子项缩到最小，防止 Safari 撑爆容器 */
 		display: flex;
 		justify-content: center;
 	}
@@ -518,6 +521,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		cursor: pointer;
 		transition: all 0.2s ease;
 		user-select: none;
+		min-width: 0; /* ⚡ 阻止触发器自身被隐式文本撑开 */
 	}
 
 	.search-box-trigger:hover {
@@ -530,6 +534,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		font-size: 0.9rem;
 		opacity: 0.6;
 		margin-right: 0.5rem;
+		flex-shrink: 0;
 	}
 
 	.search-placeholder {
@@ -541,6 +546,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		text-overflow: ellipsis;
 		display: flex;
 		align-items: center;
+		min-width: 0; /* ⚡ 保证椭圆截断（...）在 iOS/Safari 上正常工作 */
 	}
 
 	.slogan-text {
@@ -549,7 +555,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	}
 
 	.mobile-short-placeholder {
-		display: none; /* 默认桌面端隐藏短 placeholder */
+		display: none; /* 默认桌面端隐藏短占位符 */
 	}
 
 	.kbd-badge {
@@ -561,13 +567,15 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		padding: 0.15em 0.5em;
 		border-radius: 6px;
 		font-family: inherit;
+		flex-shrink: 0;
 	}
 
+	/* 3. 右侧操作按钮组：强制禁止被挤压 */
 	.nav-right {
 		display: flex;
 		align-items: center;
 		gap: 0.6rem;
-		flex-shrink: 0;
+		flex-shrink: 0; /* ⚡ 绝对禁止右侧按钮被挤出屏幕 */
 	}
 
 	.icon-btn {
@@ -869,28 +877,41 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		text-overflow: ellipsis;
 	}
 
-	/* ⚡ 移动端样式调整（小于 640px） */
+	/* 📱 移动端与 iPhone Safari 针对性适配 (≤ 640px) */
 	@media (max-width: 640px) {
 		header.header-bar {
-			padding: 0 0.8em;
+			padding: 0 0.6em; /* 适当紧凑两边内边距 */
 		}
+
+		.nav-container {
+			gap: 0.4rem; /* 减小各组件外间距 */
+		}
+
 		.nav-center {
-			max-width: 140px;
+			max-width: 120px; /* ⚡ 移动端显式强行限制中间宽度 */
 		}
-		/* 移动端隐藏完整长标语和 ⌘K 快捷键提示 */
+
+		/* 移动端隐藏完整标语和 ⌘K 快捷键提示 */
 		.slogan-text, .kbd-badge {
 			display: none !important;
 		}
-		/* 显示移动端短词占位符 */
+
+		/* 显示移动端极简短语 */
 		.mobile-short-placeholder {
 			display: inline !important;
 			opacity: 0.6;
 		}
+
 		.search-icon {
-			margin-right: 0.3rem;
+			margin-right: 0.2rem;
 		}
+
 		.search-box-trigger {
-			padding: 0 0.7em;
+			padding: 0 0.5em;
+		}
+
+		.nav-right {
+			gap: 0.3rem; /* 适当紧凑右侧按钮间距，确保安全容纳 */
 		}
 	}
 </style>
