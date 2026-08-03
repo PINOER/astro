@@ -1,0 +1,474 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "Open Graph (OG) 社交分享卡片标签生成与预览工具",
+	description: "免费且 100% 保护隐私的在线工具，快速生成支持 Facebook、Twitter/X 与 LinkedIn 的 Open Graph 社交卡片 HTML Meta 代码。",
+	icon: "🖼️",
+	tag: "数字营销",
+	keywords: "Open Graph生成器 OG标签生成 微信社交卡片预览 OGMeta代码 Twitter卡片生成"
+};
+
+const pageTitle = `${frontmatter.title} — ${SITE_TITLE}`;
+const pageDescription = frontmatter.description;
+---
+
+<!doctype html>
+<html lang="zh">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 900px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.calc-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 2rem;
+			}
+			.section-title {
+				font-size: 1.15rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1rem;
+			}
+			.field-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+				margin-bottom: 1rem;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="text"], textarea {
+				width: 100%;
+				padding: 0.7em 0.9em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus, textarea:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+			textarea {
+				height: 70px;
+				resize: vertical;
+			}
+
+			/* 社交卡片实时预览样式 */
+			.preview-card-container {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 12px;
+				overflow: hidden;
+				margin-bottom: 1.2rem;
+			}
+			.preview-card-img {
+				width: 100%;
+				height: 180px;
+				background-color: var(--gray-light);
+				background-size: cover;
+				background-position: center;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: var(--text-muted);
+				font-size: 0.85rem;
+			}
+			.preview-card-body {
+				padding: 1rem;
+			}
+			.preview-card-domain {
+				font-size: 0.75rem;
+				color: var(--text-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
+				margin-bottom: 0.3rem;
+			}
+			.preview-card-title {
+				font-size: 0.98rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.preview-card-desc {
+				font-size: 0.82rem;
+				color: var(--text-muted);
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+
+			textarea.code-area {
+				height: 160px;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				font-size: 0.85rem;
+				line-height: 1.4;
+			}
+
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+				margin-top: 1.2rem;
+			}
+			.btn {
+				background: var(--accent);
+				color: #ffffff !important;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+			.btn:hover { background: var(--accent-hover); }
+			.btn-secondary {
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			/* FAQ 与相关工具样式 */
+			.content-section {
+				margin-top: 2.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+			}
+			.content-section h2 {
+				font-size: 1.3rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1.2rem;
+			}
+			.faq-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+			.faq-item h3 {
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+			}
+			.faq-item p {
+				font-size: 0.9rem;
+				color: var(--text-muted);
+				line-height: 1.5;
+			}
+			.related-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			.related-card {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+				padding: 0.9rem;
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				text-decoration: none !important;
+				transition: border-color 0.2s;
+			}
+			.related-card:hover {
+				border-color: var(--accent);
+			}
+			.card-icon {
+				font-size: 1.6rem;
+			}
+			.related-card h4 {
+				margin: 0 0 0.2rem 0;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				font-weight: 700;
+			}
+			.related-card p {
+				margin: 0;
+				color: var(--text-muted);
+				font-size: 0.8rem;
+			}
+
+			@media (max-width: 768px) {
+				.calc-grid, .related-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🖼️ {frontmatter.title}</h1>
+				<p>{frontmatter.description}</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="calc-grid">
+					<!-- 输入列 -->
+					<div class="input-section">
+						<div class="section-title">Open Graph 元数据设置</div>
+
+						<div class="field-group">
+							<label for="ogTitle">网页标题 (og:title)</label>
+							<input type="text" id="ogTitle" value="HelpMini — 小微工具，大有作为" placeholder="例如：我的新品发布页面" />
+						</div>
+
+						<div class="field-group">
+							<label for="ogDesc">网页描述 (og:description)</label>
+							<textarea id="ogDesc" placeholder="例如：免费且 100% 保护隐私的在线微工具箱。">免费、快速且 100% 保护隐私的在线微工具箱，专为独立站卖家、远程工作者及营销人员打造。</textarea>
+						</div>
+
+						<div class="field-group">
+							<label for="ogUrl">标准网页 URL (og:url)</label>
+							<input type="text" id="ogUrl" value="https://helpmini.com/" placeholder="例如：https://example.com/page" />
+						</div>
+
+						<div class="field-group">
+							<label for="ogImage">分享缩略图图片 URL (og:image)</label>
+							<input type="text" id="ogImage" value="https://helpmini.com/og-banner.png" placeholder="例如：https://example.com/og-image.png" />
+						</div>
+
+						<div class="field-group">
+							<label for="ogSiteName">网站名称 (og:site_name)</label>
+							<input type="text" id="ogSiteName" value="HelpMini" placeholder="例如：HelpMini" />
+						</div>
+					</div>
+
+					<!-- 实时预览与代码生成列 -->
+					<div class="output-section">
+						<div class="section-title">社交分享卡片实时预览</div>
+
+						<div class="preview-card-container">
+							<div class="preview-card-img" id="cardImgBox">
+								<span>图片预览</span>
+							</div>
+							<div class="preview-card-body">
+								<div class="preview-card-domain" id="cardDomain">HELPMINI.COM</div>
+								<div class="preview-card-title" id="cardTitle">HelpMini — 小微工具，大有作为</div>
+								<div class="preview-card-desc" id="cardDesc">免费、快速且 100% 保护隐私的在线微工具箱...</div>
+							</div>
+						</div>
+
+						<div class="field-group">
+							<label for="codeOutput">生成的 HTML Meta 代码：</label>
+							<textarea class="code-area" id="codeOutput" readonly></textarea>
+						</div>
+
+						<div class="btn-group">
+							<button class="btn btn-secondary" id="btnClear">清空</button>
+							<button class="btn btn-secondary" id="btnCopy" style="margin-left: auto;">复制 Meta 代码</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- FAQ 模块 -->
+			<section class="content-section">
+				<h2>常见问题解答 (FAQ)</h2>
+				<div class="faq-list">
+					<div class="faq-item">
+						<h3>什么是 Open Graph (OG) 协议？它的作用是什么？</h3>
+						<p>Open Graph 是由 Facebook 提出的社交媒体元数据协议。在网站 HTML 中加入 OG 标签后，当链接被分享到 Facebook、Twitter/X、LinkedIn、Slack 或 WhatsApp 时，平台就能自动读取并渲染出美观的大图卡片。”</p>
+					</div>
+					<div class="faq-item">
+						<h3>Open Graph 分享缩略图 (og:image) 的最佳尺寸是多少？</h3>
+						<p>建议的最高兼容尺寸为 <strong>1200 x 630 像素</strong>（宽高比 1.91:1），图片文件大小建议控制在 8MB 以内，以确保在移动端与桌面端均可完美展现。</p>
+					</div>
+					<div class="faq-item">
+						<h3>输入的网页参数会被保存到服务器吗？</h3>
+						<p><strong>绝对不会。</strong> 所有标签构建与实时预览渲染完全在您的浏览器本地进行，数据绝不出设备。</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- 相关工具推荐 -->
+			<section class="content-section">
+				<h2>你可能也会用到</h2>
+				<div class="related-grid">
+					<a href="/zh/tools/utm-builder-url-generator/" class="related-card">
+						<span class="card-icon">🔗</span>
+						<div>
+							<h4>UTM 营销追踪链接生成器</h4>
+							<p>快速生成支持 GA4 的广告与营销追踪链接。</p>
+						</div>
+					</a>
+					<a href="/zh/tools/number-to-words-converter/" class="related-card">
+						<span class="card-icon">🔢</span>
+						<div>
+							<h4>数字转英文大写金额转换器</h4>
+							<p>将数字与金额快速转换为发票标准的英文大写。</p>
+						</div>
+					</a>
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<!-- Schema.org FAQ 结构化数据 -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				"mainEntity": [
+					{
+						"@type": "Question",
+						"name": "什么是 Open Graph (OG) 协议？它的作用是什么？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "Open Graph 是社交媒体元数据协议，能让网站被分享到社交平台时展示精美的大图卡片。"
+						}
+					},
+					{
+						"@type": "Question",
+						"name": "Open Graph 分享缩略图 (og:image) 的最佳尺寸是多少？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "建议的最高兼容尺寸为 1200 x 630 像素。"
+						}
+					}
+				]
+			}
+		</script>
+
+		<script>
+			const ogTitleIn = document.getElementById('ogTitle') as HTMLInputElement;
+			const ogDescIn = document.getElementById('ogDesc') as HTMLTextAreaElement;
+			const ogUrlIn = document.getElementById('ogUrl') as HTMLInputElement;
+			const ogImageIn = document.getElementById('ogImage') as HTMLInputElement;
+			const ogSiteNameIn = document.getElementById('ogSiteName') as HTMLInputElement;
+
+			const cardImgBox = document.getElementById('cardImgBox');
+			const cardDomain = document.getElementById('cardDomain');
+			const cardTitle = document.getElementById('cardTitle');
+			const cardDesc = document.getElementById('cardDesc');
+			const codeOutput = document.getElementById('codeOutput') as HTMLTextAreaElement;
+
+			function updateOg() {
+				const title = ogTitleIn.value.trim();
+				const desc = ogDescIn.value.trim();
+				const url = ogUrlIn.value.trim();
+				const image = ogImageIn.value.trim();
+				const siteName = ogSiteNameIn.value.trim();
+
+				if (cardTitle) cardTitle.textContent = title || '网页标题预览';
+				if (cardDesc) cardDesc.textContent = desc || '网页描述预览将显示在这里...';
+
+				try {
+					const parsedUrl = new URL(url.startsWith('http') ? url : 'https://' + url);
+					if (cardDomain) cardDomain.textContent = parsedUrl.hostname.toUpperCase();
+				} catch (e) {
+					if (cardDomain) cardDomain.textContent = 'EXAMPLE.COM';
+				}
+
+				if (cardImgBox) {
+					if (image) {
+						cardImgBox.style.backgroundImage = `url('${image}')`;
+						cardImgBox.innerHTML = '';
+					} else {
+						cardImgBox.style.backgroundImage = 'none';
+						cardImgBox.innerHTML = '<span>图片预览</span>';
+					}
+				}
+
+				const tags = [
+					'<!-- HTML Meta Tags -->',
+					`<title>${title}</title>`,
+					`<meta name="description" content="${desc}">`,
+					'',
+					'<!-- Facebook / Open Graph Meta Tags -->',
+					`<meta property="og:type" content="website">`,
+					`<meta property="og:url" content="${url}">`,
+					`<meta property="og:title" content="${title}">`,
+					`<meta property="og:description" content="${desc}">`,
+					`<meta property="og:image" content="${image}">`,
+					siteName ? `<meta property="og:site_name" content="${siteName}">` : '',
+					'',
+					'<!-- Twitter / X Meta Tags -->',
+					`<meta name="twitter:card" content="summary_large_image">`,
+					`<meta property="twitter:domain" content="${cardDomain ? cardDomain.textContent?.toLowerCase() : ''}">`,
+					`<meta property="twitter:url" content="${url}">`,
+					`<meta name="twitter:title" content="${title}">`,
+					`<meta name="twitter:description" content="${desc}">`,
+					`<meta name="twitter:image" content="${image}">`
+				].filter(line => line !== null && line !== undefined).join('\n');
+
+				codeOutput.value = tags;
+			}
+
+			[ogTitleIn, ogDescIn, ogUrlIn, ogImageIn, ogSiteNameIn].forEach(input => {
+				input?.addEventListener('input', updateOg);
+			});
+
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				ogTitleIn.value = '';
+				ogDescIn.value = '';
+				ogUrlIn.value = '';
+				ogImageIn.value = '';
+				ogSiteNameIn.value = '';
+				updateOg();
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!codeOutput.value) return;
+				navigator.clipboard.writeText(codeOutput.value);
+				const btn = e.target as HTMLButtonElement;
+				btn.textContent = '已复制！';
+				setTimeout(() => { btn.textContent = '复制 Meta 代码'; }, 2000);
+			});
+
+			updateOg();
+		</script>
+	</body>
+</html>
