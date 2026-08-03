@@ -64,6 +64,11 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 				font-weight: 700;
 				cursor: pointer;
 				width: 100%;
+				transition: opacity 0.2s;
+			}
+			.btn-submit:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
 			}
 		</style>
 	</head>
@@ -80,9 +85,9 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 					<div class="form-group">
 						<label for="feedbackType">反馈类型</label>
 						<select id="feedbackType">
-							<option value="feature">提议新功能 / 新工具</option>
-							<option value="bug">提交 Bug 报告</option>
-							<option value="general">其他综合建议</option>
+							<option value="提议新功能/新工具">提议新功能 / 新工具</option>
+							<option value="提交 Bug 报告">提交 Bug 报告</option>
+							<option value="其他综合建议">其他综合建议</option>
 						</select>
 					</div>
 
@@ -103,12 +108,39 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 		<Footer lang="zh" />
 
 		<script>
-			document.getElementById('feedbackForm')?.addEventListener('submit', (e) => {
+			document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
+				
+				const payload = {
+					type: (document.getElementById('feedbackType') as HTMLSelectElement).value,
+					email: (document.getElementById('contactEmail') as HTMLInputElement).value,
+					content: (document.getElementById('feedbackContent') as HTMLTextAreaElement).value,
+				};
+
 				if (btn) {
-					btn.textContent = '感谢您的反馈！我们已收到。';
+					btn.textContent = '提交中...';
 					btn.disabled = true;
+				}
+
+				try {
+					const res = await fetch('/api/feedback', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					});
+
+					if (res.ok) {
+						btn.textContent = '感谢您的反馈！数据已安全录入。';
+					} else {
+						throw new Error('接口请求错误');
+					}
+				} catch (err) {
+					alert('提交失败，请检查网络后再试！');
+					if (btn) {
+						btn.textContent = '重新提交';
+						btn.disabled = false;
+					}
 				}
 			});
 		</script>
