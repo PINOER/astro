@@ -1,0 +1,264 @@
+---
+import AdminLayout from 'src/layouts/AdminLayout.astro';
+
+interface FeedbackItem {
+	id: string;
+	type: string;
+	email: string;
+	content: string;
+	createdAt: string;
+	ip?: string;
+}
+
+let feedbacks: FeedbackItem[] = [];
+let loadError = '';
+
+// ⚡ 在服务端从 Cloudflare KV 中批量读取前缀为 'feedback:' 的所有留言数据
+try {
+	const env = Astro.locals.runtime?.env;
+	if (env?.HELPMINI_KV) {
+		const listRes = await env.HELPMINI_KV.list({ prefix: 'feedback:' });
+		
+		const keys = listRes.keys || [];
+		const fetchPromises = keys.map(async (k: any) => {
+			const val = await env.HELPMINI_KV.get(k.name);
+			if (val) {
+				try {
+					return JSON.parse(val) as FeedbackItem;
+				} catch {
+					return null;
+				}
+			}
+			return null;
+		});
+
+		const results = await Promise.all(fetchPromises);
+		// 按时间倒序排序（最新的排最前面）
+		feedbacks = results.filter((item): item is FeedbackItem => item !== null)
+			.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+	} else {
+		// 本地开发测试模拟数据
+		feedbacks = [
+			{
+				id: 'feedback:demo_1',
+				type: '提议新功能/新工具',
+				email: 'user@example.com',
+				content: '希望可以加入一个免费的 Cron 表达式生成器工具！办公非常需要！',
+				createdAt: new Date().toISOString(),
+				ip: '127.0.0.1'
+			}
+		];
+	}
+} catch (err: any) {
+	loadError = err?.message || '读取 KV 数据失败';
+}
+---
+
+<AdminLayout title="用户反馈管理">
+	<style>
+		.stats-bar {
+			display: flex;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+		.stat-card {
+			background: var(--admin-card);
+			border: 1px solid var(--admin-border);
+			border-radius: 12px;
+			padding: 1.2rem;
+			flex: 1;
+		}
+		.stat-card div:first-child {
+			font-size: 0.85rem;
+			color: var(--admin-muted);
+			margin-bottom: 0.4rem;
+		}
+		.stat-card div:last-child {
+			font-size: 1.8rem;
+			font-weight: 800;
+			color: #fff;
+		}
+
+		.feedback-list {
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.fb-card {
+			background: var(--admin-card);
+			border: 1px solid var(--admin-border);
+			border-radius: 12px;
+			padding: 1.5rem;
+			position: relative;
+			transition: border-color 0.2s;
+		}
+		.fb-card:hover {
+			border-color: var(--admin-accent);
+		}
+
+		.fb-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 0.8rem;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
+
+		.fb-tags {
+			display: flex;
+			align-items: center;
+			gap: 0.6rem;
+		}
+
+		.badge {
+			padding: 0.3em 0.7em;
+			border-radius: 6px;
+			font-size: 0.78rem;
+			font-weight: 700;
+		}
+		.badge-feature { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+		.badge-bug { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+		.badge-general { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+		.fb-email {
+			font-size: 0.88rem;
+			color: var(--admin-text);
+			font-weight: 600;
+		}
+
+		.fb-time {
+			font-size: 0.8rem;
+			color: var(--admin-muted);
+		}
+
+		.fb-content {
+			font-size: 0.95rem;
+			line-height: 1.6;
+			color: #e2e8f0;
+			background: var(--admin-bg);
+			border: 1px solid var(--admin-border);
+			border-radius: 8px;
+			padding: 1rem;
+			white-space: pre-wrap;
+			word-break: break-all;
+		}
+
+		.fb-actions {
+			display: flex;
+			justify-content: flex-end;
+			margin-top: 0.8rem;
+		}
+
+		.btn-del {
+			background: rgba(239, 68, 68, 0.15);
+			border: 1px solid rgba(239, 68, 68, 0.3);
+			color: #f87171;
+			padding: 0.35em 0.8em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+		.btn-del:hover {
+			background: rgba(239, 68, 68, 0.3);
+		}
+
+		.empty-box {
+			text-align: center;
+			padding: 4em 1em;
+			background: var(--admin-card);
+			border: 1px dashed var(--admin-border);
+			border-radius: 12px;
+			color: var(--admin-muted);
+		}
+	</style>
+
+	<div class="stats-bar">
+		<div class="stat-card">
+			<div>累计收到反馈总数</div>
+			<div>{feedbacks.length}</div>
+		</div>
+		<div class="stat-card">
+			<div>功能提议 / 新需求</div>
+			<div>{feedbacks.filter(f => f.type.includes('功能') || f.type.includes('feature')).length}</div>
+		</div>
+		<div class="stat-card">
+			<div>Bug 提交</div>
+			<div>{feedbacks.filter(f => f.type.includes('Bug') || f.type.includes('bug')).length}</div>
+		</div>
+	</div>
+
+	{loadError && (
+		<div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#f87171; padding:1em; border-radius:8px; margin-bottom:1.5em;">
+			🚨 提示：{loadError}
+		</div>
+	)}
+
+	{feedbacks.length === 0 ? (
+		<div class="empty-box">
+			<div style="font-size:2.5rem; margin-bottom:0.3em;">📬</div>
+			<div>暂无任何用户留言与反馈数据。</div>
+		</div>
+	) : (
+		<div class="feedback-list">
+			{feedbacks.map((item) => (
+				<div class="fb-card" id={`card-${item.id.replace(/:/g, '_')}`}>
+					<div class="fb-header">
+						<div class="fb-tags">
+							<span class={`badge ${
+								item.type.includes('Bug') ? 'badge-bug' : 
+								item.type.includes('功能') ? 'badge-feature' : 'badge-general'
+							}`}>
+								{item.type}
+							</span>
+							<span class="fb-email">✉️ {item.email}</span>
+						</div>
+						<div class="fb-time">
+							🕒 {new Date(item.createdAt).toLocaleString('zh-CN')} | IP: {item.ip || '未知'}
+						</div>
+					</div>
+
+					<div class="fb-content">{item.content}</div>
+
+					<div class="fb-actions">
+						<button class="btn-del" data-id={item.id}>删除此条留言</button>
+					</div>
+				</div>
+			))}
+		</div>
+	)}
+
+	<script>
+		// 处理删除反馈按钮
+		document.querySelectorAll('.btn-del').forEach(btn => {
+			btn.addEventListener('click', async (e) => {
+				const id = (e.target as HTMLElement).dataset.id;
+				if (!id) return;
+
+				if (confirm('确定要彻底删除这条用户反馈吗？')) {
+					try {
+						const res = await fetch('/api/admin/feedback', {
+							method: 'DELETE',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ id })
+						});
+
+						if (res.ok) {
+							// 前端平滑删除 DOM 卡片
+							const safeId = id.replace(/:/g, '_');
+							const card = document.getElementById(`card-${safeId}`);
+							card?.remove();
+						} else {
+							alert('删除失败，请重试！');
+						}
+					} catch (err) {
+						alert('网络错误，删除失败！');
+					}
+				}
+			});
+		});
+	</script>
+</AdminLayout>
