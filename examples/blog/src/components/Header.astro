@@ -38,20 +38,18 @@ const isZh = currentLang === 'zh';
 
 <header class="header-bar">
 	<nav class="nav-container">
-		<!-- 1. 左侧 Brand Logo 区域 (去掉图标与 Help, 仅保留 Mini) -->
+		<!-- ⚡ 1. 最左侧：固定显示 HelpMini 品牌标题 -->
 		<div class="nav-left">
-			<a href={homeLink} class="site-title" title="Mini Homepage">
-				<span class="logo-text">Mini</span>
+			<a href={homeLink} class="site-title" title="HelpMini Homepage">
+				<span class="logo-text">HelpMini</span>
 			</a>
 		</div>
 
-		<!-- 2. 中间：PC 款和移动端均保留搜索框 -->
+		<!-- 2. 中间：搜索框与口号 -->
 		<div class="nav-center">
 			<div class="search-box-trigger" id="headerSearchTrigger">
 				<span class="search-icon">🔍</span>
 				<span class="search-placeholder">
-					<span class="brand-slogan-prefix">HelpMini</span>
-					<span class="slogan-divider">—</span>
 					<span class="slogan-text">{isZh ? '小微工具，大有作为' : 'Small Tools, Big Impact.'}</span>
 				</span>
 				<kbd class="kbd-badge">⌘K</kbd>
@@ -181,7 +179,7 @@ const isZh = currentLang === 'zh';
 	<div class="search-modal-card" id="searchModalCard">
 		<div class="search-modal-header">
 			<span class="search-modal-icon">🔍</span>
-			<input type="text" id="modalSearchInput" placeholder={isZh ? "输入关键词搜索工具 (如 SEO, Base64, JSON)..." : "Search tools (e.g. SEO, JSON, Base64)..."} autocomplete="off" />
+			<input type="text" id="modalSearchInput" placeholder={isZh ? "输入关键词搜索工具 (如 SEO, 计算器, Base64)..." : "Search tools (e.g. SEO, JSON, Calculator)..."} autocomplete="off" />
 		</div>
 		<div class="search-modal-results" id="modalSearchResults">
 			<div class="modal-hint">{isZh ? '输入工具名称，即时过滤与跳转' : 'Type to search and jump to tools...'}</div>
@@ -197,12 +195,26 @@ const isZh = currentLang === 'zh';
 	const modalSearchInput = document.getElementById('modalSearchInput') as HTMLInputElement;
 	const modalSearchResults = document.getElementById('modalSearchResults');
 
-	// 工具列表缓存
+	// ⚡ 全局兜底工具配置字典（确保在任何子页面都能 100% 检索到完整工具列表）
+	const fallbackTools = [
+		{ title: 'Stripe / PayPal 手续费计算器', desc: '精准计算跨境电商及独立站 Stripe 与 PayPal 交易手续费及净收入', url: '/zh/tools/stripe-paypal-fee-calculator/', icon: '🧮', keywords: 'stripe paypal 手续费 计算器 跨境 电商 利润' },
+		{ title: 'SEO / GEO 结构化数据代码工具', desc: '一键生成符合 Google 规范的 JSON-LD 结构化代码，提升搜索引擎排名', url: '/zh/tools/schema-generator/', icon: '📈', keywords: 'seo geo json-ld 结构化 数据 谷歌 优化' },
+		{ title: '男装/女装 AI 商拍提示词生成器', desc: '专为服装卖家打造的 AI 模特及拍摄场景提示词（Prompt）生成器', url: '/zh/tools/fashion-prompt-generator/', icon: '🎨', keywords: 'ai 提示词 prompt 商拍 服装 模特 场景' },
+		{ title: 'JSON 格式化 / 压缩工具', desc: '快速格式化、美化与压缩 JSON 数据，支持语法校验', url: '/zh/tools/json-formatter/', icon: '🛠️', keywords: 'json 格式化 校验 压缩 开发者' },
+		{ title: 'Base64 编解码工具', desc: '轻量安全的字符串与图片 Base64 编码解码工具', url: '/zh/tools/base64-encoder/', icon: '🔐', keywords: 'base64 编码 解码 字符串 图片' },
+		{ title: '字数统计与文本分析工具', desc: '实时统计字数、字符数、段落数及中英文阅读时间估算', url: '/zh/tools/word-counter/', icon: '📝', keywords: '字数统计 文本 分析 阅读时间 字符' }
+	];
+
 	let searchableToolsData: Array<{ title: string; desc: string; url: string; icon: string; keywords: string }> = [];
 
-	// 提取页面已渲染或提取的工具数据
+	// 提取页面已渲染节点，并合并静态字典
 	function collectToolsData() {
-		searchableToolsData = [];
+		const map = new Map();
+		
+		// 1. 先注入静态全量工具
+		fallbackTools.forEach(t => map.set(t.url, t));
+
+		// 2. 如果在首页，动态读取页面最新的 KV / 排序卡片数据并覆盖
 		const cards = document.querySelectorAll('.searchable-item');
 		cards.forEach(card => {
 			const title = card.querySelector('h3')?.textContent || card.getAttribute('data-title') || '';
@@ -210,10 +222,12 @@ const isZh = currentLang === 'zh';
 			const url = card.getAttribute('href') || '#';
 			const icon = card.querySelector('.tool-icon')?.textContent || '⚡';
 			const keywords = card.getAttribute('data-keywords') || '';
-			if (title) {
-				searchableToolsData.push({ title, desc, url, icon, keywords });
+			if (title && url !== '#') {
+				map.set(url, { title, desc, url, icon, keywords });
 			}
 		});
+
+		searchableToolsData = Array.from(map.values());
 	}
 
 	function openSearch() {
@@ -232,9 +246,8 @@ const isZh = currentLang === 'zh';
 
 	headerSearchTrigger?.addEventListener('click', openSearch);
 
-	// ⚡ 优化 3: 点击搜索框以外的区域（Backdrop 背景）关闭 Modal
+	// 点击搜索框以外的区域（Backdrop 背景）关闭 Modal
 	searchModal?.addEventListener('click', (e) => {
-		// 如果点击的目标不在 searchModalCard 内部，则关闭弹窗
 		if (searchModalCard && !searchModalCard.contains(e.target as Node)) {
 			closeSearch();
 		}
@@ -248,7 +261,7 @@ const isZh = currentLang === 'zh';
 		}
 	});
 
-	// ⚡ 优化 4: 实现在模态框内的搜索功能与跳转
+	// 实现在模态框内的搜索过滤与快速跳转
 	function renderSearchResults(query: string) {
 		if (!modalSearchResults) return;
 		const q = query.toLowerCase().trim();
@@ -383,7 +396,7 @@ const isZh = currentLang === 'zh';
 		gap: 1rem;
 	}
 
-	/* 1. Logo 样式 (极简 Mini 标头) */
+	/* ⚡ 1. 最左侧 HelpMini 品牌标题样式 */
 	.nav-left {
 		display: flex;
 		align-items: center;
@@ -407,7 +420,7 @@ const isZh = currentLang === 'zh';
 	/* 2. 中间：搜索框与品牌口号 */
 	.nav-center {
 		flex: 1;
-		max-width: 480px;
+		max-width: 460px;
 		display: flex;
 		justify-content: center;
 	}
@@ -418,7 +431,7 @@ const isZh = currentLang === 'zh';
 		background-color: var(--card-border, rgba(30, 45, 66, 0.6));
 		border: 1px solid var(--card-border, rgba(45, 62, 85, 0.8));
 		border-radius: 20px;
-		padding: 0 0.8em;
+		padding: 0 0.9em;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -448,18 +461,10 @@ const isZh = currentLang === 'zh';
 		text-overflow: ellipsis;
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
 	}
 
-	.brand-slogan-prefix {
-		font-weight: 700;
-		color: var(--text-main, #f8fafc);
-	}
-	.slogan-divider {
-		opacity: 0.4;
-	}
 	.slogan-text {
-		opacity: 0.8;
+		opacity: 0.85;
 		font-weight: 500;
 	}
 
@@ -683,7 +688,7 @@ const isZh = currentLang === 'zh';
 		color: var(--accent, #6366f1);
 	}
 
-	/* 全局 ⌘K 弹窗样式与搜索结果渲染 */
+	/* 全局 ⌘K 弹窗样式 */
 	.search-modal-backdrop {
 		position: fixed;
 		top: 0;
@@ -751,7 +756,6 @@ const isZh = currentLang === 'zh';
 		font-size: 0.9rem;
 	}
 
-	/* 动态搜索结果节点样式 */
 	:global(.modal-result-item) {
 		display: flex;
 		align-items: center;
@@ -788,16 +792,16 @@ const isZh = currentLang === 'zh';
 		text-overflow: ellipsis;
 	}
 
-	/* 📱 移动端适应: ⚡ 优化 2 - 保留搜索框 */
+	/* 📱 移动端适应 */
 	@media (max-width: 640px) {
 		header.header-bar {
 			padding: 0 0.8em;
 		}
 		.nav-center {
-			max-width: 200px; /* 移动端收窄并保留搜索框 */
+			max-width: 180px;
 		}
-		.slogan-text, .slogan-divider, .kbd-badge {
-			display: none; /* 移动端简省说明文案与 Kbd，仅保留标头与图标 */
+		.slogan-text, .kbd-badge {
+			display: none;
 		}
 		.search-placeholder {
 			font-size: 0.8rem;
