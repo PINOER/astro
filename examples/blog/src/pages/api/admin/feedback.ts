@@ -8,7 +8,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		const { type, email, content } = body;
 
 		if (!content || !content.trim()) {
-			return new Response(JSON.stringify({ error: 'Content is required' }), {
+			return new Response(JSON.stringify({ error: '内容不能为空' }), {
 				status: 400,
 				headers: { 'Content-Type': 'application/json' }
 			});
@@ -28,23 +28,24 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			ip: request.headers.get('cf-connecting-ip') || '未知 IP'
 		};
 
-		// 获取 Cloudflare KV 实例
+		// ⚡ 关键修正：读取绑定名 ADMIN_KV
 		const runtime = (locals as any)?.runtime;
 		const env = runtime?.env || (import.meta as any).env;
-		const kv = env?.HELPMINI_KV || (process as any)?.env?.HELPMINI_KV;
+		const kv = env?.ADMIN_KV || (process as any)?.env?.ADMIN_KV;
 
 		if (kv) {
 			await kv.put(key, JSON.stringify(feedbackData));
 		} else {
-			console.log('本地测试模式（无 KV 绑定）：', feedbackData);
+			console.error('未检测到 ADMIN_KV 绑定！数据未存入 Cloudflare');
+			return new Response(JSON.stringify({ error: 'KV未绑定' }), { status: 500 });
 		}
 
 		return new Response(JSON.stringify({ success: true, id: key }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' }
 		});
-	} catch (e) {
-		return new Response(JSON.stringify({ error: 'Server Error' }), {
+	} catch (e: any) {
+		return new Response(JSON.stringify({ error: e?.message || 'Server Error' }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' }
 		});
