@@ -1,4 +1,7 @@
 ---
+// ⚡ 1. 显式声明该页面为 SSR 动态渲染页面
+export const prerender = false;
+
 import AdminLayout from 'src/layouts/AdminLayout.astro';
 
 interface FeedbackItem {
@@ -13,15 +16,19 @@ interface FeedbackItem {
 let feedbacks: FeedbackItem[] = [];
 let loadError = '';
 
-// ⚡ 在服务端从 Cloudflare KV 中批量读取前缀为 'feedback:' 的所有留言数据
+// ⚡ 2. 兼容各种 Cloudflare 适配器版本的 KV 获取逻辑
 try {
-	const env = Astro.locals.runtime?.env;
-	if (env?.HELPMINI_KV) {
-		const listRes = await env.HELPMINI_KV.list({ prefix: 'feedback:' });
-		
+	// 尝试获取 Cloudflare 环境变量（兼容 Astro v3 / v4 及不同 Cloudflare 适配器写法）
+	const runtime = Astro.locals?.runtime;
+	const env = runtime?.env || (import.meta as any).env;
+	const kv = env?.HELPMINI_KV || (process as any)?.env?.HELPMINI_KV;
+
+	if (kv) {
+		const listRes = await kv.list({ prefix: 'feedback:' });
 		const keys = listRes.keys || [];
+		
 		const fetchPromises = keys.map(async (k: any) => {
-			const val = await env.HELPMINI_KV.get(k.name);
+			const val = await kv.get(k.name);
 			if (val) {
 				try {
 					return JSON.parse(val) as FeedbackItem;
@@ -33,24 +40,24 @@ try {
 		});
 
 		const results = await Promise.all(fetchPromises);
-		// 按时间倒序排序（最新的排最前面）
 		feedbacks = results.filter((item): item is FeedbackItem => item !== null)
 			.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	} else {
-		// 本地开发测试模拟数据
+		// 本地开发模式无 KV 时的 Demo 占位数据
 		feedbacks = [
 			{
 				id: 'feedback:demo_1',
 				type: '提议新功能/新工具',
-				email: 'user@example.com',
-				content: '希望可以加入一个免费的 Cron 表达式生成器工具！办公非常需要！',
+				email: 'demo@example.com',
+				content: '这是一个测试反馈！如果部署到 Cloudflare，绑定 HELPMINI_KV 后真实数据将在这里展现。',
 				createdAt: new Date().toISOString(),
 				ip: '127.0.0.1'
 			}
 		];
 	}
 } catch (err: any) {
-	loadError = err?.message || '读取 KV 数据失败';
+	console.error('KV 读取失败异常：', err);
+	loadError = err?.message || '读取 KV 数据库发生错误';
 }
 ---
 
@@ -193,7 +200,7 @@ try {
 
 	{loadError && (
 		<div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#f87171; padding:1em; border-radius:8px; margin-bottom:1.5em;">
-			🚨 提示：{loadError}
+			🚨 KV 读取异常提示：{loadError}
 		</div>
 	)}
 
@@ -247,7 +254,6 @@ try {
 						});
 
 						if (res.ok) {
-							// 前端平滑删除 DOM 卡片
 							const safeId = id.replace(/:/g, '_');
 							const card = document.getElementById(`card-${safeId}`);
 							card?.remove();
