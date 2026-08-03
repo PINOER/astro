@@ -130,7 +130,7 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 				}
 
 				try {
-					const res = await fetch(`${window.location.origin}/api/feedback`, {
+					const res = await fetch('/api/feedback', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify(payload)
@@ -147,7 +147,7 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 							btn.disabled = false;
 						}
 					}
-				} catch (err) {
+				} catch (err: any) {
 					alert('网络请求失败：无法连接到服务端，请检查网络后再试！');
 					if (btn) {
 						btn.textContent = '重新提交';
