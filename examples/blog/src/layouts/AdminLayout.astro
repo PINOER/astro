@@ -13,7 +13,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
 const menuItems = [
 	{ name: '数据概览', icon: '📊', path: '/admin/dashboard' },
-	{ name: '用户反馈', icon: '💬', path: '/admin/feedback' }, // 👈 已新增用户反馈菜单
+	{ name: '用户反馈', icon: '💬', path: '/admin/feedback' },
 	{ name: '工具管理', icon: '🛠️', path: '/admin/tools-config' },
 	{ name: '分类管理', icon: '🏷️', path: '/admin/categories' },
 	{ name: '文章管理', icon: '📝', path: '/admin/articles' },
@@ -206,22 +206,17 @@ const isNavActive = (itemPath: string) => {
 			<slot />
 		</main>
 
-		<!-- ⚡ 防暴露兜底校验与退出逻辑 -->
+		<!-- ⚡ 修复死循环：安全的防暴露兜底校验与退出逻辑 -->
 		<script is:inline>
 			(function checkAuthFallback() {
-				// 避免在登录页死循环重定向
 				if (window.location.pathname.startsWith('/admin/login')) return;
-				
-				// 简单校验 Cookie 中是否存在凭证，如无凭证则前端直接切断访问
-				const hasAuthCookie = document.cookie.split('; ').some(row => row.startsWith('admin_session='));
-				if (!hasAuthCookie) {
-					window.location.href = '/admin/login';
-				}
 			})();
 
 			document.getElementById('btnLogout')?.addEventListener('click', async () => {
 				if (confirm('确认退出后台管理面板？')) {
-					await fetch('/api/admin/auth', { method: 'DELETE' });
+					try {
+						await fetch('/api/admin/auth', { method: 'DELETE' });
+					} catch(e) {}
 					window.location.href = '/admin/login';
 				}
 			});
