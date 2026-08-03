@@ -1,0 +1,46 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+
+const pageTitle = `服务条款 — ${SITE_TITLE}`;
+const pageDescription = "HelpMini 服务条款与免责声明。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+				color: var(--text-muted);
+				line-height: 1.7;
+			}
+			h1, h2 { color: var(--text-main); }
+			h1 { font-size: 2.2rem; margin-bottom: 0.2em; }
+			h2 { font-size: 1.3rem; margin-top: 1.8em; }
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<h1>服务条款</h1>
+			<p><em>最近更新日期：2026 年 8 月</em></p>
+
+			<h2>1. 条款接受</h2>
+			<p>当您访问或使用 HelpMini 工具箱时，即表示您同意受本服务条款的约束。</p>
+
+			<h2>2. 免责声明与计算准确性</h2>
+			<p>HelpMini 提供的所有工具（包括手续费计算器、税率计算器等）仅供日常办公参考。尽管我们力求计算准确，但不保证计算结果绝对符合所有特定国家/地区的最终税务或金融审计要求，重要决策请以官方账单为准。</p>
+
+			<h2>3. 责任限制</h2>
+			<p>对于因使用或无法使用本网站而导致的任何直接或间接损失，HelpMini 不承担任何法律责任。</p>
+		</main>
+		<Footer lang="zh" />
+	</body>
+</html>
