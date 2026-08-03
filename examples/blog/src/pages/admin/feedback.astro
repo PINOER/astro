@@ -1,5 +1,4 @@
 ---
-// ⚡ 1. 显式声明该页面为 SSR 动态渲染页面
 export const prerender = false;
 
 import AdminLayout from 'src/layouts/AdminLayout.astro';
@@ -16,7 +15,6 @@ interface FeedbackItem {
 let feedbacks: FeedbackItem[] = [];
 let loadError = '';
 
-// ⚡ 2. 获取 Cloudflare ADMIN_KV 实例
 try {
 	const runtime = Astro.locals?.runtime;
 	const env = runtime?.env || (import.meta as any).env;
