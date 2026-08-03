@@ -64,6 +64,11 @@ const pageDescription = "Share your feedback, report a bug, or request new featu
 				font-weight: 700;
 				cursor: pointer;
 				width: 100%;
+				transition: opacity 0.2s;
+			}
+			.btn-submit:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
 			}
 		</style>
 	</head>
@@ -80,9 +85,9 @@ const pageDescription = "Share your feedback, report a bug, or request new featu
 					<div class="form-group">
 						<label for="feedbackType">Feedback Type</label>
 						<select id="feedbackType">
-							<option value="feature">Request New Feature / Tool</option>
-							<option value="bug">Report a Bug</option>
-							<option value="general">General Suggestion</option>
+							<option value="提议新功能/新工具">Request New Feature / Tool</option>
+							<option value="提交 Bug 报告">Report a Bug</option>
+							<option value="其他综合建议">General Suggestion</option>
 						</select>
 					</div>
 
@@ -103,12 +108,40 @@ const pageDescription = "Share your feedback, report a bug, or request new featu
 		<Footer />
 
 		<script>
-			document.getElementById('feedbackForm')?.addEventListener('submit', (e) => {
+			// ⚡ 修改：发送真实数据到后端 API
+			document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
+				
+				const payload = {
+					type: (document.getElementById('feedbackType') as HTMLSelectElement).value,
+					email: (document.getElementById('contactEmail') as HTMLInputElement).value,
+					content: (document.getElementById('feedbackContent') as HTMLTextAreaElement).value,
+				};
+
 				if (btn) {
-					btn.textContent = 'Thank You! Feedback Received.';
+					btn.textContent = 'Submitting...';
 					btn.disabled = true;
+				}
+
+				try {
+					const res = await fetch('/api/feedback', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					});
+
+					if (res.ok) {
+						btn.textContent = 'Thank You! Feedback Received.';
+					} else {
+						throw new Error('Submit failed');
+					}
+				} catch (err) {
+					alert('Failed to submit, please try again.');
+					if (btn) {
+						btn.textContent = 'Submit Feedback';
+						btn.disabled = false;
+					}
 				}
 			});
 		</script>
