@@ -36,43 +36,43 @@ const blogLink = currentLang === 'en' ? '/blog/' : `/${currentLang}/blog/`;
 const aboutLink = currentLang === 'en' ? '/about/' : `/${currentLang}/about/`;
 const isZh = currentLang === 'zh';
 
-// ⚡⚡⚡ 核心修复：自动扫描构建当前语言下全量的工具文件索引 ⚡⚡⚡
-const targetLang = currentLang;
-const toolFilesRaw = import.meta.glob('/src/pages/*(/zh|/es|/de|/ja)?/tools/*.astro', { query: '?raw', eager: true });
-const toolFiles = import.meta.glob('/src/pages/*(/zh|/es|/de|/ja)?/tools/*.astro', { eager: true });
+// ⚡⚡⚡ 修复点：使用简单标准的 Vite Glob 表达式扫描物理工具文件 ⚡⚡⚡
+const zhFilesRaw = import.meta.glob('/src/pages/zh/tools/*.astro', { query: '?raw', eager: true });
+const zhFiles = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true });
 
-// 解析该语言下的所有物理工具页面
-const buildTimeTools = Object.entries(toolFiles)
-	.filter(([path]) => {
-		if (targetLang === 'en') return path.startsWith('/src/pages/tools/');
-		return path.startsWith(`/src/pages/${targetLang}/tools/`);
-	})
-	.map(([path, file]: [string, any]) => {
-		const slug = path.split('/').pop().replace('.astro', '');
-		let rawFm: any = file.frontmatter || file.toolMeta || file.toolInfo || {};
-		const rawContent = (toolFilesRaw[path] as any)?.default || '';
+const enFilesRaw = import.meta.glob('/src/pages/tools/*.astro', { query: '?raw', eager: true });
+const enFiles = import.meta.glob('/src/pages/tools/*.astro', { eager: true });
 
-		if (rawContent) {
-			try {
-				const match = rawContent.match(/(?:export\s+)?const\s+(?:frontmatter|toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
-				if (match && match[1]) {
-					const parsed = new Function(`return ${match[1]}`)();
-					rawFm = { ...rawFm, ...parsed };
-				}
-			} catch (e) {}
-		}
+// 根据当前语言选择对应文件组
+const toolFiles = currentLang === 'zh' ? zhFiles : enFiles;
+const toolFilesRaw = currentLang === 'zh' ? zhFilesRaw : enFilesRaw;
 
-		const title = rawFm.title || rawFm.name || slug;
-		const desc = rawFm.description || rawFm.desc || '';
-		const icon = rawFm.icon || '⚡';
-		const keywords = `${title} ${rawFm.keywords || ''}`;
-		const url = targetLang === 'en' ? `/tools/${slug}/` : `/${targetLang}/tools/${slug}/`;
+const buildTimeTools = Object.entries(toolFiles).map(([path, file]: [string, any]) => {
+	const slug = path.split('/').pop().replace('.astro', '');
+	let rawFm: any = file.frontmatter || file.toolMeta || file.toolInfo || {};
+	const rawContent = (toolFilesRaw[path] as any)?.default || '';
 
-		return { slug, title, desc, url, icon, keywords };
-	});
+	if (rawContent) {
+		try {
+			const match = rawContent.match(/(?:export\s+)?const\s+(?:frontmatter|toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
+			if (match && match[1]) {
+				const parsed = new Function(`return ${match[1]}`)();
+				rawFm = { ...rawFm, ...parsed };
+			}
+		} catch (e) {}
+	}
+
+	const title = rawFm.title || rawFm.name || slug;
+	const desc = rawFm.description || rawFm.desc || '';
+	const icon = rawFm.icon || '⚡';
+	const keywords = `${title} ${rawFm.keywords || ''}`;
+	const url = currentLang === 'en' ? `/tools/${slug}/` : `/${currentLang}/tools/${slug}/`;
+
+	return { slug, title, desc, url, icon, keywords };
+});
 
 // 结合赞助商卡片
-const currentSponsorItems = sponsorItems[targetLang] || sponsorItems['en'] || [];
+const currentSponsorItems = sponsorItems[currentLang] || sponsorItems['en'] || [];
 const buildTimeSponsors = currentSponsorItems.map((s: any) => ({
 	slug: s.url,
 	title: s.title,
@@ -82,13 +82,13 @@ const buildTimeSponsors = currentSponsorItems.map((s: any) => ({
 	keywords: `${s.title} ${s.keywords || ''}`
 }));
 
-// SSR 构建出来的全量初始搜索库
+// SSR 构建出的全量初始搜索库
 const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 ---
 
 <header class="header-bar">
 	<nav class="nav-container">
-		<!-- 1. 最左侧品牌标题 -->
+		<!-- 1. 最左侧 HelpMini 品牌标题 -->
 		<div class="nav-left">
 			<a href={homeLink} class="site-title" title="HelpMini Homepage">
 				<span class="logo-text">HelpMini</span>
@@ -165,7 +165,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 				</div>
 			</div>
 
-			<!-- 个人头像 Dropdown -->
+			<!-- 个人头像与综合设置 Dropdown -->
 			<div class="menu-dropdown-wrapper">
 				<button class="avatar-btn" id="userMenuBtn" aria-label="User Center" type="button" title={isZh ? '个人中心与设置' : 'Account & Settings'}>
 					<div class="avatar-circle">
@@ -232,9 +232,9 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 </div>
 
 <!-- 注入 SSR 构建好的静态工具数据字典，传递给客户端 JS -->
-<script is:inline define:vars={{ serverToolsData, targetLang }}>
+<script is:inline define:vars={{ serverToolsData, currentLang }}>
 	window.__INITIAL_SEARCH_TOOLS__ = serverToolsData;
-	window.__CURRENT_LANG__ = targetLang;
+	window.__CURRENT_LANG__ = currentLang;
 </script>
 
 <script>
@@ -248,9 +248,30 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	// 内存数据库，先拿 SSR 的服务端列表打底
 	let searchableToolsData: Array<{ slug?: string; title: string; desc: string; url: string; icon: string; keywords: string; disabled?: boolean }> = (window as any).__INITIAL_SEARCH_TOOLS__ || [];
 
-	// ⚡ 异步客户端同步：实时请求 Cloudflare KV 覆盖配置，保证与后台 KV 100% 相同
+	// ⚡ 异步客户端同步：如果在首页，提取页面上由 KV 管理的动态节点补充更新；如果在子页面，异步尝试刷新 KV 配置
 	async function syncToolsWithKv() {
 		try {
+			// 如果在首页，优先抓取 DOM 中被 KV 覆写后的最新节点
+			const domCards = document.querySelectorAll('.searchable-item');
+			if (domCards.length > 0) {
+				const domMap = new Map();
+				domCards.forEach(card => {
+					const title = card.querySelector('h3')?.textContent || card.getAttribute('data-title') || '';
+					const desc = card.querySelector('p')?.textContent || card.getAttribute('data-desc') || '';
+					const url = card.getAttribute('href') || '#';
+					const icon = card.querySelector('.tool-icon')?.textContent || '⚡';
+					const keywords = card.getAttribute('data-keywords') || '';
+					if (title && url !== '#') {
+						domMap.set(url, { title, desc, url, icon, keywords });
+					}
+				});
+				if (domMap.size > 0) {
+					searchableToolsData = Array.from(domMap.values());
+					return;
+				}
+			}
+
+			// 如果在子页面，请求 KV 覆盖接口
 			const currentLang = (window as any).__CURRENT_LANG__ || 'zh';
 			const res = await fetch(`/api/admin/config?type=tools_v2_${currentLang}`);
 			const json = await res.json();
@@ -278,7 +299,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 				}).filter(t => !t.disabled);
 			}
 		} catch (e) {
-			console.warn('Header 搜索框同步 KV 数据异常，使用预渲染索引:', e);
+			console.warn('Header 搜索框同步 KV 数据异常，使用预渲染索引');
 		}
 	}
 
@@ -287,6 +308,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 			searchModal.classList.add('active');
 			modalSearchInput.value = '';
 			modalSearchInput.focus();
+			syncToolsWithKv();
 			renderSearchResults('');
 		}
 	}
@@ -356,9 +378,6 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	modalSearchInput?.addEventListener('input', (e) => {
 		renderSearchResults((e.target as HTMLInputElement).value);
 	});
-
-	// 初始化拉取最新的 KV 数据
-	syncToolsWithKv();
 
 	// 2. 下拉面板互斥切换逻辑
 	const appGridBtn = document.getElementById('appGridBtn');
