@@ -38,15 +38,14 @@ const isZh = currentLang === 'zh';
 
 <header class="header-bar">
 	<nav class="nav-container">
-		<!-- 1. 左侧 Brand Logo 区域 -->
+		<!-- 1. 左侧 Brand Logo 区域 (去掉图标与 Help, 仅保留 Mini) -->
 		<div class="nav-left">
-			<a href={homeLink} class="site-title" title="HelpMini Homepage">
-				<span class="logo-icon">⚡</span>
-				<span class="logo-text">HelpMini</span>
+			<a href={homeLink} class="site-title" title="Mini Homepage">
+				<span class="logo-text">Mini</span>
 			</a>
 		</div>
 
-		<!-- 2. 中间：带口号/占位符的谷歌风格搜索框（可交互/触发全局弹窗） -->
+		<!-- 2. 中间：PC 款和移动端均保留搜索框 -->
 		<div class="nav-center">
 			<div class="search-box-trigger" id="headerSearchTrigger">
 				<span class="search-icon">🔍</span>
@@ -179,34 +178,51 @@ const isZh = currentLang === 'zh';
 
 <!-- 全局 ⌘K 快捷键搜索 Modal 弹窗 -->
 <div class="search-modal-backdrop" id="searchModal">
-	<div class="search-modal-card">
+	<div class="search-modal-card" id="searchModalCard">
 		<div class="search-modal-header">
 			<span class="search-modal-icon">🔍</span>
 			<input type="text" id="modalSearchInput" placeholder={isZh ? "输入关键词搜索工具 (如 SEO, Base64, JSON)..." : "Search tools (e.g. SEO, JSON, Base64)..."} autocomplete="off" />
-			<button class="close-modal-btn" id="closeSearchModal">ESC</button>
 		</div>
 		<div class="search-modal-results" id="modalSearchResults">
-			<div class="modal-hint">{isZh ? '输入工具名称，按 Enter 或点击跳转' : 'Type to start searching...'}</div>
+			<div class="modal-hint">{isZh ? '输入工具名称，即时过滤与跳转' : 'Type to search and jump to tools...'}</div>
 		</div>
 	</div>
 </div>
 
 <script>
-	// 1. 顶部搜索框触发器与全局 ⌘K 快捷键
+	// 1. 顶部搜索框触发器与 Modal 控制
 	const headerSearchTrigger = document.getElementById('headerSearchTrigger');
-	const pageSearchInput = document.getElementById('searchInput') as HTMLInputElement;
 	const searchModal = document.getElementById('searchModal');
+	const searchModalCard = document.getElementById('searchModalCard');
 	const modalSearchInput = document.getElementById('modalSearchInput') as HTMLInputElement;
-	const closeSearchModal = document.getElementById('closeSearchModal');
+	const modalSearchResults = document.getElementById('modalSearchResults');
+
+	// 工具列表缓存
+	let searchableToolsData: Array<{ title: string; desc: string; url: string; icon: string; keywords: string }> = [];
+
+	// 提取页面已渲染或提取的工具数据
+	function collectToolsData() {
+		searchableToolsData = [];
+		const cards = document.querySelectorAll('.searchable-item');
+		cards.forEach(card => {
+			const title = card.querySelector('h3')?.textContent || card.getAttribute('data-title') || '';
+			const desc = card.querySelector('p')?.textContent || card.getAttribute('data-desc') || '';
+			const url = card.getAttribute('href') || '#';
+			const icon = card.querySelector('.tool-icon')?.textContent || '⚡';
+			const keywords = card.getAttribute('data-keywords') || '';
+			if (title) {
+				searchableToolsData.push({ title, desc, url, icon, keywords });
+			}
+		});
+	}
 
 	function openSearch() {
-		// 如果在首页，直接聚焦首页中央搜索框；否则打开 Modal 弹窗
-		if (pageSearchInput) {
-			pageSearchInput.focus();
-			pageSearchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-		} else if (searchModal && modalSearchInput) {
+		if (searchModal && modalSearchInput) {
 			searchModal.classList.add('active');
+			modalSearchInput.value = '';
 			modalSearchInput.focus();
+			collectToolsData();
+			renderSearchResults('');
 		}
 	}
 
@@ -215,17 +231,64 @@ const isZh = currentLang === 'zh';
 	}
 
 	headerSearchTrigger?.addEventListener('click', openSearch);
-	closeSearchModal?.addEventListener('click', closeSearch);
 
-	// 监听 ⌘K 或 Ctrl+K
+	// ⚡ 优化 3: 点击搜索框以外的区域（Backdrop 背景）关闭 Modal
+	searchModal?.addEventListener('click', (e) => {
+		// 如果点击的目标不在 searchModalCard 内部，则关闭弹窗
+		if (searchModalCard && !searchModalCard.contains(e.target as Node)) {
+			closeSearch();
+		}
+	});
+
+	// 监听 ⌘K 或 Ctrl+K 快捷键
 	window.addEventListener('keydown', (e) => {
 		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
 			e.preventDefault();
 			openSearch();
 		}
-		if (e.key === 'Escape') {
-			closeSearch();
+	});
+
+	// ⚡ 优化 4: 实现在模态框内的搜索功能与跳转
+	function renderSearchResults(query: string) {
+		if (!modalSearchResults) return;
+		const q = query.toLowerCase().trim();
+
+		if (!q) {
+			modalSearchResults.innerHTML = `<div class="modal-hint">${searchableToolsData.length > 0 ? '共加载 ' + searchableToolsData.length + ' 个工具，支持即时搜索' : '输入工具名称，即时过滤与跳转'}</div>`;
+			return;
 		}
+
+		const results = searchableToolsData.filter(item => 
+			item.title.toLowerCase().includes(q) || 
+			item.desc.toLowerCase().includes(q) || 
+			item.keywords.toLowerCase().includes(q)
+		);
+
+		if (results.length === 0) {
+			modalSearchResults.innerHTML = `<div class="modal-hint">未找到匹配 "${query}" 的工具</div>`;
+			return;
+		}
+
+		modalSearchResults.innerHTML = results.map(item => `
+			<a href="${item.url}" class="modal-result-item">
+				<span class="result-icon">${item.icon}</span>
+				<div class="result-info">
+					<div class="result-title">${item.title}</div>
+					<div class="result-desc">${item.desc}</div>
+				</div>
+			</a>
+		`).join('');
+
+		// 同步联动首页的大搜索框（如果在首页）
+		const pageSearchInput = document.getElementById('searchInput') as HTMLInputElement;
+		if (pageSearchInput) {
+			pageSearchInput.value = query;
+			pageSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+		}
+	}
+
+	modalSearchInput?.addEventListener('input', (e) => {
+		renderSearchResults((e.target as HTMLInputElement).value);
 	});
 
 	// 2. 下拉面板互斥切换控制 (九宫格 & 个人中心)
@@ -246,7 +309,6 @@ const isZh = currentLang === 'zh';
 		userMenuPanel?.classList.toggle('active');
 	});
 
-	// 点击页面空白处收起下拉菜单
 	window.addEventListener('click', () => {
 		appGridPanel?.classList.remove('active');
 		userMenuPanel?.classList.remove('active');
@@ -255,7 +317,7 @@ const isZh = currentLang === 'zh';
 	appGridPanel?.addEventListener('click', (e) => e.stopPropagation());
 	userMenuPanel?.addEventListener('click', (e) => e.stopPropagation());
 
-	// 3. 菜单内暗黑 / 亮色主题切换逻辑
+	// 3. 菜单内外观模式切换
 	const themeToggleMenuItem = document.getElementById('themeToggleMenuItem');
 	const themeStatusText = themeToggleMenuItem?.querySelector('.theme-status-text');
 
@@ -321,7 +383,7 @@ const isZh = currentLang === 'zh';
 		gap: 1rem;
 	}
 
-	/* 1. Logo 样式 */
+	/* 1. Logo 样式 (极简 Mini 标头) */
 	.nav-left {
 		display: flex;
 		align-items: center;
@@ -329,21 +391,17 @@ const isZh = currentLang === 'zh';
 	}
 
 	.site-title {
-		font-size: 1.3rem;
+		font-size: 1.35rem;
 		font-weight: 800;
 		color: var(--text-main, #f8fafc);
 		text-decoration: none !important;
 		letter-spacing: -0.3px;
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
 		transition: opacity 0.2s;
 	}
 	.site-title:hover {
 		opacity: 0.85;
-	}
-	.logo-icon {
-		font-size: 1.2rem;
 	}
 
 	/* 2. 中间：搜索框与品牌口号 */
@@ -625,42 +683,51 @@ const isZh = currentLang === 'zh';
 		color: var(--accent, #6366f1);
 	}
 
-	/* 全局 ⌘K 弹窗 */
+	/* 全局 ⌘K 弹窗样式与搜索结果渲染 */
 	.search-modal-backdrop {
 		position: fixed;
 		top: 0;
 		left: 0;
 		width: 100vw;
 		height: 100vh;
-		background: rgba(0, 0, 0, 0.6);
-		backdrop-filter: blur(8px);
+		background: rgba(0, 0, 0, 0.65);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
 		z-index: 200;
 		display: none;
 		align-items: flex-start;
 		justify-content: center;
-		padding-top: 10vh;
+		padding-top: 12vh;
 	}
 	.search-modal-backdrop.active {
 		display: flex;
 	}
 	.search-modal-card {
-		width: 580px;
-		max-width: 90%;
+		width: 600px;
+		max-width: 92%;
 		background: var(--bg-card, #0f172a);
 		border: 1px solid var(--card-border, #2d3e55);
 		border-radius: 16px;
-		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
 		overflow: hidden;
+		animation: modalSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 	}
+
+	@keyframes modalSlideDown {
+		from { opacity: 0; transform: translateY(-12px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
 	.search-modal-header {
 		display: flex;
 		align-items: center;
-		padding: 1em;
+		padding: 1.1em 1.2em;
 		border-bottom: 1px solid var(--card-border, #2d3e55);
 	}
 	.search-modal-icon {
 		font-size: 1.1rem;
 		margin-right: 0.8rem;
+		opacity: 0.7;
 	}
 	.search-modal-header input {
 		flex: 1;
@@ -669,34 +736,71 @@ const isZh = currentLang === 'zh';
 		outline: none;
 		color: var(--text-main, #f8fafc);
 		font-size: 1.05rem;
+		font-weight: 500;
 	}
-	.close-modal-btn {
-		background: var(--card-border, #2d3e55);
-		border: none;
-		color: var(--text-muted, #94a3b8);
-		font-size: 0.7rem;
-		font-weight: 700;
-		padding: 0.2em 0.5em;
-		border-radius: 4px;
-		cursor: pointer;
-	}
+
 	.search-modal-results {
+		max-height: 380px;
+		overflow-y: auto;
+		padding: 0.6em;
+	}
+	.modal-hint {
 		padding: 2em;
 		text-align: center;
 		color: var(--text-muted, #94a3b8);
 		font-size: 0.9rem;
 	}
 
-	/* 📱 移动端适应 */
+	/* 动态搜索结果节点样式 */
+	:global(.modal-result-item) {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		padding: 0.8em 1em;
+		border-radius: 10px;
+		text-decoration: none !important;
+		color: var(--text-main, #f8fafc);
+		transition: background 0.15s ease;
+	}
+	:global(.modal-result-item:hover) {
+		background-color: var(--gray-light, rgba(255, 255, 255, 0.08));
+	}
+	:global(.result-icon) {
+		font-size: 1.5rem;
+		line-height: 1;
+	}
+	:global(.result-info) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		overflow: hidden;
+	}
+	:global(.result-title) {
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: var(--text-main, #f8fafc);
+	}
+	:global(.result-desc) {
+		font-size: 0.8rem;
+		color: var(--text-muted, #94a3b8);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* 📱 移动端适应: ⚡ 优化 2 - 保留搜索框 */
 	@media (max-width: 640px) {
 		header.header-bar {
 			padding: 0 0.8em;
 		}
 		.nav-center {
-			display: none; /* 移动端隐藏中间长条搜索框 */
+			max-width: 200px; /* 移动端收窄并保留搜索框 */
 		}
-		.slogan-text {
-			display: none;
+		.slogan-text, .slogan-divider, .kbd-badge {
+			display: none; /* 移动端简省说明文案与 Kbd，仅保留标头与图标 */
+		}
+		.search-placeholder {
+			font-size: 0.8rem;
 		}
 	}
 </style>
