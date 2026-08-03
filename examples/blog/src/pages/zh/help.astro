@@ -1,0 +1,75 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+
+const pageTitle = `帮助中心 — ${SITE_TITLE}`;
+const pageDescription = "了解 HelpMini 办公工具箱的使用技巧、隐私政策与常见问题指南。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.page-header {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.page-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+			}
+			.content-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				margin-bottom: 1.5em;
+			}
+			.content-card h2 {
+				font-size: 1.25rem;
+				color: var(--text-main);
+				margin-top: 0;
+			}
+			.content-card p, .content-card li {
+				color: var(--text-muted);
+				line-height: 1.6;
+				font-size: 0.95rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="page-header">
+				<h1>❓ 帮助中心</h1>
+				<p style="color:var(--text-muted);">关于 HelpMini 工具箱使用的一切指南。</p>
+			</div>
+
+			<div class="content-card">
+				<h2>🔒 数据隐私与安全</h2>
+				<p>HelpMini 全站所有工具 100% 采用纯前端/边缘算法，在您的浏览器本地完成处理。您的图片、代码、账单与文本数据<strong>绝不会被上传至任何远程服务器</strong>。</p>
+			</div>
+
+			<div class="content-card">
+				<h2>⚡ 免注册与毫秒级加载</h2>
+				<p>所有工具完全免费，无须注册账号、无须安装任何插件。打开网页即可直接使用。</p>
+			</div>
+
+			<div class="content-card">
+				<h2>🌐 多语言切换</h2>
+				<p>您可以通过顶部导航栏的选择框随心切换中文与英文版本。</p>
+			</div>
+		</main>
+		<Footer lang="zh" />
+	</body>
+</html>
