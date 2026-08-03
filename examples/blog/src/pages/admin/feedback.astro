@@ -16,12 +16,11 @@ interface FeedbackItem {
 let feedbacks: FeedbackItem[] = [];
 let loadError = '';
 
-// ⚡ 2. 兼容各种 Cloudflare 适配器版本的 KV 获取逻辑
+// ⚡ 2. 获取 Cloudflare ADMIN_KV 实例
 try {
-	// 尝试获取 Cloudflare 环境变量（兼容 Astro v3 / v4 及不同 Cloudflare 适配器写法）
 	const runtime = Astro.locals?.runtime;
 	const env = runtime?.env || (import.meta as any).env;
-	const kv = env?.HELPMINI_KV || (process as any)?.env?.HELPMINI_KV;
+	const kv = env?.ADMIN_KV || (process as any)?.env?.ADMIN_KV;
 
 	if (kv) {
 		const listRes = await kv.list({ prefix: 'feedback:' });
@@ -43,21 +42,11 @@ try {
 		feedbacks = results.filter((item): item is FeedbackItem => item !== null)
 			.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 	} else {
-		// 本地开发模式无 KV 时的 Demo 占位数据
-		feedbacks = [
-			{
-				id: 'feedback:demo_1',
-				type: '提议新功能/新工具',
-				email: 'demo@example.com',
-				content: '这是一个测试反馈！如果部署到 Cloudflare，绑定 HELPMINI_KV 后真实数据将在这里展现。',
-				createdAt: new Date().toISOString(),
-				ip: '127.0.0.1'
-			}
-		];
+		loadError = '警告：未检测到 Cloudflare ADMIN_KV 命名空间绑定！请检查 Cloudflare 控制台设置。';
 	}
 } catch (err: any) {
 	console.error('KV 读取失败异常：', err);
-	loadError = err?.message || '读取 KV 数据库发生错误';
+	loadError = err?.message || '读取 ADMIN_KV 数据库发生错误';
 }
 ---
 
@@ -200,11 +189,11 @@ try {
 
 	{loadError && (
 		<div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#f87171; padding:1em; border-radius:8px; margin-bottom:1.5em;">
-			🚨 KV 读取异常提示：{loadError}
+			🚨 提示：{loadError}
 		</div>
 	)}
 
-	{feedbacks.length === 0 ? (
+	{feedbacks.length === 0 && !loadError ? (
 		<div class="empty-box">
 			<div style="font-size:2.5rem; margin-bottom:0.3em;">📬</div>
 			<div>暂无任何用户留言与反馈数据。</div>
