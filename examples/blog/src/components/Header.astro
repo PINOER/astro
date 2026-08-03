@@ -109,16 +109,18 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 
 		<!-- 3. 右侧：功能控制与操作组 -->
 		<div class="nav-right">
-			<!-- 分享按钮：点击唤起 Share Modal -->
-			<button id="share-btn" class="icon-btn" aria-label="Share" type="button" title={isZh ? '分享页面' : 'Share Page'}>
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="18" cy="5" r="3"></circle>
-					<circle cx="6" cy="12" r="3"></circle>
-					<circle cx="18" cy="19" r="3"></circle>
-					<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-					<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-				</svg>
-			</button>
+			<!-- 分享按钮：仅在非中文界面下显示 -->
+			{!isZh && (
+				<button id="share-btn" class="icon-btn" aria-label="Share" type="button" title="Share Page">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<circle cx="18" cy="5" r="3"></circle>
+						<circle cx="6" cy="12" r="3"></circle>
+						<circle cx="18" cy="19" r="3"></circle>
+						<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+						<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+					</svg>
+				</button>
+			)}
 
 			<!-- 九宫格应用矩阵 Dropdown -->
 			<div class="menu-dropdown-wrapper">
@@ -232,66 +234,61 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	</div>
 </div>
 
-<!-- ⚡⚡⚡ 新增：类似谷歌/YouTube 原生样式的弹出式分享 Modal 弹窗 ⚡⚡⚡ -->
-<div class="share-modal-backdrop" id="shareModal">
-	<div class="share-modal-card" id="shareModalCard">
-		<div class="share-modal-header">
-			<h3>{isZh ? '分享' : 'Share'}</h3>
-			<button class="share-modal-close" id="closeShareModalBtn" aria-label="Close">✕</button>
-		</div>
-		
-		<!-- 链接展示与一键 Copy 组 -->
-		<div class="share-link-box">
-			<input type="text" id="shareUrlInput" readonly />
-			<button id="copyShareUrlBtn" class="copy-url-btn">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-					<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-				</svg>
-				<span id="copyBtnText">{isZh ? '复制链接' : 'Copy link'}</span>
-			</button>
-		</div>
+<!-- 类似谷歌/YouTube 原生样式的 Share Modal 弹窗（仅非中文界面显示） -->
+{!isZh && (
+	<div class="share-modal-backdrop" id="shareModal">
+		<div class="share-modal-card" id="shareModalCard">
+			<div class="share-modal-header">
+				<h3>Share</h3>
+				<button class="share-modal-close" id="closeShareModalBtn" aria-label="Close">✕</button>
+			</div>
+			
+			<div class="share-link-box">
+				<input type="text" id="shareUrlInput" readonly />
+				<button id="copyShareUrlBtn" class="copy-url-btn">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+						<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+					</svg>
+					<span id="copyBtnText">Copy link</span>
+				</button>
+			</div>
 
-		<!-- 主流社媒快捷分享平台图标矩阵 -->
-		<div class="share-social-grid">
-			<!-- Facebook -->
-			<a href="#" id="shareFb" target="_blank" rel="noopener noreferrer" class="social-item">
-				<div class="social-icon-circle fb">
-					<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-				</div>
-				<span>Facebook</span>
-			</a>
-			<!-- Gmail -->
-			<a href="#" id="shareGmail" target="_blank" rel="noopener noreferrer" class="social-item">
-				<div class="social-icon-circle gmail">
-					<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.572l8.073-6.079C21.69 2.279 24 3.434 24 5.457z"/></svg>
-				</div>
-				<span>Gmail</span>
-			</a>
-			<!-- X / Twitter -->
-			<a href="#" id="shareX" target="_blank" rel="noopener noreferrer" class="social-item">
-				<div class="social-icon-circle x">
-					<svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-				</div>
-				<span>X</span>
-			</a>
-			<!-- Reddit -->
-			<a href="#" id="shareReddit" target="_blank" rel="noopener noreferrer" class="social-item">
-				<div class="social-icon-circle reddit">
-					<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.562-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.688-.562-1.249-1.25-1.249zm-4.566 3.875a.312.312 0 0 0-.223.535c.627.627 1.698.818 2.039.818.341 0 1.412-.191 2.039-.818a.312.312 0 0 0-.441-.441c-.42.42-1.192.628-1.598.628s-1.178-.208-1.598-.628a.31.31 0 0 0-.218-.094z"/></svg>
-				</div>
-				<span>Reddit</span>
-			</a>
-			<!-- WhatsApp -->
-			<a href="#" id="shareWhatsapp" target="_blank" rel="noopener noreferrer" class="social-item">
-				<div class="social-icon-circle whatsapp">
-					<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-				</div>
-				<span>WhatsApp</span>
-			</a>
+			<div class="share-social-grid">
+				<a href="#" id="shareFb" target="_blank" rel="noopener noreferrer" class="social-item">
+					<div class="social-icon-circle fb">
+						<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+					</div>
+					<span>Facebook</span>
+				</a>
+				<a href="#" id="shareGmail" target="_blank" rel="noopener noreferrer" class="social-item">
+					<div class="social-icon-circle gmail">
+						<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.572l8.073-6.079C21.69 2.279 24 3.434 24 5.457z"/></svg>
+					</div>
+					<span>Gmail</span>
+				</a>
+				<a href="#" id="shareX" target="_blank" rel="noopener noreferrer" class="social-item">
+					<div class="social-icon-circle x">
+						<svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+					</div>
+					<span>X</span>
+				</a>
+				<a href="#" id="shareReddit" target="_blank" rel="noopener noreferrer" class="social-item">
+					<div class="social-icon-circle reddit">
+						<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.562-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.688-.562-1.249-1.25-1.249zm-4.566 3.875a.312.312 0 0 0-.223.535c.627.627 1.698.818 2.039.818.341 0 1.412-.191 2.039-.818a.312.312 0 0 0-.441-.441c-.42.42-1.192.628-1.598.628s-1.178-.208-1.598-.628a.31.31 0 0 0-.218-.094z"/></svg>
+					</div>
+					<span>Reddit</span>
+				</a>
+				<a href="#" id="shareWhatsapp" target="_blank" rel="noopener noreferrer" class="social-item">
+					<div class="social-icon-circle whatsapp">
+						<svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+					</div>
+					<span>WhatsApp</span>
+				</a>
+			</div>
 		</div>
 	</div>
-</div>
+)}
 
 <!-- 注入 SSR 构建好的静态工具数据字典与语言偏好，传递给客户端 JS -->
 <script is:inline define:vars={{ serverToolsData, currentLang, isZh }}>
@@ -490,7 +487,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 
 	updateThemeText();
 
-	// ⚡⚡⚡ 4. 类似于 Google 原生样式的 Share Modal 交互逻辑 ⚡⚡⚡
+	// 4. Share Modal 交互逻辑（仅在非中文下安全存在）
 	const shareBtn = document.getElementById('share-btn');
 	const shareModal = document.getElementById('shareModal');
 	const shareModalCard = document.getElementById('shareModalCard');
@@ -499,16 +496,14 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
 	const copyBtnText = document.getElementById('copyBtnText');
 
-	// 打开分享弹窗并绑定动态 URL
-	shareBtn?.addEventListener('click', () => {
-		if (shareModal) {
+	if (shareBtn && shareModal) {
+		shareBtn.addEventListener('click', () => {
 			const currentUrl = window.location.href;
 			const pageTitle = encodeURIComponent(document.title);
 			const encodedUrl = encodeURIComponent(currentUrl);
 
 			if (shareUrlInput) shareUrlInput.value = currentUrl;
 
-			// 动态绑定社媒分享 Url
 			const shareFb = document.getElementById('shareFb') as HTMLAnchorElement;
 			if (shareFb) shareFb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
@@ -525,41 +520,38 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 			if (shareWhatsapp) shareWhatsapp.href = `https://api.whatsapp.com/send?text=${pageTitle}%20${encodedUrl}`;
 
 			shareModal.classList.add('active');
+		});
+
+		function closeShareModal() {
+			if (shareModal) shareModal.classList.remove('active');
 		}
-	});
 
-	// 关闭弹窗逻辑
-	function closeShareModal() {
-		if (shareModal) shareModal.classList.remove('active');
-	}
+		closeShareModalBtn?.addEventListener('click', closeShareModal);
 
-	closeShareModalBtn?.addEventListener('click', closeShareModal);
-
-	shareModal?.addEventListener('click', (e) => {
-		if (shareModalCard && !shareModalCard.contains(e.target as Node)) {
-			closeShareModal();
-		}
-	});
-
-	// 复制链接并给予样式反馈
-	copyShareUrlBtn?.addEventListener('click', async () => {
-		if (shareUrlInput) {
-			try {
-				await navigator.clipboard.writeText(shareUrlInput.value);
-				const isZh = (window as any).__IS_ZH__;
-				if (copyBtnText) copyBtnText.textContent = isZh ? '已复制！' : 'Copied!';
-				copyShareUrlBtn.classList.add('copied');
-
-				setTimeout(() => {
-					if (copyBtnText) copyBtnText.textContent = isZh ? '复制链接' : 'Copy link';
-					copyShareUrlBtn.classList.remove('copied');
-				}, 2000);
-			} catch (err) {
-				shareUrlInput.select();
-				document.execCommand('copy');
+		shareModal.addEventListener('click', (e) => {
+			if (shareModalCard && !shareModalCard.contains(e.target as Node)) {
+				closeShareModal();
 			}
-		}
-	});
+		});
+
+		copyShareUrlBtn?.addEventListener('click', async () => {
+			if (shareUrlInput) {
+				try {
+					await navigator.clipboard.writeText(shareUrlInput.value);
+					if (copyBtnText) copyBtnText.textContent = 'Copied!';
+					copyShareUrlBtn.classList.add('copied');
+
+					setTimeout(() => {
+						if (copyBtnText) copyBtnText.textContent = 'Copy link';
+						copyShareUrlBtn.classList.remove('copied');
+					}, 2000);
+				} catch (err) {
+					shareUrlInput.select();
+					document.execCommand('copy');
+				}
+			}
+		});
+	}
 </script>
 
 <style>
@@ -983,7 +975,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		text-overflow: ellipsis;
 	}
 
-	/* ⚡⚡⚡ 新增：类似谷歌/YouTube 原生样式的 Share Modal 样式 ⚡⚡⚡ */
+	/* Share Modal 样式 */
 	.share-modal-backdrop {
 		position: fixed;
 		top: 0;
@@ -1048,7 +1040,6 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		background-color: var(--gray-light, rgba(255, 255, 255, 0.1));
 	}
 
-	/* 链接复制内框 */
 	.share-link-box {
 		display: flex;
 		align-items: center;
@@ -1095,7 +1086,6 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		color: #fff !important;
 	}
 
-	/* 社媒应用按钮矩阵 */
 	.share-social-grid {
 		display: flex;
 		align-items: center;
@@ -1128,14 +1118,13 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 	}
 
-	/* 图标平台特色配色 */
 	.social-icon-circle.fb { background: #1877f2; }
 	.social-icon-circle.gmail { background: #ea4335; }
 	.social-icon-circle.x { background: #000000; border: 1px solid #333; }
 	.social-icon-circle.reddit { background: #ff4500; }
 	.social-icon-circle.whatsapp { background: #25d366; }
 
-	/* 📱 移动端与 iPhone Safari 针对性适配 (≤ 640px) */
+	/* 📱 移动端适配 (≤ 640px) */
 	@media (max-width: 640px) {
 		header.header-bar {
 			padding: 0 0.6em;
@@ -1163,7 +1152,6 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 			gap: 0.3rem;
 		}
 
-		/* 分享 Modal 移动端缩小间距与图标 */
 		.share-modal-card {
 			padding: 1.2em 1.2em 1.6em;
 		}
