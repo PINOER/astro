@@ -108,6 +108,7 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 		<Footer lang="zh" />
 
 		<script>
+			// ⚡ 异步提交数据给后端 API 端点 /api/feedback
 			document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
@@ -131,9 +132,9 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 					});
 
 					if (res.ok) {
-						btn.textContent = '感谢您的反馈！数据已安全录入。';
+						btn.textContent = '感谢您的反馈！数据已成功提交。';
 					} else {
-						throw new Error('接口请求错误');
+						throw new Error('提交失败');
 					}
 				} catch (err) {
 					alert('提交失败，请检查网络后再试！');
