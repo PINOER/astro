@@ -1,0 +1,405 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "自由职业者时薪与目标收入计算器",
+	description: "免费且 100% 保护隐私的在线报价工具，基于经营成本、预估税率与目标净收入，精准反推最低建议时薪与日薪。",
+	icon: "💼",
+	tag: "财税工具",
+	keywords: "自由职业者时薪计算 远程工作报价工具 自由职业报价 目标年收入计算"
+};
+
+const pageTitle = `${frontmatter.title} — ${SITE_TITLE}`;
+const pageDescription = frontmatter.description;
+---
+
+<!doctype html>
+<html lang="zh">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 900px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.calc-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 2rem;
+			}
+			.section-title {
+				font-size: 1.15rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1rem;
+			}
+			.field-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+				margin-bottom: 1rem;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="number"] {
+				width: 100%;
+				padding: 0.7em 0.9em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="number"]:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+			.metrics-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.8rem;
+				margin-bottom: 1.2rem;
+			}
+			.metric-card {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				padding: 1rem;
+				border-radius: 10px;
+				display: flex;
+				flex-direction: column;
+				gap: 0.2rem;
+			}
+			.metric-card.primary {
+				border-color: var(--accent);
+				background: var(--badge-bg);
+			}
+			.metric-label {
+				font-size: 0.78rem;
+				color: var(--text-muted);
+				font-weight: 600;
+			}
+			.metric-value {
+				font-size: 1.4rem;
+				font-weight: 800;
+				color: var(--accent);
+			}
+			.breakdown-list {
+				display: flex;
+				flex-direction: column;
+				gap: 0.6rem;
+				background: var(--code-bg);
+				padding: 1rem;
+				border-radius: 10px;
+				border: 1px solid var(--card-border);
+			}
+			.breakdown-item {
+				display: flex;
+				justify-content: space-between;
+				font-size: 0.88rem;
+				color: var(--text-muted);
+			}
+			.breakdown-item strong {
+				color: var(--text-main);
+			}
+
+			/* FAQ 与相关工具样式 */
+			.content-section {
+				margin-top: 2.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+			}
+			.content-section h2 {
+				font-size: 1.3rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1.2rem;
+			}
+			.faq-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+			.faq-item h3 {
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+			}
+			.faq-item p {
+				font-size: 0.9rem;
+				color: var(--text-muted);
+				line-height: 1.5;
+			}
+			.related-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			.related-card {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+				padding: 0.9rem;
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				text-decoration: none !important;
+				transition: border-color 0.2s;
+			}
+			.related-card:hover {
+				border-color: var(--accent);
+			}
+			.card-icon {
+				font-size: 1.6rem;
+			}
+			.related-card h4 {
+				margin: 0 0 0.2rem 0;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				font-weight: 700;
+			}
+			.related-card p {
+				margin: 0;
+				color: var(--text-muted);
+				font-size: 0.8rem;
+			}
+
+			@media (max-width: 768px) {
+				.calc-grid, .metrics-grid, .related-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>💼 {frontmatter.title}</h1>
+				<p>{frontmatter.description}</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="calc-grid">
+					<!-- 输入列 -->
+					<div class="input-section">
+						<div class="section-title">目标收入与成本参数</div>
+						
+						<div class="field-group">
+							<label for="desiredIncome">目标年度到手净收入 ($/￥)</label>
+							<input type="number" id="desiredIncome" value="80000" step="1000" min="0" placeholder="期望的税后纯利润" />
+						</div>
+
+						<div class="field-group">
+							<label for="annualExpenses">年度运营与工具成本 ($/￥)</label>
+							<input type="number" id="annualExpenses" value="10000" step="500" min="0" placeholder="如软件订阅、设备折旧、保险等" />
+						</div>
+
+						<div class="field-group">
+							<label for="taxRate">预估综合税率 (%)</label>
+							<input type="number" id="taxRate" value="25" step="1" min="0" placeholder="如 25%" />
+						</div>
+
+						<div class="field-group">
+							<label for="weeklyHours">每周计划工作小时数</label>
+							<input type="number" id="weeklyHours" value="40" step="1" min="1" placeholder="如 40 小时" />
+						</div>
+
+						<div class="field-group">
+							<label for="billablePercent">可计费利用率 (%)</label>
+							<input type="number" id="billablePercent" value="65" step="5" min="10" max="100" placeholder="如 65% 的时间能收客户钱" />
+						</div>
+
+						<div class="field-group">
+							<label for="weeksOff">每年休假/生病周数</label>
+							<input type="number" id="weeksOff" value="4" step="1" min="0" max="52" placeholder="如 4 周" />
+						</div>
+					</div>
+
+					<!-- 输出列 -->
+					<div class="output-section">
+						<div class="section-title">建议最低报价</div>
+
+						<div class="metrics-grid">
+							<div class="metric-card primary">
+								<span class="metric-label">最低建议时薪</span>
+								<span class="metric-value" id="valHourlyRate">$0.00</span>
+							</div>
+
+							<div class="metric-card">
+								<span class="metric-label">最低建议日薪 (8h)</span>
+								<span class="metric-value" id="valDailyRate">$0.00</span>
+							</div>
+						</div>
+
+						<div class="breakdown-list">
+							<div class="breakdown-item">
+								<span>需要完成的总流水 (Gross)</span>
+								<strong id="valGrossRevenue">$0.00</strong>
+							</div>
+							<div class="breakdown-item">
+								<span>预估应缴纳税费</span>
+								<strong id="valTotalTax">$0.00</strong>
+							</div>
+							<div class="breakdown-item">
+								<span>全年实际计费总工时</span>
+								<strong id="valBillableHours">0 小时</strong>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- FAQ 模块 -->
+			<section class="content-section">
+				<h2>常见问题解答 (FAQ)</h2>
+				<div class="faq-list">
+					<div class="faq-item">
+						<h3>什么是“可计费利用率 (Billable Utilization Rate)”？</h3>
+						<p>自由职业者的时间并非 100% 都在给客户工作，还需花费大量时间处理行政、沟通、发票以及寻找新客户。通常自由职业者的可计费时间占比在 <strong>50% ~ 70%</strong> 之间。</p>
+					</div>
+					<div class="faq-item">
+						<h3>为什么自由职业者要求的时薪往往远高于全职员工？</h3>
+						<p>全职员工享有公司缴纳的社保、带薪年假以及办公设备补贴。自由职业者需要自负盈亏，因此时薪必须包含税费、工具成本、无收入空窗期及社保支出。</p>
+					</div>
+					<div class="faq-item">
+						<h3>输入的财务数据会被保存或上传吗？</h3>
+						<p><strong>绝对不会。</strong> 所有计算完全在您的浏览器本地实时完成，没有任何收入数据会被发送到任何云端服务器。</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- 相关工具推荐 -->
+			<section class="content-section">
+				<h2>你可能也会用到</h2>
+				<div class="related-grid">
+					<a href="/zh/tools/tip-bill-splitter-calculator/" class="related-card">
+						<span class="card-icon">🍽️</span>
+						<div>
+							<h4>小费与聚餐 AA 账单计算器</h4>
+							<p>计算餐厅小费金额与多人聚餐 AA 平摊费用。</p>
+						</div>
+					</a>
+					<a href="/zh/tools/ecommerce-profit-margin-calculator/" class="related-card">
+						<span class="card-icon">🧮</span>
+						<div>
+							<h4>独立站与跨境电商利润计算器</h4>
+							<p>精准测算商品净利润率与保本售价。</p>
+						</div>
+					</a>
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<!-- Schema.org FAQ 结构化数据 -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				"mainEntity": [
+					{
+						"@type": "Question",
+						"name": "什么是“可计费利用率 (Billable Utilization Rate)”？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "自由职业者的可计费利用率指实际用于为客户做付费工作的时间占比，通常在 50% ~ 70% 之间。"
+						}
+					},
+					{
+						"@type": "Question",
+						"name": "为什么自由职业者要求的时薪往往远高于全职员工？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "自由职业者需要自行承担税费、工具成本、带薪休假及业务拓展时间。"
+						}
+					}
+				]
+			}
+		</script>
+
+		<script>
+			const desiredIncomeIn = document.getElementById('desiredIncome') as HTMLInputElement;
+			const annualExpensesIn = document.getElementById('annualExpenses') as HTMLInputElement;
+			const taxRateIn = document.getElementById('taxRate') as HTMLInputElement;
+			const weeklyHoursIn = document.getElementById('weeklyHours') as HTMLInputElement;
+			const billablePercentIn = document.getElementById('billablePercent') as HTMLInputElement;
+			const weeksOffIn = document.getElementById('weeksOff') as HTMLInputElement;
+
+			const valHourlyRate = document.getElementById('valHourlyRate');
+			const valDailyRate = document.getElementById('valDailyRate');
+			const valGrossRevenue = document.getElementById('valGrossRevenue');
+			const valTotalTax = document.getElementById('valTotalTax');
+			const valBillableHours = document.getElementById('valBillableHours');
+
+			function calculateRate() {
+				const netIncome = parseFloat(desiredIncomeIn.value) || 0;
+				const expenses = parseFloat(annualExpensesIn.value) || 0;
+				const taxRate = (parseFloat(taxRateIn.value) || 0) / 100;
+				const weeklyHours = Math.max(1, parseFloat(weeklyHoursIn.value) || 40);
+				const billableRate = Math.min(100, Math.max(1, parseFloat(billablePercentIn.value) || 65)) / 100;
+				const weeksOff = Math.min(52, parseFloat(weeksOffIn.value) || 0);
+
+				const taxableExpensesBenefit = expenses * taxRate;
+				const requiredPreTaxRevenue = (1 - taxRate) > 0 ? (netIncome + expenses - taxableExpensesBenefit) / (1 - taxRate) : 0;
+				const totalTax = Math.max(0, (requiredPreTaxRevenue - expenses) * taxRate);
+
+				const workingWeeks = Math.max(0, 52 - weeksOff);
+				const totalWorkingHours = workingWeeks * weeklyHours;
+				const totalBillableHours = totalWorkingHours * billableRate;
+
+				const hourlyRate = totalBillableHours > 0 ? requiredPreTaxRevenue / totalBillableHours : 0;
+				const dailyRate = hourlyRate * 8;
+
+				if (valHourlyRate) valHourlyRate.textContent = `$${hourlyRate.toFixed(2)}`;
+				if (valDailyRate) valDailyRate.textContent = `$${dailyRate.toFixed(2)}`;
+				if (valGrossRevenue) valGrossRevenue.textContent = `$${requiredPreTaxRevenue.toFixed(2)}`;
+				if (valTotalTax) valTotalTax.textContent = `$${totalTax.toFixed(2)}`;
+				if (valBillableHours) valBillableHours.textContent = `${Math.round(totalBillableHours)} 小时`;
+			}
+
+			[desiredIncomeIn, annualExpensesIn, taxRateIn, weeklyHoursIn, billablePercentIn, weeksOffIn].forEach(input => {
+				input?.addEventListener('input', calculateRate);
+			});
+
+			calculateRate();
+		</script>
+	</body>
+</html>
