@@ -20,7 +20,7 @@ if (!propLang) {
 	}
 }
 
-// 3. 提取去除了语言前缀的“纯路径”（例如 /zh/about -> /about）
+// 3. 提取去除了语言前缀的纯路径
 const purePath = pathname.replace(/^\/(zh|es|de|ja)(\/|$)/, '/');
 
 // 4. 动态构建各语言的目标跳转路径
@@ -29,21 +29,40 @@ const getPathForLang = (lang: string) => {
 	return purePath === '/' ? `/${lang}/` : `/${lang}${purePath}`;
 };
 
-// 首页 Link 拼接
+// 首页与常用页面 Link 拼接
 const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
+const blogLink = currentLang === 'en' ? '/blog/' : `/${currentLang}/blog/`;
+const aboutLink = currentLang === 'en' ? '/about/' : `/${currentLang}/about/`;
+const isZh = currentLang === 'zh';
 ---
 
-<header>
-	<nav>
-		<!-- 👈 左侧 Logo 品牌区域 -->
-		<a href={homeLink} class="site-title">
-			HelpMini
-		</a>
+<header class="header-bar">
+	<nav class="nav-container">
+		<!-- 1. 左侧 Brand Logo 区域 -->
+		<div class="nav-left">
+			<a href={homeLink} class="site-title" title="HelpMini Homepage">
+				<span class="logo-icon">⚡</span>
+				<span class="logo-text">HelpMini</span>
+			</a>
+		</div>
 
-		<!-- 👉 右侧操作与功能区域 -->
+		<!-- 2. 中间：带口号/占位符的谷歌风格搜索框（可交互/触发全局弹窗） -->
+		<div class="nav-center">
+			<div class="search-box-trigger" id="headerSearchTrigger">
+				<span class="search-icon">🔍</span>
+				<span class="search-placeholder">
+					<span class="brand-slogan-prefix">HelpMini</span>
+					<span class="slogan-divider">—</span>
+					<span class="slogan-text">{isZh ? '小微工具，大有作为' : 'Small Tools, Big Impact.'}</span>
+				</span>
+				<kbd class="kbd-badge">⌘K</kbd>
+			</div>
+		</div>
+
+		<!-- 3. 右侧：功能控制与操作组 -->
 		<div class="nav-right">
-			<!-- 1. 分享按钮 -->
-			<button id="share-btn" class="icon-btn" aria-label="Share" type="button" title="Share Page">
+			<!-- 分享按钮 -->
+			<button id="share-btn" class="icon-btn" aria-label="Share" type="button" title={isZh ? '分享页面' : 'Share Page'}>
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<circle cx="18" cy="5" r="3"></circle>
 					<circle cx="6" cy="12" r="3"></circle>
@@ -53,48 +72,201 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 				</svg>
 			</button>
 
-			<!-- 2. 多语言下拉选择框 -->
-			<div class="lang-select-wrapper">
-				<select id="language-select" aria-label="Language selector">
-					<option value={getPathForLang('en')} selected={currentLang === 'en'}>English</option>
-					<option value={getPathForLang('zh')} selected={currentLang === 'zh'}>简体中文</option>
-				</select>
+			<!-- 九宫格应用矩阵 Dropdown -->
+			<div class="menu-dropdown-wrapper">
+				<button class="icon-btn" id="appGridBtn" aria-label="Apps Menu" type="button" title={isZh ? '快捷工具分类' : 'Tools Matrix'}>
+					<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
+						<rect x="3" y="3" width="4" height="4" rx="1"></rect>
+						<rect x="10" y="3" width="4" height="4" rx="1"></rect>
+						<rect x="17" y="3" width="4" height="4" rx="1"></rect>
+						<rect x="3" y="10" width="4" height="4" rx="1"></rect>
+						<rect x="10" y="10" width="4" height="4" rx="1"></rect>
+						<rect x="17" y="10" width="4" height="4" rx="1"></rect>
+						<rect x="3" y="17" width="4" height="4" rx="1"></rect>
+						<rect x="10" y="17" width="4" height="4" rx="1"></rect>
+						<rect x="17" y="17" width="4" height="4" rx="1"></rect>
+					</svg>
+				</button>
+				<!-- 九宫格下拉面板 -->
+				<div class="dropdown-panel grid-panel" id="appGridPanel">
+					<div class="panel-header">{isZh ? '热门分类与应用' : 'Quick Categories'}</div>
+					<div class="app-grid">
+						<a href={`${homeLink}?search=SEO`} class="app-item">
+							<span class="app-icon">📈</span>
+							<span class="app-label">SEO & GEO</span>
+						</a>
+						<a href={`${homeLink}?search=计算器`} class="app-item">
+							<span class="app-icon">🧮</span>
+							<span class="app-label">{isZh ? '利润计算' : 'Calculators'}</span>
+						</a>
+						<a href={`${homeLink}?search=提示词`} class="app-item">
+							<span class="app-icon">🎨</span>
+							<span class="app-label">{isZh ? 'AI 提示词' : 'AI Prompts'}</span>
+						</a>
+						<a href={`${homeLink}?search=JSON`} class="app-item">
+							<span class="app-icon">🛠️</span>
+							<span class="app-label">{isZh ? '开发者工具' : 'Dev Tools'}</span>
+						</a>
+						<a href={`${homeLink}?search=文本`} class="app-item">
+							<span class="app-icon">📝</span>
+							<span class="app-label">{isZh ? '文本转换' : 'Text Tools'}</span>
+						</a>
+						<a href={homeLink} class="app-item">
+							<span class="app-icon">🚀</span>
+							<span class="app-label">{isZh ? '全部工具' : 'All Tools'}</span>
+						</a>
+					</div>
+				</div>
 			</div>
 
-			<!-- 3. 🌙/☀️ 主题切换按钮 -->
-			<button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button">
-				<span class="icon-dark">🌙</span>
-				<span class="icon-light">☀️</span>
-			</button>
+			<!-- 个人头像与综合设置 Dropdown -->
+			<div class="menu-dropdown-wrapper">
+				<button class="avatar-btn" id="userMenuBtn" aria-label="User Center" type="button" title={isZh ? '个人中心与设置' : 'Account & Settings'}>
+					<div class="avatar-circle">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+							<circle cx="12" cy="7" r="4"></circle>
+						</svg>
+					</div>
+				</button>
 
-			<!-- 4. 👤 预留用户头像 / 个人中心 -->
-			<a href="#" class="user-avatar-btn" aria-label="User Profile" title="Account Center / Admin">
-				<div class="avatar-circle">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-						<circle cx="12" cy="7" r="4"></circle>
-					</svg>
+				<!-- 综合下拉菜单 -->
+				<div class="dropdown-panel user-panel" id="userMenuPanel">
+					<div class="user-menu-list">
+						<!-- 账号/后台入口 -->
+						<a href="/admin/feedback" class="menu-item highlight">
+							<span class="menu-icon">👤</span>
+							<span>{isZh ? '管理后台' : 'Admin Center'}</span>
+						</a>
+
+						<hr class="menu-divider" />
+
+						<!-- 语言切换组 -->
+						<div class="menu-item-static">
+							<span class="menu-icon">🌐</span>
+							<span class="menu-label">{isZh ? '语言/Language' : 'Language'}</span>
+							<div class="sub-lang-select">
+								<a href={getPathForLang('en')} class={`lang-pill ${currentLang === 'en' ? 'active' : ''}`}>EN</a>
+								<a href={getPathForLang('zh')} class={`lang-pill ${currentLang === 'zh' ? 'active' : ''}`}>中文</a>
+							</div>
+						</div>
+
+						<!-- 主题切换 -->
+						<button type="button" class="menu-item" id="themeToggleMenuItem">
+							<span class="menu-icon theme-icon-dark">🌙</span>
+							<span class="menu-icon theme-icon-light">☀️</span>
+							<span>{isZh ? '外观模式' : 'Theme Mode'}</span>
+							<span class="theme-status-text"></span>
+						</button>
+
+						<hr class="menu-divider" />
+
+						<!-- 博客与关于我们 -->
+						<a href={blogLink} class="menu-item">
+							<span class="menu-icon">📰</span>
+							<span>{isZh ? '博客文章' : 'Blog'}</span>
+						</a>
+						<a href={aboutLink} class="menu-item">
+							<span class="menu-icon">ℹ️</span>
+							<span>{isZh ? '关于我们' : 'About Us'}</span>
+						</a>
+					</div>
 				</div>
-			</a>
+			</div>
 		</div>
 	</nav>
 </header>
 
+<!-- 全局 ⌘K 快捷键搜索 Modal 弹窗 -->
+<div class="search-modal-backdrop" id="searchModal">
+	<div class="search-modal-card">
+		<div class="search-modal-header">
+			<span class="search-modal-icon">🔍</span>
+			<input type="text" id="modalSearchInput" placeholder={isZh ? "输入关键词搜索工具 (如 SEO, Base64, JSON)..." : "Search tools (e.g. SEO, JSON, Base64)..."} autocomplete="off" />
+			<button class="close-modal-btn" id="closeSearchModal">ESC</button>
+		</div>
+		<div class="search-modal-results" id="modalSearchResults">
+			<div class="modal-hint">{isZh ? '输入工具名称，按 Enter 或点击跳转' : 'Type to start searching...'}</div>
+		</div>
+	</div>
+</div>
+
 <script>
-	// 1. 语言切换器交互
-	const selectEl = document.getElementById('language-select') as HTMLSelectElement;
-	if (selectEl) {
-		selectEl.addEventListener('change', (e) => {
-			const targetUrl = (e.target as HTMLSelectElement).value;
-			if (targetUrl) {
-				window.location.href = targetUrl;
-			}
-		});
+	// 1. 顶部搜索框触发器与全局 ⌘K 快捷键
+	const headerSearchTrigger = document.getElementById('headerSearchTrigger');
+	const pageSearchInput = document.getElementById('searchInput') as HTMLInputElement;
+	const searchModal = document.getElementById('searchModal');
+	const modalSearchInput = document.getElementById('modalSearchInput') as HTMLInputElement;
+	const closeSearchModal = document.getElementById('closeSearchModal');
+
+	function openSearch() {
+		// 如果在首页，直接聚焦首页中央搜索框；否则打开 Modal 弹窗
+		if (pageSearchInput) {
+			pageSearchInput.focus();
+			pageSearchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		} else if (searchModal && modalSearchInput) {
+			searchModal.classList.add('active');
+			modalSearchInput.focus();
+		}
 	}
 
-	// 2. 暗黑 / 亮色主题切换交互
-	const themeToggleBtn = document.getElementById('theme-toggle');
-	themeToggleBtn?.addEventListener('click', () => {
+	function closeSearch() {
+		if (searchModal) searchModal.classList.remove('active');
+	}
+
+	headerSearchTrigger?.addEventListener('click', openSearch);
+	closeSearchModal?.addEventListener('click', closeSearch);
+
+	// 监听 ⌘K 或 Ctrl+K
+	window.addEventListener('keydown', (e) => {
+		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+			e.preventDefault();
+			openSearch();
+		}
+		if (e.key === 'Escape') {
+			closeSearch();
+		}
+	});
+
+	// 2. 下拉面板互斥切换控制 (九宫格 & 个人中心)
+	const appGridBtn = document.getElementById('appGridBtn');
+	const appGridPanel = document.getElementById('appGridPanel');
+	const userMenuBtn = document.getElementById('userMenuBtn');
+	const userMenuPanel = document.getElementById('userMenuPanel');
+
+	appGridBtn?.addEventListener('click', (e) => {
+		e.stopPropagation();
+		userMenuPanel?.classList.remove('active');
+		appGridPanel?.classList.toggle('active');
+	});
+
+	userMenuBtn?.addEventListener('click', (e) => {
+		e.stopPropagation();
+		appGridPanel?.classList.remove('active');
+		userMenuPanel?.classList.toggle('active');
+	});
+
+	// 点击页面空白处收起下拉菜单
+	window.addEventListener('click', () => {
+		appGridPanel?.classList.remove('active');
+		userMenuPanel?.classList.remove('active');
+	});
+
+	appGridPanel?.addEventListener('click', (e) => e.stopPropagation());
+	userMenuPanel?.addEventListener('click', (e) => e.stopPropagation());
+
+	// 3. 菜单内暗黑 / 亮色主题切换逻辑
+	const themeToggleMenuItem = document.getElementById('themeToggleMenuItem');
+	const themeStatusText = themeToggleMenuItem?.querySelector('.theme-status-text');
+
+	function updateThemeText() {
+		const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+		if (themeStatusText) {
+			themeStatusText.textContent = isLight ? 'Light' : 'Dark';
+		}
+	}
+
+	themeToggleMenuItem?.addEventListener('click', () => {
 		const isLight = document.documentElement.getAttribute('data-theme') === 'light';
 		if (isLight) {
 			document.documentElement.removeAttribute('data-theme');
@@ -103,9 +275,12 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 			document.documentElement.setAttribute('data-theme', 'light');
 			localStorage.setItem('theme', 'light');
 		}
+		updateThemeText();
 	});
 
-	// 3. 原生分享 / 剪贴板复制链接
+	updateThemeText();
+
+	// 4. 原生分享逻辑
 	const shareBtn = document.getElementById('share-btn');
 	shareBtn?.addEventListener('click', async () => {
 		if (navigator.share) {
@@ -114,11 +289,8 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 					title: document.title,
 					url: window.location.href,
 				});
-			} catch (err) {
-				// 用户取消分享不做处理
-			}
+			} catch (err) {}
 		} else {
-			// 降级方案：复制当前 URL 到剪贴板
 			await navigator.clipboard.writeText(window.location.href);
 			alert('页面链接已复制到剪贴板！');
 		}
@@ -126,11 +298,12 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 </script>
 
 <style>
-	header {
+	header.header-bar {
 		margin: 0;
 		padding: 0 1.5em;
-		background: var(--header-bg, #090d14);
-		backdrop-filter: blur(12px);
+		background: var(--header-bg, rgba(9, 13, 20, 0.85));
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
 		border-bottom: 1px solid var(--card-border, #1e293b);
 		position: sticky;
 		top: 0;
@@ -138,43 +311,124 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 		transition: background-color 0.3s ease, border-color 0.3s ease;
 	}
 
-	nav {
+	.nav-container {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		max-width: 1200px;
 		height: 60px;
 		margin: 0 auto;
+		gap: 1rem;
 	}
 
-	/* Logo Brand 标题 */
+	/* 1. Logo 样式 */
+	.nav-left {
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
 	.site-title {
-		font-size: 1.35rem;
+		font-size: 1.3rem;
 		font-weight: 800;
 		color: var(--text-main, #f8fafc);
-		text-decoration: none;
+		text-decoration: none !important;
 		letter-spacing: -0.3px;
 		display: flex;
 		align-items: center;
+		gap: 0.4rem;
 		transition: opacity 0.2s;
 	}
 	.site-title:hover {
 		opacity: 0.85;
 	}
+	.logo-icon {
+		font-size: 1.2rem;
+	}
 
-	/* 右侧工具节点集合 */
+	/* 2. 中间：搜索框与品牌口号 */
+	.nav-center {
+		flex: 1;
+		max-width: 480px;
+		display: flex;
+		justify-content: center;
+	}
+
+	.search-box-trigger {
+		width: 100%;
+		height: 38px;
+		background-color: var(--card-border, rgba(30, 45, 66, 0.6));
+		border: 1px solid var(--card-border, rgba(45, 62, 85, 0.8));
+		border-radius: 20px;
+		padding: 0 0.8em;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		user-select: none;
+	}
+
+	.search-box-trigger:hover {
+		border-color: var(--accent, #6366f1);
+		background-color: var(--card-border, rgba(30, 45, 66, 0.9));
+		box-shadow: 0 0 12px var(--accent-glow, rgba(99, 102, 241, 0.2));
+	}
+
+	.search-icon {
+		font-size: 0.9rem;
+		opacity: 0.6;
+		margin-right: 0.5rem;
+	}
+
+	.search-placeholder {
+		flex: 1;
+		font-size: 0.88rem;
+		color: var(--text-muted, #94a3b8);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.brand-slogan-prefix {
+		font-weight: 700;
+		color: var(--text-main, #f8fafc);
+	}
+	.slogan-divider {
+		opacity: 0.4;
+	}
+	.slogan-text {
+		opacity: 0.8;
+		font-weight: 500;
+	}
+
+	.kbd-badge {
+		background: var(--bg-card, #0f172a);
+		border: 1px solid var(--card-border, #2d3e55);
+		color: var(--text-muted, #94a3b8);
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 0.15em 0.5em;
+		border-radius: 6px;
+		font-family: inherit;
+	}
+
+	/* 3. 右侧操作区 */
 	.nav-right {
 		display: flex;
 		align-items: center;
-		gap: 0.8rem;
+		gap: 0.6rem;
+		flex-shrink: 0;
 	}
 
-	/* 图标纯按钮（如分享按钮） */
 	.icon-btn {
 		background: transparent;
 		border: none;
 		color: var(--text-muted, #94a3b8);
-		padding: 0.4em;
+		padding: 0.5em;
 		cursor: pointer;
 		display: inline-flex;
 		align-items: center;
@@ -184,81 +438,179 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 	}
 	.icon-btn:hover {
 		color: var(--text-main, #f8fafc);
-		background-color: var(--gray-light, rgba(255, 255, 255, 0.05));
+		background-color: var(--gray-light, rgba(255, 255, 255, 0.08));
 	}
 
-	/* 多语言选择框 */
-	.lang-select-wrapper {
-		display: inline-flex;
-		align-items: center;
+	/* 下拉容器与面板基类 */
+	.menu-dropdown-wrapper {
+		position: relative;
+		display: inline-block;
 	}
 
-	.lang-select-wrapper select {
-		appearance: none;
-		-webkit-appearance: none;
-		background-color: var(--card-border, #1e2d42);
+	.dropdown-panel {
+		position: absolute;
+		top: calc(100% + 10px);
+		right: 0;
+		background: var(--bg-card, #0f172a);
 		border: 1px solid var(--card-border, #2d3e55);
-		border-radius: 8px;
-		padding: 0.4em 2em 0.4em 0.8em;
-		font-size: 0.85rem;
+		border-radius: 16px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+		padding: 0.8em;
+		display: none;
+		z-index: 110;
+		backdrop-filter: blur(20px);
+		animation: fadeIn 0.2s ease;
+	}
+
+	.dropdown-panel.active {
+		display: block;
+	}
+
+	@keyframes fadeIn {
+		from { opacity: 0; transform: translateY(-8px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	/* 九宫格面板 */
+	.grid-panel {
+		width: 280px;
+	}
+
+	.panel-header {
+		font-size: 0.78rem;
+		font-weight: 700;
+		color: var(--text-muted, #94a3b8);
+		padding: 0.3em 0.5em 0.6em;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.app-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+	}
+
+	.app-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 0.8em 0.4em;
+		border-radius: 12px;
+		text-decoration: none !important;
+		color: var(--text-main, #f8fafc);
+		transition: background 0.2s;
+	}
+	.app-item:hover {
+		background-color: var(--gray-light, rgba(255, 255, 255, 0.08));
+	}
+	.app-icon {
+		font-size: 1.4rem;
+		margin-bottom: 0.3rem;
+	}
+	.app-label {
+		font-size: 0.75rem;
 		font-weight: 600;
-		color: var(--text-main, #f8fafc) !important;
-		cursor: pointer;
-		outline: none;
-		transition: all 0.2s ease;
-		background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-		background-repeat: no-repeat;
-		background-position: right 0.6em center;
-		background-size: 12px;
+		text-align: center;
+		white-space: nowrap;
 	}
 
-	.lang-select-wrapper select:hover {
-		border-color: var(--accent, #6366f1);
-	}
-
-	.lang-select-wrapper select option {
-		background-color: var(--bg-card, #0f172a) !important;
-		color: var(--text-main, #f8fafc) !important;
+	/* 个人中心面板 */
+	.user-panel {
+		width: 210px;
 		padding: 0.5em;
 	}
 
-	/* 主题切换按钮 */
-	.theme-toggle-btn {
-		background-color: var(--card-border, #1e2d42);
-		border: 1px solid var(--card-border, #2d3e55);
-		border-radius: 8px;
-		padding: 0.35em 0.6em;
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 0.95rem;
-		transition: all 0.2s ease;
-		height: 34px;
-		width: 38px;
+	.user-menu-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
 	}
-	.theme-toggle-btn:hover {
+
+	.menu-item {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.6em 0.8em;
+		border-radius: 8px;
+		color: var(--text-main, #f8fafc);
+		font-size: 0.88rem;
+		font-weight: 600;
+		text-decoration: none !important;
+		background: transparent;
+		border: none;
+		width: 100%;
+		cursor: pointer;
+		text-align: left;
+		transition: background 0.2s;
+		box-sizing: border-box;
+	}
+	.menu-item:hover {
+		background-color: var(--gray-light, rgba(255, 255, 255, 0.08));
+	}
+	.menu-item.highlight {
+		color: var(--accent, #6366f1);
+	}
+
+	.menu-item-static {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5em 0.8em;
+		font-size: 0.88rem;
+		font-weight: 600;
+		color: var(--text-main, #f8fafc);
+	}
+
+	.sub-lang-select {
+		display: flex;
+		gap: 0.3rem;
+	}
+	.lang-pill {
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		font-size: 0.72rem;
+		text-decoration: none !important;
+		color: var(--text-muted, #94a3b8);
+		border: 1px solid var(--card-border, #2d3e55);
+	}
+	.lang-pill.active {
+		background: var(--accent, #6366f1);
+		color: #fff;
 		border-color: var(--accent, #6366f1);
 	}
 
-	/* 主题图标逻辑 */
-	.icon-light { display: none; }
-	.icon-dark { display: inline; }
+	.menu-divider {
+		border: none;
+		border-top: 1px solid var(--card-border, #2d3e55);
+		margin: 0.4em 0;
+	}
 
-	:global([data-theme="light"]) .icon-light { display: inline; }
-	:global([data-theme="light"]) .icon-dark { display: none; }
+	.theme-status-text {
+		margin-left: auto;
+		font-size: 0.75rem;
+		color: var(--text-muted, #94a3b8);
+	}
 
-	/* 👤 头像按钮设计 */
-	.user-avatar-btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		text-decoration: none;
+	/* 主题图标 */
+	.theme-icon-light { display: none; }
+	.theme-icon-dark { display: inline; }
+
+	:global([data-theme="light"]) .theme-icon-light { display: inline; }
+	:global([data-theme="light"]) .theme-icon-dark { display: none; }
+
+	/* 头像按钮 */
+	.avatar-btn {
+		background: transparent;
+		border: none;
+		padding: 0;
+		cursor: pointer;
 		margin-left: 0.2rem;
 	}
 	.avatar-circle {
-		width: 32px;
-		height: 32px;
+		width: 34px;
+		height: 34px;
 		border-radius: 50%;
 		background-color: var(--card-border, #1e2d42);
 		border: 1px solid var(--card-border, #2d3e55);
@@ -268,18 +620,83 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 		color: var(--text-muted, #94a3b8);
 		transition: all 0.2s ease;
 	}
-	.user-avatar-btn:hover .avatar-circle {
+	.avatar-btn:hover .avatar-circle {
 		border-color: var(--accent, #6366f1);
 		color: var(--accent, #6366f1);
-		background-color: var(--badge-bg, rgba(99, 102, 241, 0.1));
 	}
 
-	@media (max-width: 600px) {
-		header {
-			padding: 0 1em;
+	/* 全局 ⌘K 弹窗 */
+	.search-modal-backdrop {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(8px);
+		z-index: 200;
+		display: none;
+		align-items: flex-start;
+		justify-content: center;
+		padding-top: 10vh;
+	}
+	.search-modal-backdrop.active {
+		display: flex;
+	}
+	.search-modal-card {
+		width: 580px;
+		max-width: 90%;
+		background: var(--bg-card, #0f172a);
+		border: 1px solid var(--card-border, #2d3e55);
+		border-radius: 16px;
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+		overflow: hidden;
+	}
+	.search-modal-header {
+		display: flex;
+		align-items: center;
+		padding: 1em;
+		border-bottom: 1px solid var(--card-border, #2d3e55);
+	}
+	.search-modal-icon {
+		font-size: 1.1rem;
+		margin-right: 0.8rem;
+	}
+	.search-modal-header input {
+		flex: 1;
+		background: transparent;
+		border: none;
+		outline: none;
+		color: var(--text-main, #f8fafc);
+		font-size: 1.05rem;
+	}
+	.close-modal-btn {
+		background: var(--card-border, #2d3e55);
+		border: none;
+		color: var(--text-muted, #94a3b8);
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 0.2em 0.5em;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.search-modal-results {
+		padding: 2em;
+		text-align: center;
+		color: var(--text-muted, #94a3b8);
+		font-size: 0.9rem;
+	}
+
+	/* 📱 移动端适应 */
+	@media (max-width: 640px) {
+		header.header-bar {
+			padding: 0 0.8em;
 		}
-		.nav-right {
-			gap: 0.4rem;
+		.nav-center {
+			display: none; /* 移动端隐藏中间长条搜索框 */
+		}
+		.slogan-text {
+			display: none;
 		}
 	}
 </style>
