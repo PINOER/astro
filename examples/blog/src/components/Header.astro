@@ -1,5 +1,6 @@
 ---
 import { SITE_TITLE } from '../consts';
+import { sponsorItems } from '../data/tools';
 
 // 1. 接收外部传入的 lang 参数（可选）
 const { lang: propLang } = Astro.props;
@@ -34,11 +35,60 @@ const homeLink = currentLang === 'en' ? '/' : `/${currentLang}/`;
 const blogLink = currentLang === 'en' ? '/blog/' : `/${currentLang}/blog/`;
 const aboutLink = currentLang === 'en' ? '/about/' : `/${currentLang}/about/`;
 const isZh = currentLang === 'zh';
+
+// ⚡⚡⚡ 核心修复：自动扫描构建当前语言下全量的工具文件索引 ⚡⚡⚡
+const targetLang = currentLang;
+const toolFilesRaw = import.meta.glob('/src/pages/*(/zh|/es|/de|/ja)?/tools/*.astro', { query: '?raw', eager: true });
+const toolFiles = import.meta.glob('/src/pages/*(/zh|/es|/de|/ja)?/tools/*.astro', { eager: true });
+
+// 解析该语言下的所有物理工具页面
+const buildTimeTools = Object.entries(toolFiles)
+	.filter(([path]) => {
+		if (targetLang === 'en') return path.startsWith('/src/pages/tools/');
+		return path.startsWith(`/src/pages/${targetLang}/tools/`);
+	})
+	.map(([path, file]: [string, any]) => {
+		const slug = path.split('/').pop().replace('.astro', '');
+		let rawFm: any = file.frontmatter || file.toolMeta || file.toolInfo || {};
+		const rawContent = (toolFilesRaw[path] as any)?.default || '';
+
+		if (rawContent) {
+			try {
+				const match = rawContent.match(/(?:export\s+)?const\s+(?:frontmatter|toolMeta|toolInfo|meta)\s*=\s*(\{[\s\S]*?\});/);
+				if (match && match[1]) {
+					const parsed = new Function(`return ${match[1]}`)();
+					rawFm = { ...rawFm, ...parsed };
+				}
+			} catch (e) {}
+		}
+
+		const title = rawFm.title || rawFm.name || slug;
+		const desc = rawFm.description || rawFm.desc || '';
+		const icon = rawFm.icon || '⚡';
+		const keywords = `${title} ${rawFm.keywords || ''}`;
+		const url = targetLang === 'en' ? `/tools/${slug}/` : `/${targetLang}/tools/${slug}/`;
+
+		return { slug, title, desc, url, icon, keywords };
+	});
+
+// 结合赞助商卡片
+const currentSponsorItems = sponsorItems[targetLang] || sponsorItems['en'] || [];
+const buildTimeSponsors = currentSponsorItems.map((s: any) => ({
+	slug: s.url,
+	title: s.title,
+	desc: s.desc,
+	url: s.url,
+	icon: s.icon || '⭐',
+	keywords: `${s.title} ${s.keywords || ''}`
+}));
+
+// SSR 构建出来的全量初始搜索库
+const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 ---
 
 <header class="header-bar">
 	<nav class="nav-container">
-		<!-- ⚡ 1. 最左侧：固定显示 HelpMini 品牌标题 -->
+		<!-- 1. 最左侧品牌标题 -->
 		<div class="nav-left">
 			<a href={homeLink} class="site-title" title="HelpMini Homepage">
 				<span class="logo-text">HelpMini</span>
@@ -84,7 +134,6 @@ const isZh = currentLang === 'zh';
 						<rect x="17" y="17" width="4" height="4" rx="1"></rect>
 					</svg>
 				</button>
-				<!-- 九宫格下拉面板 -->
 				<div class="dropdown-panel grid-panel" id="appGridPanel">
 					<div class="panel-header">{isZh ? '热门分类与应用' : 'Quick Categories'}</div>
 					<div class="app-grid">
@@ -116,7 +165,7 @@ const isZh = currentLang === 'zh';
 				</div>
 			</div>
 
-			<!-- 个人头像与综合设置 Dropdown -->
+			<!-- 个人头像 Dropdown -->
 			<div class="menu-dropdown-wrapper">
 				<button class="avatar-btn" id="userMenuBtn" aria-label="User Center" type="button" title={isZh ? '个人中心与设置' : 'Account & Settings'}>
 					<div class="avatar-circle">
@@ -127,10 +176,8 @@ const isZh = currentLang === 'zh';
 					</div>
 				</button>
 
-				<!-- 综合下拉菜单 -->
 				<div class="dropdown-panel user-panel" id="userMenuPanel">
 					<div class="user-menu-list">
-						<!-- 账号/后台入口 -->
 						<a href="/admin/feedback" class="menu-item highlight">
 							<span class="menu-icon">👤</span>
 							<span>{isZh ? '管理后台' : 'Admin Center'}</span>
@@ -138,7 +185,6 @@ const isZh = currentLang === 'zh';
 
 						<hr class="menu-divider" />
 
-						<!-- 语言切换组 -->
 						<div class="menu-item-static">
 							<span class="menu-icon">🌐</span>
 							<span class="menu-label">{isZh ? '语言/Language' : 'Language'}</span>
@@ -148,7 +194,6 @@ const isZh = currentLang === 'zh';
 							</div>
 						</div>
 
-						<!-- 主题切换 -->
 						<button type="button" class="menu-item" id="themeToggleMenuItem">
 							<span class="menu-icon theme-icon-dark">🌙</span>
 							<span class="menu-icon theme-icon-light">☀️</span>
@@ -158,7 +203,6 @@ const isZh = currentLang === 'zh';
 
 						<hr class="menu-divider" />
 
-						<!-- 博客与关于我们 -->
 						<a href={blogLink} class="menu-item">
 							<span class="menu-icon">📰</span>
 							<span>{isZh ? '博客文章' : 'Blog'}</span>
@@ -187,6 +231,12 @@ const isZh = currentLang === 'zh';
 	</div>
 </div>
 
+<!-- 注入 SSR 构建好的静态工具数据字典，传递给客户端 JS -->
+<script is:inline define:vars={{ serverToolsData, targetLang }}>
+	window.__INITIAL_SEARCH_TOOLS__ = serverToolsData;
+	window.__CURRENT_LANG__ = targetLang;
+</script>
+
 <script>
 	// 1. 顶部搜索框触发器与 Modal 控制
 	const headerSearchTrigger = document.getElementById('headerSearchTrigger');
@@ -195,39 +245,41 @@ const isZh = currentLang === 'zh';
 	const modalSearchInput = document.getElementById('modalSearchInput') as HTMLInputElement;
 	const modalSearchResults = document.getElementById('modalSearchResults');
 
-	// ⚡ 全局兜底工具配置字典（确保在任何子页面都能 100% 检索到完整工具列表）
-	const fallbackTools = [
-		{ title: 'Stripe / PayPal 手续费计算器', desc: '精准计算跨境电商及独立站 Stripe 与 PayPal 交易手续费及净收入', url: '/zh/tools/stripe-paypal-fee-calculator/', icon: '🧮', keywords: 'stripe paypal 手续费 计算器 跨境 电商 利润' },
-		{ title: 'SEO / GEO 结构化数据代码工具', desc: '一键生成符合 Google 规范的 JSON-LD 结构化代码，提升搜索引擎排名', url: '/zh/tools/schema-generator/', icon: '📈', keywords: 'seo geo json-ld 结构化 数据 谷歌 优化' },
-		{ title: '男装/女装 AI 商拍提示词生成器', desc: '专为服装卖家打造的 AI 模特及拍摄场景提示词（Prompt）生成器', url: '/zh/tools/fashion-prompt-generator/', icon: '🎨', keywords: 'ai 提示词 prompt 商拍 服装 模特 场景' },
-		{ title: 'JSON 格式化 / 压缩工具', desc: '快速格式化、美化与压缩 JSON 数据，支持语法校验', url: '/zh/tools/json-formatter/', icon: '🛠️', keywords: 'json 格式化 校验 压缩 开发者' },
-		{ title: 'Base64 编解码工具', desc: '轻量安全的字符串与图片 Base64 编码解码工具', url: '/zh/tools/base64-encoder/', icon: '🔐', keywords: 'base64 编码 解码 字符串 图片' },
-		{ title: '字数统计与文本分析工具', desc: '实时统计字数、字符数、段落数及中英文阅读时间估算', url: '/zh/tools/word-counter/', icon: '📝', keywords: '字数统计 文本 分析 阅读时间 字符' }
-	];
+	// 内存数据库，先拿 SSR 的服务端列表打底
+	let searchableToolsData: Array<{ slug?: string; title: string; desc: string; url: string; icon: string; keywords: string; disabled?: boolean }> = (window as any).__INITIAL_SEARCH_TOOLS__ || [];
 
-	let searchableToolsData: Array<{ title: string; desc: string; url: string; icon: string; keywords: string }> = [];
+	// ⚡ 异步客户端同步：实时请求 Cloudflare KV 覆盖配置，保证与后台 KV 100% 相同
+	async function syncToolsWithKv() {
+		try {
+			const currentLang = (window as any).__CURRENT_LANG__ || 'zh';
+			const res = await fetch(`/api/admin/config?type=tools_v2_${currentLang}`);
+			const json = await res.json();
 
-	// 提取页面已渲染节点，并合并静态字典
-	function collectToolsData() {
-		const map = new Map();
-		
-		// 1. 先注入静态全量工具
-		fallbackTools.forEach(t => map.set(t.url, t));
+			if (json.success && Array.isArray(json.data)) {
+				const kvMap = new Map();
+				json.data.forEach((t: any) => kvMap.set(t.slug, t));
 
-		// 2. 如果在首页，动态读取页面最新的 KV / 排序卡片数据并覆盖
-		const cards = document.querySelectorAll('.searchable-item');
-		cards.forEach(card => {
-			const title = card.querySelector('h3')?.textContent || card.getAttribute('data-title') || '';
-			const desc = card.querySelector('p')?.textContent || card.getAttribute('data-desc') || '';
-			const url = card.getAttribute('href') || '#';
-			const icon = card.querySelector('.tool-icon')?.textContent || '⚡';
-			const keywords = card.getAttribute('data-keywords') || '';
-			if (title && url !== '#') {
-				map.set(url, { title, desc, url, icon, keywords });
+				searchableToolsData = searchableToolsData.map((tool) => {
+					if (!tool.slug) return tool;
+					const conf = kvMap.get(tool.slug);
+					if (conf) {
+						if (conf.status === 'disabled') {
+							return { ...tool, disabled: true };
+						}
+						return {
+							...tool,
+							disabled: false,
+							title: (conf.name && conf.name.trim() !== '' && conf.name !== tool.slug) ? conf.name : tool.title,
+							desc: (conf.description && conf.description.trim() !== '') ? conf.description : tool.desc,
+							icon: (conf.icon && conf.icon.trim() !== '' && conf.icon !== '🛠️') ? conf.icon : tool.icon,
+						};
+					}
+					return tool;
+				}).filter(t => !t.disabled);
 			}
-		});
-
-		searchableToolsData = Array.from(map.values());
+		} catch (e) {
+			console.warn('Header 搜索框同步 KV 数据异常，使用预渲染索引:', e);
+		}
 	}
 
 	function openSearch() {
@@ -235,7 +287,6 @@ const isZh = currentLang === 'zh';
 			searchModal.classList.add('active');
 			modalSearchInput.value = '';
 			modalSearchInput.focus();
-			collectToolsData();
 			renderSearchResults('');
 		}
 	}
@@ -246,14 +297,14 @@ const isZh = currentLang === 'zh';
 
 	headerSearchTrigger?.addEventListener('click', openSearch);
 
-	// 点击搜索框以外的区域（Backdrop 背景）关闭 Modal
+	// 点击外部空白区域关闭 Modal
 	searchModal?.addEventListener('click', (e) => {
 		if (searchModalCard && !searchModalCard.contains(e.target as Node)) {
 			closeSearch();
 		}
 	});
 
-	// 监听 ⌘K 或 Ctrl+K 快捷键
+	// 快捷键 ⌘K / Ctrl+K 唤醒
 	window.addEventListener('keydown', (e) => {
 		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
 			e.preventDefault();
@@ -261,20 +312,22 @@ const isZh = currentLang === 'zh';
 		}
 	});
 
-	// 实现在模态框内的搜索过滤与快速跳转
+	// 动态匹配过滤与结果渲染
 	function renderSearchResults(query: string) {
 		if (!modalSearchResults) return;
 		const q = query.toLowerCase().trim();
 
 		if (!q) {
-			modalSearchResults.innerHTML = `<div class="modal-hint">${searchableToolsData.length > 0 ? '共加载 ' + searchableToolsData.length + ' 个工具，支持即时搜索' : '输入工具名称，即时过滤与跳转'}</div>`;
+			modalSearchResults.innerHTML = `<div class="modal-hint">${searchableToolsData.length > 0 ? '共加载 ' + searchableToolsData.length + ' 个在线工具' : '输入工具名称，即时过滤与跳转'}</div>`;
 			return;
 		}
 
 		const results = searchableToolsData.filter(item => 
-			item.title.toLowerCase().includes(q) || 
-			item.desc.toLowerCase().includes(q) || 
-			item.keywords.toLowerCase().includes(q)
+			!item.disabled && (
+				item.title.toLowerCase().includes(q) || 
+				item.desc.toLowerCase().includes(q) || 
+				item.keywords.toLowerCase().includes(q)
+			)
 		);
 
 		if (results.length === 0) {
@@ -292,7 +345,7 @@ const isZh = currentLang === 'zh';
 			</a>
 		`).join('');
 
-		// 同步联动首页的大搜索框（如果在首页）
+		// 如果在首页，同步联动首页的搜索过滤
 		const pageSearchInput = document.getElementById('searchInput') as HTMLInputElement;
 		if (pageSearchInput) {
 			pageSearchInput.value = query;
@@ -304,7 +357,10 @@ const isZh = currentLang === 'zh';
 		renderSearchResults((e.target as HTMLInputElement).value);
 	});
 
-	// 2. 下拉面板互斥切换控制 (九宫格 & 个人中心)
+	// 初始化拉取最新的 KV 数据
+	syncToolsWithKv();
+
+	// 2. 下拉面板互斥切换逻辑
 	const appGridBtn = document.getElementById('appGridBtn');
 	const appGridPanel = document.getElementById('appGridPanel');
 	const userMenuBtn = document.getElementById('userMenuBtn');
@@ -396,7 +452,6 @@ const isZh = currentLang === 'zh';
 		gap: 1rem;
 	}
 
-	/* ⚡ 1. 最左侧 HelpMini 品牌标题样式 */
 	.nav-left {
 		display: flex;
 		align-items: center;
@@ -417,7 +472,6 @@ const isZh = currentLang === 'zh';
 		opacity: 0.85;
 	}
 
-	/* 2. 中间：搜索框与品牌口号 */
 	.nav-center {
 		flex: 1;
 		max-width: 460px;
@@ -479,7 +533,6 @@ const isZh = currentLang === 'zh';
 		font-family: inherit;
 	}
 
-	/* 3. 右侧操作区 */
 	.nav-right {
 		display: flex;
 		align-items: center;
@@ -504,7 +557,6 @@ const isZh = currentLang === 'zh';
 		background-color: var(--gray-light, rgba(255, 255, 255, 0.08));
 	}
 
-	/* 下拉容器与面板基类 */
 	.menu-dropdown-wrapper {
 		position: relative;
 		display: inline-block;
@@ -534,7 +586,6 @@ const isZh = currentLang === 'zh';
 		to { opacity: 1; transform: translateY(0); }
 	}
 
-	/* 九宫格面板 */
 	.grid-panel {
 		width: 280px;
 	}
@@ -579,7 +630,6 @@ const isZh = currentLang === 'zh';
 		white-space: nowrap;
 	}
 
-	/* 个人中心面板 */
 	.user-panel {
 		width: 210px;
 		padding: 0.5em;
@@ -656,14 +706,12 @@ const isZh = currentLang === 'zh';
 		color: var(--text-muted, #94a3b8);
 	}
 
-	/* 主题图标 */
 	.theme-icon-light { display: none; }
 	.theme-icon-dark { display: inline; }
 
 	:global([data-theme="light"]) .theme-icon-light { display: inline; }
 	:global([data-theme="light"]) .theme-icon-dark { display: none; }
 
-	/* 头像按钮 */
 	.avatar-btn {
 		background: transparent;
 		border: none;
@@ -688,7 +736,6 @@ const isZh = currentLang === 'zh';
 		color: var(--accent, #6366f1);
 	}
 
-	/* 全局 ⌘K 弹窗样式 */
 	.search-modal-backdrop {
 		position: fixed;
 		top: 0;
@@ -792,7 +839,6 @@ const isZh = currentLang === 'zh';
 		text-overflow: ellipsis;
 	}
 
-	/* 📱 移动端适应 */
 	@media (max-width: 640px) {
 		header.header-bar {
 			padding: 0 0.8em;
