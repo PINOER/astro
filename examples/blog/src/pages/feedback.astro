@@ -1,0 +1,116 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+const pageTitle = `Send Feedback — ${SITE_TITLE}`;
+const pageDescription = "Share your feedback, report a bug, or request new features for HelpMini.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 700px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.page-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.form-box {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+				margin-bottom: 1.2rem;
+			}
+			.form-group label {
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="text"], input[type="email"], select, textarea {
+				width: 100%;
+				padding: 0.7em 0.9em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				outline: none;
+				box-sizing: border-box;
+			}
+			textarea {
+				height: 120px;
+				resize: vertical;
+			}
+			.btn-submit {
+				background: var(--accent);
+				color: #fff;
+				border: none;
+				padding: 0.7em 1.5em;
+				border-radius: 8px;
+				font-weight: 700;
+				cursor: pointer;
+				width: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="page-header">
+				<h1>💬 Send Feedback</h1>
+				<p style="color:var(--text-muted);">Have a feature request or found a bug? We’d love to hear from you!</p>
+			</div>
+
+			<div class="form-box">
+				<form id="feedbackForm">
+					<div class="form-group">
+						<label for="feedbackType">Feedback Type</label>
+						<select id="feedbackType">
+							<option value="feature">Request New Feature / Tool</option>
+							<option value="bug">Report a Bug</option>
+							<option value="general">General Suggestion</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="contactEmail">Your Email (Optional)</label>
+						<input type="email" id="contactEmail" placeholder="name@example.com" />
+					</div>
+
+					<div class="form-group">
+						<label for="feedbackContent">Your Message</label>
+						<textarea id="feedbackContent" required placeholder="Describe your thoughts or feedback..."></textarea>
+					</div>
+
+					<button type="submit" class="btn-submit" id="btnSubmit">Submit Feedback</button>
+				</form>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			document.getElementById('feedbackForm')?.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
+				if (btn) {
+					btn.textContent = 'Thank You! Feedback Received.';
+					btn.disabled = true;
+				}
+			});
+		</script>
+	</body>
+</html>
