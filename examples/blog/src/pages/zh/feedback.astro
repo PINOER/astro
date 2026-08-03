@@ -109,52 +109,62 @@ const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我�
 		</main>
 		<Footer lang="zh" />
 
-		<script>
-			document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
-				e.preventDefault();
-				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
-				
-				const typeEl = document.getElementById('feedbackType') as HTMLSelectElement;
-				const emailEl = document.getElementById('contactEmail') as HTMLInputElement;
-				const contentEl = document.getElementById('feedbackContent') as HTMLTextAreaElement;
+<script>
+	document.getElementById('feedbackForm')?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
+		
+		const typeEl = document.getElementById('feedbackType') as HTMLSelectElement;
+		const emailEl = document.getElementById('contactEmail') as HTMLInputElement;
+		const contentEl = document.getElementById('feedbackContent') as HTMLTextAreaElement;
 
-				const payload = {
-					type: typeEl?.value || '其他综合建议',
-					email: emailEl?.value || '',
-					content: contentEl?.value || '',
-				};
+		const payload = {
+			type: typeEl?.value || '其他综合建议',
+			email: emailEl?.value || '',
+			content: contentEl?.value || '',
+		};
 
-				if (btn) {
-					btn.textContent = '提交中...';
-					btn.disabled = true;
-				}
+		if (btn) {
+			btn.textContent = '提交中...';
+			btn.disabled = true;
+		}
 
-				try {
-					const res = await fetch('/api/feedback', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(payload)
-					});
-
-					const result = await res.json();
-
-					if (res.ok && result.success) {
-						btn.textContent = '感谢您的反馈！数据已成功提交。';
-					} else {
-						alert('提交失败：' + (result.error || '服务器响应异常'));
-						if (btn) {
-							btn.textContent = '重新提交';
-							btn.disabled = false;
-						}
-					}
-				} catch (err: any) {
-					alert('网络请求失败：无法连接到服务端，请检查网络后再试！');
-					if (btn) {
-						btn.textContent = '重新提交';
-						btn.disabled = false;
-					}
-				}
+		try {
+			const res = await fetch('/api/feedback', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
 			});
-		</script>
+
+			// ⚡ 先读取文本，防止服务器返回 HTML 导致 JSON 解析崩溃
+			const responseText = await res.text();
+			let result;
+
+			try {
+				result = JSON.parse(responseText);
+			} catch (parseErr) {
+				// 如果后端返回的不是 JSON（比如 Cloudflare 的 404 HTML 页面）
+				throw new Error(`服务器未正确响应 JSON (状态码: ${res.status})。原始内容: ${responseText.substring(0, 150)}`);
+			}
+
+			if (res.ok && result.success) {
+				btn.textContent = '感谢您的反馈！数据已成功提交。';
+			} else {
+				alert('后端业务报错：' + (result.error || '未知错误'));
+				if (btn) {
+					btn.textContent = '重新提交';
+					btn.disabled = false;
+				}
+			}
+		} catch (err: any) {
+			// ⚡ 这里会弹出最真实的底层错误（一眼就能看出是 404 还是 KV 挂载问题）
+			alert('【排查捕获】' + err.message);
+			if (btn) {
+				btn.textContent = '重新提交';
+				btn.disabled = false;
+			}
+		}
+	});
+</script>
 	</body>
 </html>
