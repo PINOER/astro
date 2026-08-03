@@ -1,0 +1,435 @@
+---
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import { SITE_TITLE } from 'src/consts';
+
+export const frontmatter = {
+	title: "UTM 营销追踪链接生成器",
+	description: "免费且 100% 保护隐私的在线工具，快速生成支持 Google Analytics 4 (GA4) 的 UTM 广告与营销追踪链接。",
+	icon: "🔗",
+	tag: "数字营销",
+	keywords: "UTM生成器 网址构建器 GA4追踪链接 生成UTM参数 广告追踪链接"
+};
+
+const pageTitle = `${frontmatter.title} — ${SITE_TITLE}`;
+const pageDescription = frontmatter.description;
+---
+
+<!doctype html>
+<html lang="zh">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 900px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.tool-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.tool-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+				background: var(--hero-title-gradient);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+			.tool-header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+			}
+			.tool-box {
+				background: var(--bg-card);
+				backdrop-filter: blur(12px);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			}
+			.preset-group {
+				display: flex;
+				gap: 0.5rem;
+				margin-bottom: 1.5rem;
+				flex-wrap: wrap;
+				align-items: center;
+			}
+			.preset-label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+				margin-right: 0.5rem;
+			}
+			.preset-btn {
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+				padding: 0.4em 0.8em;
+				border-radius: 6px;
+				font-size: 0.82rem;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+			.preset-btn:hover {
+				background: var(--badge-bg);
+				color: var(--accent);
+				border-color: var(--accent);
+			}
+			.field-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+				margin-bottom: 1rem;
+			}
+			label {
+				font-size: 0.88rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			label .req {
+				color: #ef4444;
+			}
+			label .hint {
+				font-size: 0.78rem;
+				color: var(--text-muted);
+				font-weight: normal;
+				margin-left: 0.3rem;
+			}
+			input[type="text"] {
+				width: 100%;
+				padding: 0.7em 0.9em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.95rem;
+				box-sizing: border-box;
+				outline: none;
+				transition: border-color 0.2s, box-shadow 0.2s;
+			}
+			input[type="text"]:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 10px var(--accent-glow);
+			}
+			textarea {
+				width: 100%;
+				height: 90px;
+				padding: 1em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				color: var(--text-main);
+				font-size: 0.95rem;
+				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+				box-sizing: border-box;
+				outline: none;
+				resize: vertical;
+				line-height: 1.5;
+			}
+			.btn-group {
+				display: flex;
+				gap: 0.8rem;
+				margin-top: 1.2rem;
+			}
+			.btn {
+				background: var(--accent);
+				color: #ffffff !important;
+				border: none;
+				padding: 0.6em 1.2em;
+				border-radius: 8px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+			.btn:hover { background: var(--accent-hover); }
+			.btn-secondary {
+				background: var(--gray-light);
+				border: 1px solid var(--card-border);
+				color: var(--text-main);
+			}
+			.btn-secondary:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+
+			/* FAQ 与相关工具样式 */
+			.content-section {
+				margin-top: 2.5rem;
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+			}
+			.content-section h2 {
+				font-size: 1.3rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 1.2rem;
+			}
+			.faq-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1.2rem;
+			}
+			.faq-item h3 {
+				font-size: 1rem;
+				font-weight: 700;
+				color: var(--text-main);
+				margin-bottom: 0.3rem;
+			}
+			.faq-item p {
+				font-size: 0.9rem;
+				color: var(--text-muted);
+				line-height: 1.5;
+			}
+			.related-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			.related-card {
+				display: flex;
+				align-items: center;
+				gap: 0.8rem;
+				padding: 0.9rem;
+				background: var(--code-bg);
+				border: 1px solid var(--card-border);
+				border-radius: 10px;
+				text-decoration: none !important;
+				transition: border-color 0.2s;
+			}
+			.related-card:hover {
+				border-color: var(--accent);
+			}
+			.card-icon {
+				font-size: 1.6rem;
+			}
+			.related-card h4 {
+				margin: 0 0 0.2rem 0;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				font-weight: 700;
+			}
+			.related-card p {
+				margin: 0;
+				color: var(--text-muted);
+				font-size: 0.8rem;
+			}
+
+			@media (max-width: 768px) {
+				.related-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>🔗 {frontmatter.title}</h1>
+				<p>{frontmatter.description}</p>
+			</div>
+
+			<div class="tool-box">
+				<div class="preset-group">
+					<span class="preset-label">快捷预设：</span>
+					<button class="preset-btn" data-source="facebook" data-medium="cpc">Facebook 广告</button>
+					<button class="preset-btn" data-source="google" data-medium="cpc">Google 搜索广告</button>
+					<button class="preset-btn" data-source="newsletter" data-medium="email">邮件营销 Newsletter</button>
+					<button class="preset-btn" data-source="tiktok" data-medium="social">TikTok 主页链接</button>
+					<button class="preset-btn" data-source="twitter" data-medium="social">Twitter/X 贴文</button>
+				</div>
+
+				<div class="field-group">
+					<label for="targetUrl">目标网页 URL <span class="req">*</span> <span class="hint">(例如 https://lunchoon.com/product)</span></label>
+					<input type="text" id="targetUrl" value="https://helpmini.com/" placeholder="https://example.com" />
+				</div>
+
+				<div class="field-group">
+					<label for="utmSource">广告来源 <span class="req">*</span> <span class="hint">(utm_source，如 google, facebook, newsletter)</span></label>
+					<input type="text" id="utmSource" value="google" placeholder="例如 google" />
+				</div>
+
+				<div class="field-group">
+					<label for="utmMedium">广告媒介 <span class="req">*</span> <span class="hint">(utm_medium，如 cpc, email, social, banner)</span></label>
+					<input type="text" id="utmMedium" value="cpc" placeholder="例如 cpc" />
+				</div>
+
+				<div class="field-group">
+					<label for="utmCampaign">活动名称 <span class="hint">(utm_campaign，如 summer_sale, promo_2026)</span></label>
+					<input type="text" id="utmCampaign" value="summer_sale" placeholder="例如 summer_sale" />
+				</div>
+
+				<div class="field-group">
+					<label for="utmTerm">关键字 <span class="hint">(utm_term，如 running_shoes, 搜索关键词)</span></label>
+					<input type="text" id="utmTerm" placeholder="例如 running_shoes" />
+				</div>
+
+				<div class="field-group">
+					<label for="utmContent">广告内容 <span class="hint">(utm_content，如 banner_v1, video_cta，区分不同素材)</span></label>
+					<input type="text" id="utmContent" placeholder="例如 banner_v1" />
+				</div>
+
+				<div class="field-group" style="margin-top: 1.5rem;">
+					<label for="generatedUrl">生成的 UTM 追踪链接：</label>
+					<textarea id="generatedUrl" readonly placeholder="拼接好的带追踪参数 URL 将显示在这里..."></textarea>
+				</div>
+
+				<div class="btn-group">
+					<button class="btn btn-secondary" id="btnClear">清空</button>
+					<button class="btn btn-secondary" id="btnCopy" style="margin-left: auto;">复制链接</button>
+				</div>
+			</div>
+
+			<!-- FAQ 模块 -->
+			<section class="content-section">
+				<h2>常见问题解答 (FAQ)</h2>
+				<div class="faq-list">
+					<div class="faq-item">
+						<h3>什么是 UTM 参数？它的主要作用是什么？</h3>
+						<p>UTM (Urchin Tracking Module) 是拼接在网址末尾的特殊标记。当用户点击带 UTM 参数的链接访问网站时，Google Analytics 4 (GA4) 就能精准追踪到这个订单或流量来自于具体哪条广告、社媒帖子或邮件。</p>
+					</div>
+					<div class="faq-item">
+						<h3>UTM 参数区分大小写吗？</h3>
+						<p><strong>区分大小写。</strong> `utm_source=Facebook` 与 `utm_source=facebook` 在 Google Analytics 中会被识别为两条独立的来源。建议统一采用全小写字母命名。</p>
+					</div>
+					<div class="faq-item">
+						<h3>输入的网址与活动参数会被保存在服务器上吗？</h3>
+						<p><strong>不会。</strong> 链接拼接 100% 在您的浏览器本地完成，您的营销策略与广告关键词数据绝不离开本地设备。</p>
+					</div>
+				</div>
+			</section>
+
+			<!-- 相关工具推荐 -->
+			<section class="content-section">
+				<h2>你可能也会用到</h2>
+				<div class="related-grid">
+					<a href="/zh/tools/number-to-words-converter/" class="related-card">
+						<span class="card-icon">🔢</span>
+						<div>
+							<h4>数字转英文大写金额转换器</h4>
+							<p>将数字与金额快速转换为发票标准的英文大写。</p>
+						</div>
+					</a>
+					<a href="/zh/tools/ecommerce-profit-margin-calculator/" class="related-card">
+						<span class="card-icon">🧮</span>
+						<div>
+							<h4>独立站与跨境电商利润计算器</h4>
+							<p>精准测算商品净利润率与保本售价。</p>
+						</div>
+					</a>
+				</div>
+			</section>
+		</main>
+		<Footer />
+
+		<!-- Schema.org FAQ 结构化数据 -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				"mainEntity": [
+					{
+						"@type": "Question",
+						"name": "什么是 UTM 参数？它的主要作用是什么？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "UTM 参数是拼接在网址末尾的标记，用于在 Google Analytics 中精准追踪流量来源与广告效果。"
+						}
+					},
+					{
+						"@type": "Question",
+						"name": "UTM 参数区分大小写吗？",
+						"acceptedAnswer": {
+							"@type": "Answer",
+							"text": "是的，UTM 参数区分大小写，建议统一采用全小写字母命名。"
+						}
+					}
+				]
+			}
+		</script>
+
+		<script>
+			const targetUrlIn = document.getElementById('targetUrl') as HTMLInputElement;
+			const utmSourceIn = document.getElementById('utmSource') as HTMLInputElement;
+			const utmMediumIn = document.getElementById('utmMedium') as HTMLInputElement;
+			const utmCampaignIn = document.getElementById('utmCampaign') as HTMLInputElement;
+			const utmTermIn = document.getElementById('utmTerm') as HTMLInputElement;
+			const utmContentIn = document.getElementById('utmContent') as HTMLInputElement;
+			const generatedUrlOut = document.getElementById('generatedUrl') as HTMLTextAreaElement;
+			const presetBtns = document.querySelectorAll('.preset-btn');
+
+			function buildUtmUrl() {
+				let rawUrl = targetUrlIn.value.trim();
+				if (!rawUrl) {
+					generatedUrlOut.value = '';
+					return;
+				}
+
+				if (!/^https?:\/\//i.test(rawUrl)) {
+					rawUrl = 'https://' + rawUrl;
+				}
+
+				try {
+					const urlObj = new URL(rawUrl);
+					const source = utmSourceIn.value.trim().toLowerCase();
+					const medium = utmMediumIn.value.trim().toLowerCase();
+					const campaign = utmCampaignIn.value.trim();
+					const term = utmTermIn.value.trim();
+					const content = utmContentIn.value.trim();
+
+					if (source) urlObj.searchParams.set('utm_source', source);
+					if (medium) urlObj.searchParams.set('utm_medium', medium);
+					if (campaign) urlObj.searchParams.set('utm_campaign', campaign);
+					if (term) urlObj.searchParams.set('utm_term', term);
+					if (content) urlObj.searchParams.set('utm_content', content);
+
+					generatedUrlOut.value = urlObj.toString();
+				} catch (e) {
+					generatedUrlOut.value = '网址格式有误，请输入有效的 URL';
+				}
+			}
+
+			[targetUrlIn, utmSourceIn, utmMediumIn, utmCampaignIn, utmTermIn, utmContentIn].forEach(input => {
+				input?.addEventListener('input', buildUtmUrl);
+			});
+
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.currentTarget as HTMLButtonElement;
+					const src = target.getAttribute('data-source');
+					const med = target.getAttribute('data-medium');
+					if (src && utmSourceIn) utmSourceIn.value = src;
+					if (med && utmMediumIn) utmMediumIn.value = med;
+					buildUtmUrl();
+				});
+			});
+
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				targetUrlIn.value = '';
+				utmSourceIn.value = '';
+				utmMediumIn.value = '';
+				utmCampaignIn.value = '';
+				utmTermIn.value = '';
+				utmContentIn.value = '';
+				generatedUrlOut.value = '';
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!generatedUrlOut.value) return;
+				navigator.clipboard.writeText(generatedUrlOut.value);
+				const btn = e.target as HTMLButtonElement;
+				btn.textContent = '已复制！';
+				setTimeout(() => { btn.textContent = '复制链接'; }, 2000);
+			});
+
+			buildUtmUrl();
+		</script>
+	</body>
+</html>
