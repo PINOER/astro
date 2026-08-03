@@ -36,7 +36,7 @@ const blogLink = currentLang === 'en' ? '/blog/' : `/${currentLang}/blog/`;
 const aboutLink = currentLang === 'en' ? '/about/' : `/${currentLang}/about/`;
 const isZh = currentLang === 'zh';
 
-// ⚡⚡⚡ 修复点：使用简单标准的 Vite Glob 表达式扫描物理工具文件 ⚡⚡⚡
+// ⚡ 标准 Vite Glob 表达式扫描物理工具文件
 const zhFilesRaw = import.meta.glob('/src/pages/zh/tools/*.astro', { query: '?raw', eager: true });
 const zhFiles = import.meta.glob('/src/pages/zh/tools/*.astro', { eager: true });
 
@@ -101,6 +101,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 				<span class="search-icon">🔍</span>
 				<span class="search-placeholder">
 					<span class="slogan-text">{isZh ? '小微工具，大有作为' : 'Small Tools, Big Impact.'}</span>
+					<span class="mobile-short-placeholder">{isZh ? '搜索...' : 'Search...'}</span>
 				</span>
 				<kbd class="kbd-badge">⌘K</kbd>
 			</div>
@@ -231,10 +232,11 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	</div>
 </div>
 
-<!-- 注入 SSR 构建好的静态工具数据字典，传递给客户端 JS -->
-<script is:inline define:vars={{ serverToolsData, currentLang }}>
+<!-- 注入 SSR 构建好的静态工具数据字典与语言偏好，传递给客户端 JS -->
+<script is:inline define:vars={{ serverToolsData, currentLang, isZh }}>
 	window.__INITIAL_SEARCH_TOOLS__ = serverToolsData;
 	window.__CURRENT_LANG__ = currentLang;
+	window.__IS_ZH__ = isZh;
 </script>
 
 <script>
@@ -245,7 +247,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	const modalSearchInput = document.getElementById('modalSearchInput') as HTMLInputElement;
 	const modalSearchResults = document.getElementById('modalSearchResults');
 
-	// 内存数据库，先拿 SSR 的服务端列表打底
+	// 内存数据库，拿 SSR 服务端列表打底
 	let searchableToolsData: Array<{ slug?: string; title: string; desc: string; url: string; icon: string; keywords: string; disabled?: boolean }> = (window as any).__INITIAL_SEARCH_TOOLS__ || [];
 
 	// ⚡ 异步客户端同步：如果在首页，提取页面上由 KV 管理的动态节点补充更新；如果在子页面，异步尝试刷新 KV 配置
@@ -272,7 +274,7 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 			}
 
 			// 如果在子页面，请求 KV 覆盖接口
-			const currentLang = (window as any).__CURRENT_LANG__ || 'zh';
+			const currentLang = (window as any).__CURRENT_LANG__ || 'en';
 			const res = await fetch(`/api/admin/config?type=tools_v2_${currentLang}`);
 			const json = await res.json();
 
@@ -334,13 +336,17 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		}
 	});
 
-	// 动态匹配过滤与结果渲染
+	// 动态匹配过滤与结果渲染（⚡ 优化点 2：增加多语言提示逻辑）
 	function renderSearchResults(query: string) {
 		if (!modalSearchResults) return;
 		const q = query.toLowerCase().trim();
+		const isZh = (window as any).__IS_ZH__;
 
 		if (!q) {
-			modalSearchResults.innerHTML = `<div class="modal-hint">${searchableToolsData.length > 0 ? '共加载 ' + searchableToolsData.length + ' 个在线工具' : '输入工具名称，即时过滤与跳转'}</div>`;
+			const hintText = isZh 
+				? (searchableToolsData.length > 0 ? `共加载 ${searchableToolsData.length} 个在线工具` : '输入工具名称，即时过滤与跳转')
+				: (searchableToolsData.length > 0 ? `Loaded ${searchableToolsData.length} tools, type to search...` : 'Type to search and jump to tools...');
+			modalSearchResults.innerHTML = `<div class="modal-hint">${hintText}</div>`;
 			return;
 		}
 
@@ -353,7 +359,8 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		);
 
 		if (results.length === 0) {
-			modalSearchResults.innerHTML = `<div class="modal-hint">未找到匹配 "${query}" 的工具</div>`;
+			const noResultText = isZh ? `未找到匹配 "${query}" 的工具` : `No tools found for "${query}"`;
+			modalSearchResults.innerHTML = `<div class="modal-hint">${noResultText}</div>`;
 			return;
 		}
 
@@ -539,6 +546,10 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 	.slogan-text {
 		opacity: 0.85;
 		font-weight: 500;
+	}
+
+	.mobile-short-placeholder {
+		display: none; /* 默认桌面端隐藏短 placeholder */
 	}
 
 	.kbd-badge {
@@ -858,18 +869,28 @@ const serverToolsData = [...buildTimeTools, ...buildTimeSponsors];
 		text-overflow: ellipsis;
 	}
 
+	/* ⚡ 移动端样式调整（小于 640px） */
 	@media (max-width: 640px) {
 		header.header-bar {
 			padding: 0 0.8em;
 		}
 		.nav-center {
-			max-width: 180px;
+			max-width: 140px;
 		}
+		/* 移动端隐藏完整长标语和 ⌘K 快捷键提示 */
 		.slogan-text, .kbd-badge {
-			display: none;
+			display: none !important;
 		}
-		.search-placeholder {
-			font-size: 0.8rem;
+		/* 显示移动端短词占位符 */
+		.mobile-short-placeholder {
+			display: inline !important;
+			opacity: 0.6;
+		}
+		.search-icon {
+			margin-right: 0.3rem;
+		}
+		.search-box-trigger {
+			padding: 0 0.7em;
 		}
 	}
 </style>
