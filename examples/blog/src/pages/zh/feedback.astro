@@ -1,0 +1,116 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+
+const pageTitle = `发送反馈 — ${SITE_TITLE}`;
+const pageDescription = "提交您的意见、建议或 Bug 反馈，帮助我们将 HelpMini 打造得更好。";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 700px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.page-header {
+				text-align: center;
+				margin-bottom: 2em;
+			}
+			.form-box {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+			}
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+				margin-bottom: 1.2rem;
+			}
+			.form-group label {
+				font-size: 0.9rem;
+				font-weight: 600;
+				color: var(--text-main);
+			}
+			input[type="text"], input[type="email"], select, textarea {
+				width: 100%;
+				padding: 0.7em 0.9em;
+				background: var(--code-bg) !important;
+				border: 1px solid var(--card-border);
+				border-radius: 8px;
+				color: var(--text-main);
+				font-size: 0.92rem;
+				outline: none;
+				box-sizing: border-box;
+			}
+			textarea {
+				height: 120px;
+				resize: vertical;
+			}
+			.btn-submit {
+				background: var(--accent);
+				color: #fff;
+				border: none;
+				padding: 0.7em 1.5em;
+				border-radius: 8px;
+				font-weight: 700;
+				cursor: pointer;
+				width: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<Header lang="zh" />
+		<main>
+			<div class="page-header">
+				<h1>💬 发送意见与反馈</h1>
+				<p style="color:var(--text-muted);">告诉我们您希望增加的新工具，或提交遇到的问题。</p>
+			</div>
+
+			<div class="form-box">
+				<form id="feedbackForm">
+					<div class="form-group">
+						<label for="feedbackType">反馈类型</label>
+						<select id="feedbackType">
+							<option value="feature">提议新功能 / 新工具</option>
+							<option value="bug">提交 Bug 报告</option>
+							<option value="general">其他综合建议</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="contactEmail">您的联系邮箱（选填）</label>
+						<input type="email" id="contactEmail" placeholder="name@example.com" />
+					</div>
+
+					<div class="form-group">
+						<label for="feedbackContent">反馈详情</label>
+						<textarea id="feedbackContent" required placeholder="请详细描述您的想法或遇到的问题..."></textarea>
+					</div>
+
+					<button type="submit" class="btn-submit" id="btnSubmit">提交反馈</button>
+				</form>
+			</div>
+		</main>
+		<Footer lang="zh" />
+
+		<script>
+			document.getElementById('feedbackForm')?.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const btn = document.getElementById('btnSubmit') as HTMLButtonElement;
+				if (btn) {
+					btn.textContent = '感谢您的反馈！我们已收到。';
+					btn.disabled = true;
+				}
+			});
+		</script>
+	</body>
+</html>
