@@ -1,0 +1,46 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+const pageTitle = `Terms of Service — ${SITE_TITLE}`;
+const pageDescription = "HelpMini Terms of Service and disclaimer.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+				color: var(--text-muted);
+				line-height: 1.7;
+			}
+			h1, h2 { color: var(--text-main); }
+			h1 { font-size: 2.2rem; margin-bottom: 0.2em; }
+			h2 { font-size: 1.3rem; margin-top: 1.8em; }
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Terms of Service</h1>
+			<p><em>Last updated: August 2026</em></p>
+
+			<h2>1. Acceptance of Terms</h2>
+			<p>By accessing or using HelpMini tools, you agree to be bound by these Terms of Service. If you do not agree, please do not use our website.</p>
+
+			<h2>2. Disclaimer & Calculation Accuracy</h2>
+			<p>HelpMini tools are provided "as is" for informational and productivity purposes only. While we strive to ensure accurate calculations (e.g., fee and tax calculators), we do not guarantee 100% accuracy for all financial, tax, or legal decisions. Please verify with official financial portals.</p>
+
+			<h2>3. Limitation of Liability</h2>
+			<p>HelpMini shall not be liable for any direct or indirect loss resulting from the use or inability to use our website or processing outputs.</p>
+		</main>
+		<Footer />
+	</body>
+</html>
