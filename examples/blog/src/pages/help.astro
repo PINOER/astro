@@ -1,0 +1,75 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+const pageTitle = `Help Center — ${SITE_TITLE}`;
+const pageDescription = "Find guides, usage tips, and answers to common questions about HelpMini tools.";
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<style>
+			main {
+				width: 800px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 3em 1em 5em;
+			}
+			.page-header {
+				text-align: center;
+				margin-bottom: 2.5em;
+			}
+			.page-header h1 {
+				font-size: 2.2rem;
+				font-weight: 800;
+				margin-bottom: 0.3em;
+			}
+			.content-card {
+				background: var(--bg-card);
+				border: 1px solid var(--card-border);
+				border-radius: 16px;
+				padding: 2em;
+				margin-bottom: 1.5em;
+			}
+			.content-card h2 {
+				font-size: 1.25rem;
+				color: var(--text-main);
+				margin-top: 0;
+			}
+			.content-card p, .content-card li {
+				color: var(--text-muted);
+				line-height: 1.6;
+				font-size: 0.95rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="page-header">
+				<h1>❓ Help Center</h1>
+				<p style="color:var(--text-muted);">Everything you need to know about using HelpMini tools.</p>
+			</div>
+
+			<div class="content-card">
+				<h2>🔒 Privacy & Security</h2>
+				<p>All tools on HelpMini run 100% locally in your web browser. Your images, files, code, and financial inputs are processed on your device and are <strong>never uploaded to any server</strong>.</p>
+			</div>
+
+			<div class="content-card">
+				<h2>⚡ Fast & No Sign-up Needed</h2>
+				<p>HelpMini tools are completely free to use without creating an account, subscribing, or installing any browser extensions. Simply open a tool and get your task done instantly.</p>
+			</div>
+
+			<div class="content-card">
+				<h2>🌐 Multi-Language Support</h2>
+				<p>You can easily toggle between languages using the dropdown selector in the top navigation header.</p>
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
