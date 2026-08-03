@@ -35,6 +35,11 @@ const isNavActive = (itemPath: string) => {
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={`${title} — HelpMini 后台控制中心`} description="HelpMini Admin Dashboard" />
+		
+		<!-- ⚡ 安全防御：双重强制搜索引擎禁收录指令（消除谷歌快照） -->
+		<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+		<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
+		
 		<style is:global>
 			:root {
 				--admin-bg: #0b0f17;
@@ -200,7 +205,19 @@ const isNavActive = (itemPath: string) => {
 			<slot />
 		</main>
 
+		<!-- ⚡ 防暴露兜底校验与退出逻辑 -->
 		<script is:inline>
+			(function checkAuthFallback() {
+				// 避免在登录页死循环重定向
+				if (window.location.pathname.startsWith('/admin/login')) return;
+				
+				// 简单校验 Cookie 中是否存在凭证，如无凭证则前端直接切断访问
+				const hasAuthCookie = document.cookie.split('; ').some(row => row.startsWith('admin_session='));
+				if (!hasAuthCookie) {
+					window.location.href = '/admin/login';
+				}
+			})();
+
 			document.getElementById('btnLogout')?.addEventListener('click', async () => {
 				if (confirm('确认退出后台管理面板？')) {
 					await fetch('/api/admin/auth', { method: 'DELETE' });
