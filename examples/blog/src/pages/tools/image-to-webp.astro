@@ -313,217 +313,211 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		declare const JSZip: any;
+		function initTool() {
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput');
+			const fileList = document.getElementById('fileList');
+			const actionBar = document.getElementById('actionBar');
+			const fileCount = document.getElementById('fileCount');
+			const btnClear = document.getElementById('btnClear');
+			const btnDownloadZip = document.getElementById('btnDownloadZip');
 
-		interface Task {
-			id: string;
-			file: File;
-			name: string;
-			originalSize: number;
-			status: 'pending' | 'done';
-			blob: Blob | null;
-			ratio?: string;
-			outputInfo?: string;
-			webpName: string;
-		}
+			const qualitySelect = document.getElementById('qualitySelect');
+			const sizeModeSelect = document.getElementById('sizeModeSelect');
+			const dimensionBox = document.getElementById('dimensionBox');
+			const targetWidth = document.getElementById('targetWidth');
+			const targetHeight = document.getElementById('targetHeight');
+			const heightSep = document.getElementById('heightSep');
 
-		const dropZone = document.getElementById('dropZone');
-		const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-		const fileList = document.getElementById('fileList');
-		const actionBar = document.getElementById('actionBar');
-		const fileCount = document.getElementById('fileCount');
-		const btnClear = document.getElementById('btnClear');
-		const btnDownloadZip = document.getElementById('btnDownloadZip') as HTMLButtonElement;
+			let tasks = [];
 
-		const qualitySelect = document.getElementById('qualitySelect') as HTMLSelectElement;
-		const sizeModeSelect = document.getElementById('sizeModeSelect') as HTMLSelectElement;
-		const dimensionBox = document.getElementById('dimensionBox');
-		const targetWidth = document.getElementById('targetWidth') as HTMLInputElement;
-		const targetHeight = document.getElementById('targetHeight') as HTMLInputElement;
-		const heightSep = document.getElementById('heightSep');
-
-		let tasks: Task[] = [];
-
-		sizeModeSelect?.addEventListener('change', () => {
-			const mode = sizeModeSelect.value;
-			if (dimensionBox) {
-				if (mode === 'original') {
-					dimensionBox.style.display = 'none';
-				} else if (mode === 'customWidth') {
-					dimensionBox.style.display = 'flex';
-					if (targetHeight) targetHeight.style.display = 'none';
-					if (heightSep) heightSep.style.display = 'none';
-				} else if (mode === 'custom') {
-					dimensionBox.style.display = 'flex';
-					if (targetHeight) targetHeight.style.display = 'block';
-					if (heightSep) heightSep.style.display = 'inline';
-				}
-			}
-			reprocessAll();
-		});
-
-		qualitySelect?.addEventListener('change', reprocessAll);
-		targetWidth?.addEventListener('input', reprocessAll);
-		targetHeight?.addEventListener('input', reprocessAll);
-
-		dropZone?.addEventListener('click', () => fileInput?.click());
-		dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-		dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-		dropZone?.addEventListener('drop', (e) => {
-			e.preventDefault();
-			dropZone.classList.remove('dragover');
-			if (e.dataTransfer?.files.length) handleFiles(e.dataTransfer.files);
-		});
-
-		fileInput?.addEventListener('change', () => {
-			if (fileInput.files?.length) handleFiles(fileInput.files);
-		});
-
-		btnClear?.addEventListener('click', () => {
-			tasks = [];
-			renderList();
-		});
-
-		function handleFiles(files: FileList) {
-			const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-			newFiles.forEach(file => {
-				const id = Math.random().toString(36).substring(2, 9);
-				tasks.push({
-					id,
-					file,
-					name: file.name,
-					originalSize: file.size,
-					status: 'pending',
-					blob: null,
-					webpName: file.name.replace(/\.[^/.]+$/, "") + ".webp"
-				});
-			});
-			renderList();
-			processQueue();
-		}
-
-		function reprocessAll() {
-			tasks.forEach(t => t.status = 'pending');
-			renderList();
-			processQueue();
-		}
-
-		function renderList() {
-			if (!fileList || !fileCount || !actionBar || !btnDownloadZip) return;
-			fileList.innerHTML = '';
-			fileCount.textContent = tasks.length.toString();
-			actionBar.style.display = tasks.length ? 'flex' : 'none';
-
-			const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
-			btnDownloadZip.disabled = !allDone;
-
-			tasks.forEach(task => {
-				const item = document.createElement('div');
-				item.className = 'file-item';
-				item.innerHTML = `
-					<div class="file-info">
-						<img class="file-preview" id="prev-${task.id}" src="" alt="" />
-						<div class="file-details">
-							<h4>${task.name}</h4>
-							<p>Original: ${formatBytes(task.originalSize)} ${task.outputInfo ? ' ➔ <strong>' + task.outputInfo + '</strong>' : ''}</p>
-						</div>
-					</div>
-					<div class="file-status">
-						${task.status === 'done' && task.blob
-							? `<span class="badge badge-success">Saved -${task.ratio}%</span>
-							   <a class="btn btn-sm" href="${URL.createObjectURL(task.blob)}" download="${task.webpName}">Download</a>`
-							: `<span class="badge badge-pending">Converting...</span>`
-						}
-					</div>
-				`;
-				fileList.appendChild(item);
-
-				const imgEl = item.querySelector(`#prev-${task.id}`) as HTMLImageElement;
-				if (imgEl && task.file) {
-					imgEl.src = URL.createObjectURL(task.file);
-				}
-			});
-		}
-
-		async function processQueue() {
-			const quality = parseFloat(qualitySelect?.value || '0.8');
-			const mode = sizeModeSelect?.value || 'original';
-			const tw = parseInt(targetWidth?.value || '800') || 800;
-			const th = parseInt(targetHeight?.value || '600') || 600;
-
-			for (let task of tasks) {
-				if (task.status === 'done') continue;
-
-				try {
-					const blob = await convertToWebP(task.file, quality, mode, tw, th);
-					task.blob = blob;
-					task.status = 'done';
-					
-					const saved = ((task.originalSize - blob.size) / task.originalSize * 100).toFixed(1);
-					task.ratio = parseFloat(saved) > 0 ? saved : '0';
-					task.outputInfo = `${formatBytes(blob.size)}`;
-				} catch (e) {
-					console.error('Conversion failed:', e);
-				}
-			}
-			renderList();
-		}
-
-		function convertToWebP(file: File, quality: number, mode: string, customW: number, customH: number): Promise<Blob> {
-			return new Promise((resolve, reject) => {
-				const img = new Image();
-				img.onload = () => {
-					let w = img.width;
-					let h = img.height;
-
-					if (mode === 'customWidth') {
-						w = customW;
-						h = Math.round((img.height * customW) / img.width);
+			sizeModeSelect?.addEventListener('change', () => {
+				const mode = sizeModeSelect.value;
+				if (dimensionBox) {
+					if (mode === 'original') {
+						dimensionBox.style.display = 'none';
+					} else if (mode === 'customWidth') {
+						dimensionBox.style.display = 'flex';
+						if (targetHeight) targetHeight.style.display = 'none';
+						if (heightSep) heightSep.style.display = 'none';
 					} else if (mode === 'custom') {
-						w = customW;
-						h = customH;
+						dimensionBox.style.display = 'flex';
+						if (targetHeight) targetHeight.style.display = 'block';
+						if (heightSep) heightSep.style.display = 'inline';
 					}
-
-					const canvas = document.createElement('canvas');
-					canvas.width = w;
-					canvas.height = h;
-					const ctx = canvas.getContext('2d');
-					ctx?.drawImage(img, 0, 0, w, h);
-
-					canvas.toBlob((blob) => {
-						if (blob) resolve(blob);
-						else reject(new Error('Canvas toBlob failed'));
-					}, 'image/webp', quality);
-				};
-				img.onerror = reject;
-				img.src = URL.createObjectURL(file);
+				}
+				reprocessAll();
 			});
+
+			qualitySelect?.addEventListener('change', reprocessAll);
+			targetWidth?.addEventListener('input', reprocessAll);
+			targetHeight?.addEventListener('input', reprocessAll);
+
+			dropZone?.addEventListener('click', () => fileInput?.click());
+			dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+			dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+			dropZone?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				dropZone.classList.remove('dragover');
+				if (e.dataTransfer?.files.length) handleFiles(e.dataTransfer.files);
+			});
+
+			fileInput?.addEventListener('change', () => {
+				if (fileInput.files?.length) handleFiles(fileInput.files);
+			});
+
+			btnClear?.addEventListener('click', () => {
+				tasks = [];
+				renderList();
+			});
+
+			function handleFiles(files) {
+				const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+				newFiles.forEach(file => {
+					const id = Math.random().toString(36).substring(2, 9);
+					tasks.push({
+						id,
+						file,
+						name: file.name,
+						originalSize: file.size,
+						status: 'pending',
+						blob: null,
+						webpName: file.name.replace(/\.[^/.]+$/, "") + ".webp"
+					});
+				});
+				renderList();
+				processQueue();
+			}
+
+			function reprocessAll() {
+				tasks.forEach(t => t.status = 'pending');
+				renderList();
+				processQueue();
+			}
+
+			function renderList() {
+				if (!fileList || !fileCount || !actionBar || !btnDownloadZip) return;
+				fileList.innerHTML = '';
+				fileCount.textContent = tasks.length.toString();
+				actionBar.style.display = tasks.length ? 'flex' : 'none';
+
+				const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
+				btnDownloadZip.disabled = !allDone;
+
+				tasks.forEach(task => {
+					const item = document.createElement('div');
+					item.className = 'file-item';
+					item.innerHTML = `
+						<div class="file-info">
+							<img class="file-preview" id="prev-${task.id}" src="" alt="" />
+							<div class="file-details">
+								<h4>${task.name}</h4>
+								<p>Original: ${formatBytes(task.originalSize)} ${task.outputInfo ? ' ➔ <strong>' + task.outputInfo + '</strong>' : ''}</p>
+							</div>
+						</div>
+						<div class="file-status">
+							${task.status === 'done' && task.blob
+								? `<span class="badge badge-success">Saved -${task.ratio}%</span>
+								   <a class="btn btn-sm" href="${URL.createObjectURL(task.blob)}" download="${task.webpName}">Download</a>`
+								: `<span class="badge badge-pending">Converting...</span>`
+							}
+						</div>
+					`;
+					fileList.appendChild(item);
+
+					const imgEl = item.querySelector(`#prev-${task.id}`);
+					if (imgEl && task.file) {
+						imgEl.src = URL.createObjectURL(task.file);
+					}
+				});
+			}
+
+			async function processQueue() {
+				const quality = parseFloat(qualitySelect?.value || '0.8');
+				const mode = sizeModeSelect?.value || 'original';
+				const tw = parseInt(targetWidth?.value || '800') || 800;
+				const th = parseInt(targetHeight?.value || '600') || 600;
+
+				for (let task of tasks) {
+					if (task.status === 'done') continue;
+
+					try {
+						const blob = await convertToWebP(task.file, quality, mode, tw, th);
+						task.blob = blob;
+						task.status = 'done';
+						
+						const saved = ((task.originalSize - blob.size) / task.originalSize * 100).toFixed(1);
+						task.ratio = parseFloat(saved) > 0 ? saved : '0';
+						task.outputInfo = `${formatBytes(blob.size)}`;
+					} catch (e) {
+						console.error('Conversion failed:', e);
+					}
+				}
+				renderList();
+			}
+
+			function convertToWebP(file, quality, mode, customW, customH) {
+				return new Promise((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => {
+						let w = img.width;
+						let h = img.height;
+
+						if (mode === 'customWidth') {
+							w = customW;
+							h = Math.round((img.height * customW) / img.width);
+						} else if (mode === 'custom') {
+							w = customW;
+							h = customH;
+						}
+
+						const canvas = document.createElement('canvas');
+						canvas.width = w;
+						canvas.height = h;
+						const ctx = canvas.getContext('2d');
+						ctx?.drawImage(img, 0, 0, w, h);
+
+						canvas.toBlob((blob) => {
+							if (blob) resolve(blob);
+							else reject(new Error('Canvas toBlob failed'));
+						}, 'image/webp', quality);
+					};
+					img.onerror = reject;
+					img.src = URL.createObjectURL(file);
+				});
+			}
+
+			btnDownloadZip?.addEventListener('click', async () => {
+				if (typeof JSZip === 'undefined') {
+					alert('JSZip library failed to load!');
+					return;
+				}
+				const zip = new JSZip();
+				tasks.forEach(t => {
+					if (t.blob) zip.file(t.webpName, t.blob);
+				});
+				const content = await zip.generateAsync({ type: 'blob' });
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(content);
+				link.download = `webp_converted_${Date.now()}.zip`;
+				link.click();
+			});
+
+			function formatBytes(bytes) {
+				if (bytes === 0) return '0 B';
+				const k = 1024;
+				const sizes = ['B', 'KB', 'MB', 'GB'];
+				const i = Math.floor(Math.log(bytes) / Math.log(k));
+				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+			}
 		}
 
-		btnDownloadZip?.addEventListener('click', async () => {
-			if (typeof JSZip === 'undefined') {
-				alert('JSZip library failed to load!');
-				return;
-			}
-			const zip = new JSZip();
-			tasks.forEach(t => {
-				if (t.blob) zip.file(t.webpName, t.blob);
-			});
-			const content = await zip.generateAsync({ type: 'blob' });
-			const link = document.createElement('a');
-			link.href = URL.createObjectURL(content);
-			link.download = `webp_converted_${Date.now()}.zip`;
-			link.click();
-		});
-
-		function formatBytes(bytes: number): string {
-			if (bytes === 0) return '0 B';
-			const k = 1024;
-			const sizes = ['B', 'KB', 'MB', 'GB'];
-			const i = Math.floor(Math.log(bytes) / Math.log(k));
-			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
 		}
 	</script>
 </ToolLayout>
