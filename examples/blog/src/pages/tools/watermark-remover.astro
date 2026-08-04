@@ -524,48 +524,48 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		(function () {
-			'use strict';
-
+		function initTool() {
 			const MAX_FILE_BYTES = 40 * 1024 * 1024;
 			const MAX_DIMENSION = 4096;
 			const MAX_PIXELS = 4000000;
 			const DEFAULT_HISTORY_LIMIT = 10;
 
 			const dropPrompt = document.getElementById('dropPrompt');
-			const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+			const fileInput = document.getElementById('fileInput');
 			const stageContainer = document.getElementById('stageContainer');
 			const canvasWrapper = document.getElementById('canvasWrapper');
 			const controlBar = document.getElementById('controlBar');
 			const sidePanel = document.getElementById('sidePanel');
-			const imageCanvas = document.getElementById('imageCanvas') as HTMLCanvasElement;
-			const maskCanvas = document.getElementById('maskCanvas') as HTMLCanvasElement;
-			const imageCtx = imageCanvas?.getContext('2d', { willReadFrequently: true });
-			const maskCtx = maskCanvas?.getContext('2d', { willReadFrequently: true });
+			const imageCanvas = document.getElementById('imageCanvas');
+			const maskCanvas = document.getElementById('maskCanvas');
+			if (!imageCanvas || !maskCanvas) return;
+
+			const imageCtx = imageCanvas.getContext('2d', { willReadFrequently: true });
+			const maskCtx = maskCanvas.getContext('2d', { willReadFrequently: true });
 			const originalCanvas = document.createElement('canvas');
 			const originalCtx = originalCanvas.getContext('2d');
 			const strokeSnapshot = document.createElement('canvas');
 			const strokeSnapshotCtx = strokeSnapshot.getContext('2d');
 
-			const modeSelect = document.getElementById('modeSelect') as HTMLSelectElement;
-			const brushSize = document.getElementById('brushSize') as HTMLInputElement;
+			const modeSelect = document.getElementById('modeSelect');
+			const brushSize = document.getElementById('brushSize');
 			const brushSizeVal = document.getElementById('brushSizeVal');
-			const zoomRange = document.getElementById('zoomRange') as HTMLInputElement;
+			const zoomRange = document.getElementById('zoomRange');
 			const zoomVal = document.getElementById('zoomVal');
 			const sourceMarker = document.getElementById('sourceMarker');
 			const brushPreview = document.getElementById('brushPreview');
 			const stampPanel = document.getElementById('stampPanel');
 			const btnSample = document.getElementById('btnSample');
 			const btnCompare = document.getElementById('btnCompare');
-			const btnUndo = document.getElementById('btnUndo') as HTMLButtonElement;
-			const btnRedo = document.getElementById('btnRedo') as HTMLButtonElement;
-			const btnReset = document.getElementById('btnReset') as HTMLButtonElement;
-			const btnNew = document.getElementById('btnNew') as HTMLButtonElement;
-			const btnDownload = document.getElementById('btnDownload') as HTMLButtonElement;
-			const exportFormat = document.getElementById('exportFormat') as HTMLSelectElement;
-			const jpegQuality = document.getElementById('jpegQuality') as HTMLSelectElement;
+			const btnUndo = document.getElementById('btnUndo');
+			const btnRedo = document.getElementById('btnRedo');
+			const btnReset = document.getElementById('btnReset');
+			const btnNew = document.getElementById('btnNew');
+			const btnDownload = document.getElementById('btnDownload');
+			const exportFormat = document.getElementById('exportFormat');
+			const jpegQuality = document.getElementById('jpegQuality');
 			const imageMeta = document.getElementById('imageMeta');
 			const statusBox = document.getElementById('statusBox');
 			const progressWrap = document.getElementById('progressWrap');
@@ -584,7 +584,7 @@ const faqSchema = {
 			let redoHistory = [];
 			let historyLimit = DEFAULT_HISTORY_LIMIT;
 
-			function setStatus(message, type?) {
+			function setStatus(message, type) {
 				if (!statusBox) return;
 				statusBox.textContent = message;
 				statusBox.className = 'status-box' + (type ? ' ' + type : '');
@@ -608,7 +608,7 @@ const faqSchema = {
 					btnUndo, btnRedo, btnReset, btnNew, btnDownload,
 					exportFormat, jpegQuality
 				].forEach(function (element) {
-					if (element) (element as any).disabled = value;
+					if (element) element.disabled = value;
 				});
 				if (!value) updateButtons();
 			}
@@ -619,8 +619,8 @@ const faqSchema = {
 				if (btnReset) btnReset.disabled = busy || !loaded;
 				if (btnNew) btnNew.disabled = busy || !loaded;
 				if (btnDownload) btnDownload.disabled = busy || !loaded;
-				if (btnCompare) (btnCompare as HTMLButtonElement).disabled = busy || !loaded;
-				if (btnSample) (btnSample as HTMLButtonElement).disabled = busy || !loaded;
+				if (btnCompare) btnCompare.disabled = busy || !loaded;
+				if (btnSample) btnSample.disabled = busy || !loaded;
 				if (jpegQuality) jpegQuality.disabled = busy || exportFormat?.value !== 'jpeg';
 			}
 
@@ -636,7 +636,7 @@ const faqSchema = {
 				return copy;
 			}
 
-			function captureState(clearRedo?) {
+			function captureState(clearRedo) {
 				if (!loaded || !imageCtx) return;
 				const state = imageCtx.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
 				history.push(state);
@@ -733,7 +733,7 @@ const faqSchema = {
 						const image = new Image();
 						image.onload = function () { resolve(image); };
 						image.onerror = function () { reject(new Error('The image format could not be decoded.')); };
-						image.src = reader.result as string;
+						image.src = reader.result;
 					};
 					reader.readAsDataURL(file);
 				});
@@ -755,7 +755,7 @@ const faqSchema = {
 				setStatus('Reading image…');
 
 				try {
-					const image: any = await decodeImage(file);
+					const image = await decodeImage(file);
 					setProgress(45);
 					const naturalWidth = image.naturalWidth || image.width;
 					const naturalHeight = image.naturalHeight || image.height;
@@ -798,15 +798,15 @@ const faqSchema = {
 					applyZoom();
 
 					const resizeNote = working.scale < 0.999
-						? `; resized to ${working.width}×${working.height} to keep the browser stable`
+						? '; resized to ' + working.width + '×' + working.height + ' to keep the browser stable'
 						: '';
-					if (imageMeta) imageMeta.textContent = `${file.name || 'Clipboard image'} · Original ${naturalWidth}×${naturalHeight} · Working ${working.width}×${working.height}${resizeNote}`;
+					if (imageMeta) imageMeta.textContent = (file.name || 'Clipboard image') + ' · Original ' + naturalWidth + '×' + naturalHeight + ' · Working ' + working.width + '×' + working.height + resizeNote;
 					setProgress(100);
 					setStatus(working.scale < 0.999 ? 'The image was loaded and proportionally resized.' : 'The image is ready. Start painting over the area to repair.', working.scale < 0.999 ? 'warning' : 'success');
 					window.setTimeout(function () { setProgress(null); }, 350);
 
 					if (image.close) image.close();
-				} catch (error: any) {
+				} catch (error) {
 					setProgress(null);
 					setStatus(error && error.message ? error.message : 'The image could not be loaded.', 'error');
 				} finally {
@@ -899,7 +899,7 @@ const faqSchema = {
 					btnSample.textContent = 'Reset Sample Point';
 				}
 				updateSourceMarker();
-				setStatus(`Sample point set at ${Math.round(point.x)}, ${Math.round(point.y)}. You can now paint over the target area.`, 'success');
+				setStatus('Sample point set at ' + Math.round(point.x) + ', ' + Math.round(point.y) + '. You can now paint over the target area.', 'success');
 			}
 
 			async function inpaintMask() {
@@ -951,12 +951,12 @@ const faqSchema = {
 				const maxPasses = Math.max(width, height);
 				const neighbors = [
 					[-1, -1], [0, -1], [1, -1],
-					[-1, 0],           [1, 0],
+					[-1, 0],             [1, 0],
 					[-1, 1],  [0, 1],  [1, 1]
 				];
 
 				while (remaining > 0 && pass < maxPasses) {
-					const newlyFilled: any[] = [];
+					const newlyFilled = [];
 					const reverse = pass % 2 === 1;
 					const yStart = reverse ? maxY : minY;
 					const yEnd = reverse ? minY - 1 : maxY + 1;
@@ -1055,7 +1055,7 @@ const faqSchema = {
 						captureState();
 						setStatus('Smart Repair complete. Complex areas may need a few smaller touch-ups.', 'success');
 					}
-				} catch (error: any) {
+				} catch (error) {
 					restoreState(history[history.length - 1]);
 					setStatus(error && error.message ? error.message : 'Repair failed.', 'error');
 				} finally {
@@ -1065,7 +1065,7 @@ const faqSchema = {
 				}
 			}
 
-			maskCanvas?.addEventListener('pointerdown', function (event) {
+			maskCanvas.addEventListener('pointerdown', function (event) {
 				if (!loaded || busy) return;
 				const point = getCanvasPoint(event);
 
@@ -1099,7 +1099,7 @@ const faqSchema = {
 				event.preventDefault();
 			});
 
-			maskCanvas?.addEventListener('pointermove', function (event) {
+			maskCanvas.addEventListener('pointermove', function (event) {
 				updateBrushPreview(event);
 				if (!drawing || event.pointerId !== activePointerId || busy) return;
 				const point = getCanvasPoint(event);
@@ -1112,11 +1112,11 @@ const faqSchema = {
 				event.preventDefault();
 			});
 
-			maskCanvas?.addEventListener('pointerup', function (event) {
+			maskCanvas.addEventListener('pointerup', function (event) {
 				if (event.pointerId === activePointerId) finishStroke();
 			});
 
-			maskCanvas?.addEventListener('pointercancel', function (event) {
+			maskCanvas.addEventListener('pointercancel', function (event) {
 				if (event.pointerId === activePointerId) {
 					drawing = false;
 					activePointerId = null;
@@ -1125,7 +1125,7 @@ const faqSchema = {
 				}
 			});
 
-			maskCanvas?.addEventListener('pointerleave', function () {
+			maskCanvas.addEventListener('pointerleave', function () {
 				if (!drawing && brushPreview) brushPreview.style.display = 'none';
 			});
 
@@ -1172,7 +1172,7 @@ const faqSchema = {
 							exportCtx.drawImage(imageCanvas, 0, 0);
 						}
 					}
-					const blob: any = await new Promise(function (resolve, reject) {
+					const blob = await new Promise(function (resolve, reject) {
 						if (exportCanvas.toBlob) {
 							exportCanvas.toBlob(function (result) {
 								if (result) resolve(result);
@@ -1195,13 +1195,13 @@ const faqSchema = {
 					const url = URL.createObjectURL(blob);
 					const link = document.createElement('a');
 					link.href = url;
-					link.download = `${currentFileName}-repaired.${format === 'jpeg' ? 'jpg' : 'png'}`;
+					link.download = currentFileName + '-repaired.' + (format === 'jpeg' ? 'jpg' : 'png');
 					document.body.appendChild(link);
 					link.click();
 					link.remove();
 					window.setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
 					setStatus('The image has been exported.', 'success');
-				} catch (error: any) {
+				} catch (error) {
 					setStatus(error && error.message ? error.message : 'Export failed.', 'error');
 				} finally {
 					setBusy(false);
@@ -1276,7 +1276,7 @@ const faqSchema = {
 
 			window.addEventListener('keydown', function (event) {
 				if (!loaded || busy) return;
-				const targetName = event.target && (event.target as HTMLElement).tagName ? (event.target as HTMLElement).tagName.toLowerCase() : '';
+				const targetName = event.target && event.target.tagName ? event.target.tagName.toLowerCase() : '';
 				if (targetName === 'input' || targetName === 'select' || targetName === 'textarea') return;
 
 				if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
@@ -1304,6 +1304,12 @@ const faqSchema = {
 
 			clearEditor();
 			updateButtons();
-		})();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
