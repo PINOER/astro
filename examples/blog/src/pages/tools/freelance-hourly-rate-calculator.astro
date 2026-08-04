@@ -260,51 +260,59 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const desiredIncomeIn = document.getElementById('desiredIncome') as HTMLInputElement;
-		const annualExpensesIn = document.getElementById('annualExpenses') as HTMLInputElement;
-		const taxRateIn = document.getElementById('taxRate') as HTMLInputElement;
-		const weeklyHoursIn = document.getElementById('weeklyHours') as HTMLInputElement;
-		const billablePercentIn = document.getElementById('billablePercent') as HTMLInputElement;
-		const weeksOffIn = document.getElementById('weeksOff') as HTMLInputElement;
+		function initTool() {
+			const desiredIncomeIn = document.getElementById('desiredIncome');
+			const annualExpensesIn = document.getElementById('annualExpenses');
+			const taxRateIn = document.getElementById('taxRate');
+			const weeklyHoursIn = document.getElementById('weeklyHours');
+			const billablePercentIn = document.getElementById('billablePercent');
+			const weeksOffIn = document.getElementById('weeksOff');
 
-		const valHourlyRate = document.getElementById('valHourlyRate');
-		const valDailyRate = document.getElementById('valDailyRate');
-		const valGrossRevenue = document.getElementById('valGrossRevenue');
-		const valTotalTax = document.getElementById('valTotalTax');
-		const valBillableHours = document.getElementById('valBillableHours');
+			const valHourlyRate = document.getElementById('valHourlyRate');
+			const valDailyRate = document.getElementById('valDailyRate');
+			const valGrossRevenue = document.getElementById('valGrossRevenue');
+			const valTotalTax = document.getElementById('valTotalTax');
+			const valBillableHours = document.getElementById('valBillableHours');
 
-		function calculateRate() {
-			const netIncome = parseFloat(desiredIncomeIn.value) || 0;
-			const expenses = parseFloat(annualExpensesIn.value) || 0;
-			const taxRate = (parseFloat(taxRateIn.value) || 0) / 100;
-			const weeklyHours = Math.max(1, parseFloat(weeklyHoursIn.value) || 40);
-			const billableRate = Math.min(100, Math.max(1, parseFloat(billablePercentIn.value) || 65)) / 100;
-			const weeksOff = Math.min(52, parseFloat(weeksOffIn.value) || 0);
+			function calculateRate() {
+				const netIncome = parseFloat(desiredIncomeIn?.value) || 0;
+				const expenses = parseFloat(annualExpensesIn?.value) || 0;
+				const taxRate = (parseFloat(taxRateIn?.value) || 0) / 100;
+				const weeklyHours = Math.max(1, parseFloat(weeklyHoursIn?.value) || 40);
+				const billableRate = Math.min(100, Math.max(1, parseFloat(billablePercentIn?.value) || 65)) / 100;
+				const weeksOff = Math.min(52, parseFloat(weeksOffIn?.value) || 0);
 
-			const taxableExpensesBenefit = expenses * taxRate;
-			const requiredPreTaxRevenue = (1 - taxRate) > 0 ? (netIncome + expenses - taxableExpensesBenefit) / (1 - taxRate) : 0;
-			const totalTax = Math.max(0, (requiredPreTaxRevenue - expenses) * taxRate);
+				const taxableExpensesBenefit = expenses * taxRate;
+				const requiredPreTaxRevenue = (1 - taxRate) > 0 ? (netIncome + expenses - taxableExpensesBenefit) / (1 - taxRate) : 0;
+				const totalTax = Math.max(0, (requiredPreTaxRevenue - expenses) * taxRate);
 
-			const workingWeeks = Math.max(0, 52 - weeksOff);
-			const totalWorkingHours = workingWeeks * weeklyHours;
-			const totalBillableHours = totalWorkingHours * billableRate;
+				const workingWeeks = Math.max(0, 52 - weeksOff);
+				const totalWorkingHours = workingWeeks * weeklyHours;
+				const totalBillableHours = totalWorkingHours * billableRate;
 
-			const hourlyRate = totalBillableHours > 0 ? requiredPreTaxRevenue / totalBillableHours : 0;
-			const dailyRate = hourlyRate * 8;
+				const hourlyRate = totalBillableHours > 0 ? requiredPreTaxRevenue / totalBillableHours : 0;
+				const dailyRate = hourlyRate * 8;
 
-			if (valHourlyRate) valHourlyRate.textContent = `$${hourlyRate.toFixed(2)}`;
-			if (valDailyRate) valDailyRate.textContent = `$${dailyRate.toFixed(2)}`;
-			if (valGrossRevenue) valGrossRevenue.textContent = `$${requiredPreTaxRevenue.toFixed(2)}`;
-			if (valTotalTax) valTotalTax.textContent = `$${totalTax.toFixed(2)}`;
-			if (valBillableHours) valBillableHours.textContent = `${Math.round(totalBillableHours)} hrs`;
+				if (valHourlyRate) valHourlyRate.textContent = `$${hourlyRate.toFixed(2)}`;
+				if (valDailyRate) valDailyRate.textContent = `$${dailyRate.toFixed(2)}`;
+				if (valGrossRevenue) valGrossRevenue.textContent = `$${requiredPreTaxRevenue.toFixed(2)}`;
+				if (valTotalTax) valTotalTax.textContent = `$${totalTax.toFixed(2)}`;
+				if (valBillableHours) valBillableHours.textContent = `${Math.round(totalBillableHours)} hrs`;
+			}
+
+			[desiredIncomeIn, annualExpensesIn, taxRateIn, weeklyHoursIn, billablePercentIn, weeksOffIn].forEach(input => {
+				input?.addEventListener('input', calculateRate);
+			});
+
+			calculateRate();
 		}
 
-		[desiredIncomeIn, annualExpensesIn, taxRateIn, weeklyHoursIn, billablePercentIn, weeksOffIn].forEach(input => {
-			input?.addEventListener('input', calculateRate);
-		});
-
-		calculateRate();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
