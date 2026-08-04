@@ -246,64 +246,72 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const amountInput = document.getElementById('amountInput') as HTMLInputElement;
-		const feePercent = document.getElementById('feePercent') as HTMLInputElement;
-		const feeFixed = document.getElementById('feeFixed') as HTMLInputElement;
-		const presetBtns = document.querySelectorAll('.preset-btn');
+		function initTool() {
+			const amountInput = document.getElementById('amountInput');
+			const feePercent = document.getElementById('feePercent');
+			const feeFixed = document.getElementById('feeFixed');
+			const presetBtns = document.querySelectorAll('.preset-btn');
 
-		const cardA_Amount = document.getElementById('cardA_Amount');
-		const cardA_Fee = document.getElementById('cardA_Fee');
-		const cardA_Net = document.getElementById('cardA_Net');
+			const cardA_Amount = document.getElementById('cardA_Amount');
+			const cardA_Fee = document.getElementById('cardA_Fee');
+			const cardA_Net = document.getElementById('cardA_Net');
 
-		const cardB_Target = document.getElementById('cardB_Target');
-		const cardB_Ask = document.getElementById('cardB_Ask');
-		const cardB_Fee = document.getElementById('cardB_Fee');
+			const cardB_Target = document.getElementById('cardB_Target');
+			const cardB_Ask = document.getElementById('cardB_Ask');
+			const cardB_Fee = document.getElementById('cardB_Fee');
 
-		presetBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				presetBtns.forEach(b => b.classList.remove('active'));
-				btn.classList.add('active');
+			function calculate() {
+				const amount = parseFloat(amountInput?.value) || 0;
+				const rate = (parseFloat(feePercent?.value) || 0) / 100;
+				const fixed = parseFloat(feeFixed?.value) || 0;
 
-				const fee = (btn as HTMLElement).dataset.fee || '2.9';
-				const fix = (btn as HTMLElement).dataset.fix || '0.30';
+				const feeA = amount * rate + fixed;
+				const netA = amount - feeA;
 
-				if (feePercent) feePercent.value = fee;
-				if (feeFixed) feeFixed.value = fix;
-				calculate();
-			});
-		});
+				if (cardA_Amount) cardA_Amount.textContent = `$${amount.toFixed(2)}`;
+				if (cardA_Fee) cardA_Fee.textContent = `-$${Math.max(0, feeA).toFixed(2)}`;
+				if (cardA_Net) cardA_Net.textContent = `$${Math.max(0, netA).toFixed(2)}`;
 
-		amountInput?.addEventListener('input', calculate);
-		feePercent?.addEventListener('input', calculate);
-		feeFixed?.addEventListener('input', calculate);
+				let askB = 0;
+				let feeB = 0;
 
-		function calculate() {
-			const amount = parseFloat(amountInput?.value) || 0;
-			const rate = (parseFloat(feePercent?.value) || 0) / 100;
-			const fixed = parseFloat(feeFixed?.value) || 0;
+				if (rate < 1) {
+					askB = (amount + fixed) / (1 - rate);
+					feeB = askB - amount;
+				}
 
-			const feeA = amount * rate + fixed;
-			const netA = amount - feeA;
-
-			if (cardA_Amount) cardA_Amount.textContent = `$${amount.toFixed(2)}`;
-			if (cardA_Fee) cardA_Fee.textContent = `-$${Math.max(0, feeA).toFixed(2)}`;
-			if (cardA_Net) cardA_Net.textContent = `$${Math.max(0, netA).toFixed(2)}`;
-
-			let askB = 0;
-			let feeB = 0;
-
-			if (rate < 1) {
-				askB = (amount + fixed) / (1 - rate);
-				feeB = askB - amount;
+				if (cardB_Target) cardB_Target.textContent = `$${amount.toFixed(2)}`;
+				if (cardB_Ask) cardB_Ask.textContent = `$${Math.max(0, askB).toFixed(2)}`;
+				if (cardB_Fee) cardB_Fee.textContent = `-$${Math.max(0, feeB).toFixed(2)}`;
 			}
 
-			if (cardB_Target) cardB_Target.textContent = `$${amount.toFixed(2)}`;
-			if (cardB_Ask) cardB_Ask.textContent = `$${Math.max(0, askB).toFixed(2)}`;
-			if (cardB_Fee) cardB_Fee.textContent = `-$${Math.max(0, feeB).toFixed(2)}`;
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					presetBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+
+					const fee = btn.dataset.fee || '2.9';
+					const fix = btn.dataset.fix || '0.30';
+
+					if (feePercent) feePercent.value = fee;
+					if (feeFixed) feeFixed.value = fix;
+					calculate();
+				});
+			});
+
+			amountInput?.addEventListener('input', calculate);
+			feePercent?.addEventListener('input', calculate);
+			feeFixed?.addEventListener('input', calculate);
+
+			calculate();
 		}
 
-		calculate();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
