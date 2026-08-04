@@ -324,56 +324,66 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const subjectInput = document.getElementById('subjectInput') as HTMLInputElement;
-		const cameraSelect = document.getElementById('cameraSelect') as HTMLSelectElement;
-		const lensSelect = document.getElementById('lensSelect') as HTMLSelectElement;
-		const lightingSelect = document.getElementById('lightingSelect') as HTMLSelectElement;
-		const angleSelect = document.getElementById('angleSelect') as HTMLSelectElement;
-		const compositionSelect = document.getElementById('compositionSelect') as HTMLSelectElement;
-		const filmSelect = document.getElementById('filmSelect') as HTMLSelectElement;
-		const arSelect = document.getElementById('arSelect') as HTMLSelectElement;
-		const styleSelect = document.getElementById('styleSelect') as HTMLSelectElement;
+		function initTool() {
+			const subjectInput = document.getElementById('subjectInput');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const angleSelect = document.getElementById('angleSelect');
+			const compositionSelect = document.getElementById('compositionSelect');
+			const filmSelect = document.getElementById('filmSelect');
+			const arSelect = document.getElementById('arSelect');
+			const styleSelect = document.getElementById('styleSelect');
 
-		const promptOutput = document.getElementById('promptOutput') as HTMLTextAreaElement;
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const subject = subjectInput?.value.trim() || 'A majestic tiger in a snowy alpine forest';
-			
-			const components = [
-				subject,
-				angleSelect?.value,
-				compositionSelect?.value,
-				cameraSelect?.value,
-				lensSelect?.value,
-				lightingSelect?.value,
-				filmSelect?.value,
-				styleSelect?.value,
-				arSelect?.value
-			].filter(Boolean);
+			function buildPrompt() {
+				const subject = subjectInput?.value.trim() || 'A majestic tiger in a snowy alpine forest';
+				
+				const components = [
+					subject,
+					angleSelect?.value,
+					compositionSelect?.value,
+					cameraSelect?.value,
+					lensSelect?.value,
+					lightingSelect?.value,
+					filmSelect?.value,
+					styleSelect?.value,
+					arSelect?.value
+				].filter(Boolean);
 
-			if (promptOutput) promptOutput.value = components.join(', ');
+				if (promptOutput) {
+					promptOutput.value = components.join(', ');
+				}
+			}
+
+			[
+				subjectInput, cameraSelect, lensSelect, lightingSelect, 
+				angleSelect, compositionSelect, filmSelect, arSelect, styleSelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		[
-			subjectInput, cameraSelect, lensSelect, lightingSelect, 
-			angleSelect, compositionSelect, filmSelect, arSelect, styleSelect
-		].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput || !promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
