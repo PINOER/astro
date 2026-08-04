@@ -241,61 +241,69 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const textInput = document.getElementById('textInput') as HTMLTextAreaElement;
-		const valWords = document.getElementById('valWords');
-		const valChars = document.getElementById('valChars');
-		const valCharsNoSpace = document.getElementById('valCharsNoSpace');
-		const valParagraphs = document.getElementById('valParagraphs');
-		const valReadingTime = document.getElementById('valReadingTime');
-		const valSpeakingTime = document.getElementById('valSpeakingTime');
+		function initTool() {
+			const textInput = document.getElementById('textInput');
+			const valWords = document.getElementById('valWords');
+			const valChars = document.getElementById('valChars');
+			const valCharsNoSpace = document.getElementById('valCharsNoSpace');
+			const valParagraphs = document.getElementById('valParagraphs');
+			const valReadingTime = document.getElementById('valReadingTime');
+			const valSpeakingTime = document.getElementById('valSpeakingTime');
 
-		function updateCounts() {
-			const text = textInput?.value || '';
-			
-			const wordsArray = text.trim().match(/[\u4e00-\u9fa5]|\b[a-zA-Z0-9'-]+\b/g) || [];
-			const wordCount = wordsArray.length;
+			function updateCounts() {
+				const text = textInput?.value || '';
+				
+				const wordsArray = text.trim().match(/[\u4e00-\u9fa5]|\b[a-zA-Z0-9'-]+\b/g) || [];
+				const wordCount = wordsArray.length;
 
-			const charCount = text.length;
-			const charNoSpaceCount = text.replace(/\s/g, '').length;
+				const charCount = text.length;
+				const charNoSpaceCount = text.replace(/\s/g, '').length;
 
-			const paragraphs = text.split(/\n+/).filter(p => p.trim().length > 0).length;
+				const paragraphs = text.split(/\n+/).filter(p => p.trim().length > 0).length;
 
-			const readSecs = Math.ceil((wordCount / 200) * 60);
-			const speakSecs = Math.ceil((wordCount / 130) * 60);
+				const readSecs = Math.ceil((wordCount / 200) * 60);
+				const speakSecs = Math.ceil((wordCount / 130) * 60);
 
-			function formatTime(seconds: number) {
-				if (seconds < 60) return `${seconds} sec`;
-				const mins = Math.floor(seconds / 60);
-				const remSecs = seconds % 60;
-				return `${mins} min ${remSecs} sec`;
+				function formatTime(seconds) {
+					if (seconds < 60) return `${seconds} sec`;
+					const mins = Math.floor(seconds / 60);
+					const remSecs = seconds % 60;
+					return `${mins} min ${remSecs} sec`;
+				}
+
+				if (valWords) valWords.textContent = wordCount.toLocaleString();
+				if (valChars) valChars.textContent = charCount.toLocaleString();
+				if (valCharsNoSpace) valCharsNoSpace.textContent = charNoSpaceCount.toLocaleString();
+				if (valParagraphs) valParagraphs.textContent = paragraphs.toLocaleString();
+				if (valReadingTime) valReadingTime.textContent = formatTime(readSecs);
+				if (valSpeakingTime) valSpeakingTime.textContent = formatTime(speakSecs);
 			}
 
-			if (valWords) valWords.textContent = wordCount.toLocaleString();
-			if (valChars) valChars.textContent = charCount.toLocaleString();
-			if (valCharsNoSpace) valCharsNoSpace.textContent = charNoSpaceCount.toLocaleString();
-			if (valParagraphs) valParagraphs.textContent = paragraphs.toLocaleString();
-			if (valReadingTime) valReadingTime.textContent = formatTime(readSecs);
-			if (valSpeakingTime) valSpeakingTime.textContent = formatTime(speakSecs);
+			textInput?.addEventListener('input', updateCounts);
+
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				if (textInput) textInput.value = '';
+				updateCounts();
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!textInput || !textInput.value) return;
+				navigator.clipboard.writeText(textInput.value);
+				const btn = e.target;
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = originalText; }, 2000);
+			});
+
+			updateCounts();
 		}
 
-		textInput?.addEventListener('input', updateCounts);
-
-		document.getElementById('btnClear')?.addEventListener('click', () => {
-			if (textInput) textInput.value = '';
-			updateCounts();
-		});
-
-		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-			if (!textInput || !textInput.value) return;
-			navigator.clipboard.writeText(textInput.value);
-			const btn = e.target as HTMLButtonElement;
-			const originalText = btn.textContent;
-			btn.textContent = 'Copied!';
-			setTimeout(() => { btn.textContent = originalText; }, 2000);
-		});
-
-		updateCounts();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
