@@ -29,10 +29,10 @@ const currentPath = Astro.url.pathname;
 <html lang={lang}>
 	<head>
 		<BaseHead title={pageTitle} description={pageDescription} />
-		<slot name="head" /> <!-- 预留内联 <style> 挂载点 -->
+		<slot name="head" />
 	</head>
 	<body>
-		<Header />
+		<Header lang={lang} />
 		<main>
 			<div class="tool-header">
 				<h1>{frontmatter.icon || '🛠️'} {frontmatter.title}</h1>
@@ -57,7 +57,6 @@ const currentPath = Astro.url.pathname;
 </html>
 
 <style is:global>
-	/* 所有工具共用的标准居中样式 */
 	main {
 		width: 900px;
 		max-width: calc(100% - 2em);
