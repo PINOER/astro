@@ -1,8 +1,5 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "VAT & Sales Tax Calculator",
@@ -13,9 +10,6 @@ export const frontmatter = {
 	pinned: false,
 	priority: 88
 };
-
-const pageTitle = `VAT & Sales Tax Calculator — ${SITE_TITLE}`;
-const pageDescription = "Fast online VAT and Sales Tax calculator to add tax or remove tax (reverse calculation) for UK, EU, and US rates.";
 
 const faqList = [
 	{
@@ -46,317 +40,279 @@ const faqSchema = {
 };
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-		<style>
-			main {
-				width: 850px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			.tab-group {
-				display: flex;
-				gap: 0.8rem;
-				margin-bottom: 1.5em;
-				border-bottom: 1px solid var(--card-border);
-				padding-bottom: 0.8em;
-			}
-			.tab-btn {
-				background: none;
-				border: 1px solid transparent;
-				color: var(--text-muted);
-				font-size: 0.95rem;
-				font-weight: 600;
-				cursor: pointer;
-				padding: 0.5em 1em;
-				border-radius: 8px;
-				transition: all 0.2s ease;
-			}
-			.tab-btn.active {
-				background: var(--badge-bg);
-				color: var(--accent);
-				border-color: var(--badge-border);
-			}
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.tab-group {
+			display: flex;
+			gap: 0.8rem;
+			margin-bottom: 1.5em;
+			border-bottom: 1px solid var(--card-border);
+			padding-bottom: 0.8em;
+		}
+		.tab-btn {
+			background: none;
+			border: 1px solid transparent;
+			color: var(--text-muted);
+			font-size: 0.95rem;
+			font-weight: 600;
+			cursor: pointer;
+			padding: 0.5em 1em;
+			border-radius: 8px;
+			transition: all 0.2s ease;
+		}
+		.tab-btn.active {
+			background: var(--badge-bg);
+			color: var(--accent);
+			border-color: var(--badge-border);
+		}
 
-			.preset-row {
-				display: flex;
-				gap: 0.5rem;
-				margin-bottom: 1.5rem;
-				flex-wrap: wrap;
-			}
-			.preset-btn {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-				padding: 0.4em 0.8em;
-				border-radius: 8px;
-				font-size: 0.85rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.2s;
-			}
-			.preset-btn:hover, .preset-btn.active {
-				border-color: var(--accent);
-				color: var(--accent);
-				background: var(--badge-bg);
-			}
+		.preset-row {
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 1.5rem;
+			flex-wrap: wrap;
+		}
+		.preset-btn {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.4em 0.8em;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		.preset-btn:hover, .preset-btn.active {
+			border-color: var(--accent);
+			color: var(--accent);
+			background: var(--badge-bg);
+		}
 
-			.form-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-				gap: 1.2rem;
-				margin-bottom: 1.5rem;
-			}
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				gap: 0.4rem;
-			}
-			.form-group label {
-				font-size: 0.88rem;
-				font-weight: 600;
-				color: var(--text-main);
-			}
-			input[type="number"] {
-				width: 100%;
-				padding: 0.6em 0.8em;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.95rem;
-				outline: none;
-				box-sizing: border-box;
-				transition: border-color 0.2s;
-			}
-			input[type="number"]:focus {
-				border-color: var(--accent);
-			}
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 1.5rem;
+		}
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.4rem;
+		}
+		.form-group label {
+			font-size: 0.88rem;
+			font-weight: 600;
+			color: var(--text-main);
+		}
+		input[type="number"] {
+			width: 100%;
+			padding: 0.6em 0.8em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.95rem;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s;
+		}
+		input[type="number"]:focus {
+			border-color: var(--accent);
+		}
 
-			.result-card {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 1.5em;
-				margin-top: 1rem;
-			}
-			.result-row {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				padding: 0.6rem 0;
-				border-bottom: 1px dashed var(--card-border);
-				font-size: 0.95rem;
-			}
-			.result-row:last-child {
-				border-bottom: none;
-				padding-top: 0.8rem;
-				font-weight: 800;
-				font-size: 1.15rem;
-			}
-			.val-highlight { color: var(--accent); }
-			.val-tax { color: #f59e0b; }
+		.result-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.5em;
+			margin-top: 1rem;
+		}
+		.result-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0.6rem 0;
+			border-bottom: 1px dashed var(--card-border);
+			font-size: 0.95rem;
+		}
+		.result-row:last-child {
+			border-bottom: none;
+			padding-top: 0.8rem;
+			font-weight: 800;
+			font-size: 1.15rem;
+		}
+		.val-highlight { color: var(--accent); }
+		.val-tax { color: #f59e0b; }
 
-			.faq-section {
-				margin-top: 3.5em;
-				padding-top: 2em;
-				border-top: 1px solid var(--card-border);
-			}
-			.faq-title {
-				font-size: 1.4rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin-bottom: 1em;
-			}
-			.faq-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-				gap: 1.2rem;
-			}
-			.faq-card {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 1.2em;
-			}
-			.faq-card h3 {
-				font-size: 0.95rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin: 0 0 0.5rem 0;
-			}
-			.faq-card p {
-				font-size: 0.85rem;
-				color: var(--text-muted);
-				margin: 0;
-				line-height: 1.6;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>🧮 VAT & Sales Tax Calculator</h1>
-				<p>Easily add tax or remove tax (reverse calculation) for UK, EU, and US tax rates.</p>
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 3.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.4rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具主体计算卡片 -->
+	<div class="tool-box">
+		<div class="tab-group">
+			<button class="tab-btn active" id="modeAdd">Add VAT / Tax</button>
+			<button class="tab-btn" id="modeRemove">Remove VAT / Tax</button>
+		</div>
+
+		<div class="form-group" style="margin-bottom: 0.8rem;">
+			<label>Quick Presets:</label>
+			<div class="preset-row">
+				<button class="preset-btn active" data-rate="20">UK VAT (20%)</button>
+				<button class="preset-btn" data-rate="19">Germany DE (19%)</button>
+				<button class="preset-btn" data-rate="20">France FR (20%)</button>
+				<button class="preset-btn" data-rate="22">Italy IT (22%)</button>
+				<button class="preset-btn" data-rate="21">Spain ES (21%)</button>
+				<button class="preset-btn" data-rate="7">US Avg Sales Tax (~7%)</button>
 			</div>
+		</div>
 
-			<div class="tool-box">
-				<div class="tab-group">
-					<button class="tab-btn active" id="modeAdd">Add VAT / Tax</button>
-					<button class="tab-btn" id="modeRemove">Remove VAT / Tax</button>
-				</div>
-
-				<div class="form-group" style="margin-bottom: 0.8rem;">
-					<label>Quick Presets:</label>
-					<div class="preset-row">
-						<button class="preset-btn active" data-rate="20">UK VAT (20%)</button>
-						<button class="preset-btn" data-rate="19">Germany DE (19%)</button>
-						<button class="preset-btn" data-rate="20">France FR (20%)</button>
-						<button class="preset-btn" data-rate="22">Italy IT (22%)</button>
-						<button class="preset-btn" data-rate="21">Spain ES (21%)</button>
-						<button class="preset-btn" data-rate="7">US Avg Sales Tax (~7%)</button>
-					</div>
-				</div>
-
-				<div class="form-grid">
-					<div class="form-group">
-						<label id="amountLabel" for="amountInput">Net Amount ($ / £ / €)</label>
-						<input type="number" id="amountInput" value="100" min="0" step="any" placeholder="Enter amount..." />
-					</div>
-					<div class="form-group">
-						<label for="taxRate">Tax / VAT Rate (%)</label>
-						<input type="number" id="taxRate" value="20" min="0" step="0.1" />
-					</div>
-				</div>
-
-				<div class="result-card">
-					<div class="result-row">
-						<span>Net Amount</span>
-						<span id="resNet" style="font-weight:600;">$100.00</span>
-					</div>
-					<div class="result-row">
-						<span>Calculated Tax Amount</span>
-						<span class="val-tax" id="resTax">+$20.00</span>
-					</div>
-					<div class="result-row">
-						<span>Gross Amount (Total Due)</span>
-						<span class="val-highlight" id="resGross">$120.00</span>
-					</div>
-				</div>
+		<div class="form-grid">
+			<div class="form-group">
+				<label id="amountLabel" for="amountInput">Net Amount ($ / £ / €)</label>
+				<input type="number" id="amountInput" value="100" min="0" step="any" placeholder="Enter amount..." />
 			</div>
+			<div class="form-group">
+				<label for="taxRate">Tax / VAT Rate (%)</label>
+				<input type="number" id="taxRate" value="20" min="0" step="0.1" />
+			</div>
+		</div>
 
-			<section class="faq-section">
-				<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
-				<div class="faq-grid">
-					{faqList.map(item => (
-						<div class="faq-card">
-							<h3>{item.question}</h3>
-							<p>{item.answer}</p>
-						</div>
-					))}
+		<div class="result-card">
+			<div class="result-row">
+				<span>Net Amount</span>
+				<span id="resNet" style="font-weight:600;">$100.00</span>
+			</div>
+			<div class="result-row">
+				<span>Calculated Tax Amount</span>
+				<span class="val-tax" id="resTax">+$20.00</span>
+			</div>
+			<div class="result-row">
+				<span>Gross Amount (Total Due)</span>
+				<span class="val-highlight" id="resGross">$120.00</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
 				</div>
-			</section>
-		</main>
-		<Footer />
+			))}
+		</div>
+	</section>
 
-		<script>
-			let calcMode: 'add' | 'remove' = 'add';
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		let calcMode: 'add' | 'remove' = 'add';
 
-			const modeAdd = document.getElementById('modeAdd');
-			const modeRemove = document.getElementById('modeRemove');
-			const amountLabel = document.getElementById('amountLabel');
-			const amountInput = document.getElementById('amountInput') as HTMLInputElement;
-			const taxRate = document.getElementById('taxRate') as HTMLInputElement;
+		const modeAdd = document.getElementById('modeAdd');
+		const modeRemove = document.getElementById('modeRemove');
+		const amountLabel = document.getElementById('amountLabel');
+		const amountInput = document.getElementById('amountInput') as HTMLInputElement;
+		const taxRate = document.getElementById('taxRate') as HTMLInputElement;
 
-			const presetBtns = document.querySelectorAll('.preset-btn');
-			const resNet = document.getElementById('resNet');
-			const resTax = document.getElementById('resTax');
-			const resGross = document.getElementById('resGross');
+		const presetBtns = document.querySelectorAll('.preset-btn');
+		const resNet = document.getElementById('resNet');
+		const resTax = document.getElementById('resTax');
+		const resGross = document.getElementById('resGross');
 
-			modeAdd?.addEventListener('click', () => {
-				calcMode = 'add';
-				modeAdd.classList.add('active');
-				modeRemove?.classList.remove('active');
-				if (amountLabel) amountLabel.textContent = 'Net Amount ($ / £ / €)';
-				calculate();
-			});
-
-			modeRemove?.addEventListener('click', () => {
-				calcMode = 'remove';
-				modeRemove.classList.add('active');
-				modeAdd?.classList.remove('active');
-				if (amountLabel) amountLabel.textContent = 'Gross Amount ($ / £ / €)';
-				calculate();
-			});
-
-			presetBtns.forEach(btn => {
-				btn.addEventListener('click', () => {
-					presetBtns.forEach(b => b.classList.remove('active'));
-					btn.classList.add('active');
-
-					const rate = (btn as HTMLElement).dataset.rate || '20';
-					taxRate.value = rate;
-					calculate();
-				});
-			});
-
-			amountInput?.addEventListener('input', calculate);
-			taxRate?.addEventListener('input', calculate);
-
-			function calculate() {
-				const val = parseFloat(amountInput.value) || 0;
-				const rate = (parseFloat(taxRate.value) || 0) / 100;
-
-				let net = 0;
-				let tax = 0;
-				let gross = 0;
-
-				if (calcMode === 'add') {
-					net = val;
-					tax = net * rate;
-					gross = net + tax;
-				} else {
-					gross = val;
-					net = gross / (1 + rate);
-					tax = gross - net;
-				}
-
-				if (resNet) resNet.textContent = `$${net.toFixed(2)}`;
-				if (resTax) resTax.textContent = `${calcMode === 'add' ? '+' : ''}$${tax.toFixed(2)}`;
-				if (resGross) resGross.textContent = `$${gross.toFixed(2)}`;
-			}
-
+		modeAdd?.addEventListener('click', () => {
+			calcMode = 'add';
+			modeAdd.classList.add('active');
+			modeRemove?.classList.remove('active');
+			if (amountLabel) amountLabel.textContent = 'Net Amount ($ / £ / €)';
 			calculate();
-		</script>
-	</body>
-</html>
+		});
+
+		modeRemove?.addEventListener('click', () => {
+			calcMode = 'remove';
+			modeRemove.classList.add('active');
+			modeAdd?.classList.remove('active');
+			if (amountLabel) amountLabel.textContent = 'Gross Amount ($ / £ / €)';
+			calculate();
+		});
+
+		presetBtns.forEach(btn => {
+			btn.addEventListener('click', () => {
+				presetBtns.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+
+				const rate = (btn as HTMLElement).dataset.rate || '20';
+				if (taxRate) taxRate.value = rate;
+				calculate();
+			});
+		});
+
+		amountInput?.addEventListener('input', calculate);
+		taxRate?.addEventListener('input', calculate);
+
+		function calculate() {
+			const val = parseFloat(amountInput?.value) || 0;
+			const rate = (parseFloat(taxRate?.value) || 0) / 100;
+
+			let net = 0;
+			let tax = 0;
+			let gross = 0;
+
+			if (calcMode === 'add') {
+				net = val;
+				tax = net * rate;
+				gross = net + tax;
+			} else {
+				gross = val;
+				net = gross / (1 + rate);
+				tax = gross - net;
+			}
+
+			if (resNet) resNet.textContent = `$${net.toFixed(2)}`;
+			if (resTax) resTax.textContent = `${calcMode === 'add' ? '+' : ''}$${tax.toFixed(2)}`;
+			if (resGross) resGross.textContent = `$${gross.toFixed(2)}`;
+		}
+
+		calculate();
+	</script>
+</ToolLayout>
