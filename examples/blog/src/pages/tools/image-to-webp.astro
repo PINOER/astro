@@ -1,8 +1,5 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "Image to WebP Converter",
@@ -14,484 +11,519 @@ export const frontmatter = {
 	priority: 90
 };
 
-const pageTitle = `Image to WebP Converter — ${SITE_TITLE}`;
-const pageDescription = "Fast, 100% private online tool to batch convert PNG, JPG, and BMP images to optimized WebP format.";
+const faqList = [
+	{
+		question: "Why should I convert my website images to WebP format?",
+		answer: "WebP is a modern image format that provides superior lossless and lossy compression. WebP images are typically 25% to 35% smaller than comparable PNG or JPG files, significantly boosting page load speed and Google PageSpeed scores."
+	},
+	{
+		question: "Are WebP images supported across all web browsers?",
+		answer: "Yes! Modern web browsers including Google Chrome, Apple Safari, Microsoft Edge, Mozilla Firefox, and mobile browsers offer over 97% global support for WebP images."
+	},
+	{
+		question: "Is my image uploaded or processed on an external server?",
+		answer: "No, 100% private. All conversions and image resizing occur locally in your web browser using HTML5 Canvas APIs. Your original files are never sent to external servers."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" is:inline></script>
-		<style>
-			main {
-				width: 850px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入外部 JSZip 库与 Schema.org FAQ 结构化数据 -->
+	<script slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" is:inline></script>
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			/* Config Grid */
-			.config-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-				gap: 1.2rem;
-				margin-bottom: 1.5em;
-				padding-bottom: 1.2em;
-				border-bottom: 1px solid var(--card-border);
-			}
-			.config-group {
-				display: flex;
-				flex-direction: column;
-				gap: 0.5rem;
-			}
-			.config-group label {
-				font-weight: 600;
-				font-size: 0.9rem;
-				color: var(--text-main);
-			}
-			select, input[type="number"] {
-				width: 100%;
-				padding: 0.6em;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.9rem;
-				outline: none;
-				box-sizing: border-box;
-				transition: border-color 0.2s;
-			}
-			select:focus, input[type="number"]:focus {
-				border-color: var(--accent);
-			}
-			.size-inputs {
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
-			}
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		/* Config Grid */
+		.config-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 1.5em;
+			padding-bottom: 1.2em;
+			border-bottom: 1px solid var(--card-border);
+		}
+		.config-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+		.config-group label {
+			font-weight: 600;
+			font-size: 0.9rem;
+			color: var(--text-main);
+		}
+		select, input[type="number"] {
+			width: 100%;
+			padding: 0.6em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s;
+		}
+		select:focus, input[type="number"]:focus {
+			border-color: var(--accent);
+		}
+		.size-inputs {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
 
-			/* Upload Dropzone */
-			.drop-zone {
-				border: 2px dashed var(--card-border);
-				background: var(--code-bg);
-				border-radius: 12px;
-				padding: 2.5em 1em;
-				text-align: center;
-				cursor: pointer;
-				transition: border-color 0.2s, background 0.2s;
-				margin-bottom: 1.5em;
-			}
-			.drop-zone:hover, .drop-zone.dragover {
-				border-color: var(--accent);
-				background: var(--badge-bg);
-			}
-			.drop-icon {
-				font-size: 2.2rem;
-				margin-bottom: 0.3em;
-			}
-			.drop-text {
-				color: var(--text-muted);
-				font-size: 0.95rem;
-			}
-			.drop-text span {
-				color: var(--accent);
-				font-weight: 600;
-			}
+		/* Upload Dropzone */
+		.drop-zone {
+			border: 2px dashed var(--card-border);
+			background: var(--code-bg);
+			border-radius: 12px;
+			padding: 2.5em 1em;
+			text-align: center;
+			cursor: pointer;
+			transition: border-color 0.2s, background 0.2s;
+			margin-bottom: 1.5em;
+		}
+		.drop-zone:hover, .drop-zone.dragover {
+			border-color: var(--accent);
+			background: var(--badge-bg);
+		}
+		.drop-icon {
+			font-size: 2.2rem;
+			margin-bottom: 0.3em;
+		}
+		.drop-text {
+			color: var(--text-muted);
+			font-size: 0.95rem;
+		}
+		.drop-text span {
+			color: var(--accent);
+			font-weight: 600;
+		}
 
-			/* Action Bar */
-			.btn-group {
-				display: flex;
-				gap: 0.8rem;
-				margin: 1.2rem 0;
-				align-items: center;
-				justify-content: space-between;
-				flex-wrap: wrap;
-			}
-			.btn {
-				background: var(--accent);
-				color: #ffffff !important;
-				border: none;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: background 0.2s;
-			}
-			.btn:hover { background: var(--accent-hover); }
-			.btn:disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-			.btn-secondary {
-				background: var(--gray-light);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-			}
-			.btn-secondary:hover {
-				border-color: var(--accent);
-				color: var(--accent);
-			}
+		/* Action Bar */
+		.btn-group {
+			display: flex;
+			gap: 0.8rem;
+			margin: 1.2rem 0;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+		}
+		.btn {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+		.btn:hover { background: var(--accent-hover); }
+		.btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+		.btn-secondary {
+			background: var(--gray-light);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+		}
+		.btn-secondary:hover {
+			border-color: var(--accent);
+			color: var(--accent);
+		}
 
-			/* File List */
-			.file-list {
-				display: flex;
-				flex-direction: column;
-				gap: 0.8rem;
-				margin-top: 1em;
-			}
-			.file-item {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 10px;
-				padding: 0.9em;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-				gap: 1rem;
-				flex-wrap: wrap;
-			}
-			.file-info {
-				display: flex;
-				align-items: center;
-				gap: 0.9rem;
-			}
-			.file-preview {
-				width: 46px;
-				height: 46px;
-				border-radius: 6px;
-				object-fit: cover;
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-			}
-			.file-details h4 {
-				margin: 0 0 0.2rem 0;
-				font-size: 0.9rem;
-				color: var(--text-main);
-				word-break: break-all;
-			}
-			.file-details p {
-				margin: 0;
-				font-size: 0.8rem;
-				color: var(--text-muted);
-			}
-			.file-status {
-				display: flex;
-				align-items: center;
-				gap: 0.8rem;
-			}
-			.badge {
-				padding: 0.25rem 0.6rem;
-				border-radius: 6px;
-				font-size: 0.75rem;
-				font-weight: 600;
-			}
-			.badge-success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-			.badge-pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
-			.btn-sm {
-				padding: 0.35em 0.8em;
-				font-size: 0.8rem;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>🖼️ Image to WebP Converter</h1>
-				<p>100% client-side batch converter to compress and resize images to WebP format.</p>
+		/* File List */
+		.file-list {
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+			margin-top: 1em;
+		}
+		.file-item {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 0.9em;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+		.file-info {
+			display: flex;
+			align-items: center;
+			gap: 0.9rem;
+		}
+		.file-preview {
+			width: 46px;
+			height: 46px;
+			border-radius: 6px;
+			object-fit: cover;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+		}
+		.file-details h4 {
+			margin: 0 0 0.2rem 0;
+			font-size: 0.9rem;
+			color: var(--text-main);
+			word-break: break-all;
+		}
+		.file-details p {
+			margin: 0;
+			font-size: 0.8rem;
+			color: var(--text-muted);
+		}
+		.file-status {
+			display: flex;
+			align-items: center;
+			gap: 0.8rem;
+		}
+		.badge {
+			padding: 0.25rem 0.6rem;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			font-weight: 600;
+		}
+		.badge-success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+		.badge-pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+		.btn-sm {
+			padding: 0.35em 0.8em;
+			font-size: 0.8rem;
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具主体计算卡片 -->
+	<div class="tool-box">
+		<!-- Settings Grid -->
+		<div class="config-grid">
+			<div class="config-group">
+				<label for="qualitySelect">Compression Quality</label>
+				<select id="qualitySelect">
+					<option value="0.92">High Quality (92%)</option>
+					<option value="0.80" selected>Balanced (80% - Recommended)</option>
+					<option value="0.60">Max Compression (60%)</option>
+				</select>
 			</div>
 
-			<div class="tool-box">
-				<!-- Settings Grid -->
-				<div class="config-grid">
-					<div class="config-group">
-						<label for="qualitySelect">Compression Quality</label>
-						<select id="qualitySelect">
-							<option value="0.92">High Quality (92%)</option>
-							<option value="0.80" selected>Balanced (80% - Recommended)</option>
-							<option value="0.60">Max Compression (60%)</option>
-						</select>
-					</div>
-
-					<div class="config-group">
-						<label for="sizeModeSelect">Resize Mode</label>
-						<select id="sizeModeSelect">
-							<option value="original" selected>Keep Original Size</option>
-							<option value="customWidth">Custom Width (Aspect Ratio Auto)</option>
-							<option value="custom">Fixed Width & Height</option>
-						</select>
-					</div>
-
-					<div class="config-group" id="dimensionBox" style="display: none;">
-						<label>Dimensions (px)</label>
-						<div class="size-inputs">
-							<input type="number" id="targetWidth" placeholder="Width" value="800" min="1" />
-							<span id="heightSep" style="display:none; color: var(--text-muted);">×</span>
-							<input type="number" id="targetHeight" placeholder="Height" value="600" min="1" style="display:none;" />
-						</div>
-					</div>
-				</div>
-
-				<!-- Upload Area -->
-				<div class="drop-zone" id="dropZone">
-					<div class="drop-icon">📁</div>
-					<div class="drop-text">Drag and drop images here, or <span>browse files</span></div>
-					<input type="file" id="fileInput" multiple accept="image/png, image/jpeg, image/webp, image/bmp" style="display: none;" />
-				</div>
-
-				<!-- Action Controls -->
-				<div class="btn-group" id="actionBar" style="display: none;">
-					<div style="font-size: 0.9rem; color: var(--text-muted);">
-						Loaded: <strong id="fileCount" style="color: var(--text-main);">0</strong> file(s)
-					</div>
-					<div style="display: flex; gap: 0.6rem;">
-						<button class="btn btn-secondary" id="btnClear">Clear All</button>
-						<button class="btn" id="btnDownloadZip" disabled>Download ZIP</button>
-					</div>
-				</div>
-
-				<!-- Process List -->
-				<div class="file-list" id="fileList"></div>
+			<div class="config-group">
+				<label for="sizeModeSelect">Resize Mode</label>
+				<select id="sizeModeSelect">
+					<option value="original" selected>Keep Original Size</option>
+					<option value="customWidth">Custom Width (Aspect Ratio Auto)</option>
+					<option value="custom">Fixed Width & Height</option>
+				</select>
 			</div>
-		</main>
-		<Footer />
 
-		<script>
-			declare const JSZip: any;
+			<div class="config-group" id="dimensionBox" style="display: none;">
+				<label>Dimensions (px)</label>
+				<div class="size-inputs">
+					<input type="number" id="targetWidth" placeholder="Width" value="800" min="1" />
+					<span id="heightSep" style="display:none; color: var(--text-muted);">×</span>
+					<input type="number" id="targetHeight" placeholder="Height" value="600" min="1" style="display:none;" />
+				</div>
+			</div>
+		</div>
 
-			interface Task {
-				id: string;
-				file: File;
-				name: string;
-				originalSize: number;
-				status: 'pending' | 'done';
-				blob: Blob | null;
-				ratio?: string;
-				outputInfo?: string;
-				webpName: string;
-			}
+		<!-- Upload Area -->
+		<div class="drop-zone" id="dropZone">
+			<div class="drop-icon">📁</div>
+			<div class="drop-text">Drag and drop images here, or <span>browse files</span></div>
+			<input type="file" id="fileInput" multiple accept="image/png, image/jpeg, image/webp, image/bmp" style="display: none;" />
+		</div>
 
-			const dropZone = document.getElementById('dropZone');
-			const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-			const fileList = document.getElementById('fileList');
-			const actionBar = document.getElementById('actionBar');
-			const fileCount = document.getElementById('fileCount');
-			const btnClear = document.getElementById('btnClear');
-			const btnDownloadZip = document.getElementById('btnDownloadZip') as HTMLButtonElement;
+		<!-- Action Controls -->
+		<div class="btn-group" id="actionBar" style="display: none;">
+			<div style="font-size: 0.9rem; color: var(--text-muted);">
+				Loaded: <strong id="fileCount" style="color: var(--text-main);">0</strong> file(s)
+			</div>
+			<div style="display: flex; gap: 0.6rem;">
+				<button class="btn btn-secondary" id="btnClear">Clear All</button>
+				<button class="btn" id="btnDownloadZip" disabled>Download ZIP</button>
+			</div>
+		</div>
 
-			const qualitySelect = document.getElementById('qualitySelect') as HTMLSelectElement;
-			const sizeModeSelect = document.getElementById('sizeModeSelect') as HTMLSelectElement;
-			const dimensionBox = document.getElementById('dimensionBox');
-			const targetWidth = document.getElementById('targetWidth') as HTMLInputElement;
-			const targetHeight = document.getElementById('targetHeight') as HTMLInputElement;
-			const heightSep = document.getElementById('heightSep');
+		<!-- Process List -->
+		<div class="file-list" id="fileList"></div>
+	</div>
 
-			let tasks: Task[] = [];
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
 
-			sizeModeSelect?.addEventListener('change', () => {
-				const mode = sizeModeSelect.value;
-				if (dimensionBox) {
-					if (mode === 'original') {
-						dimensionBox.style.display = 'none';
-					} else if (mode === 'customWidth') {
-						dimensionBox.style.display = 'flex';
-						if (targetHeight) targetHeight.style.display = 'none';
-						if (heightSep) heightSep.style.display = 'none';
-					} else if (mode === 'custom') {
-						dimensionBox.style.display = 'flex';
-						if (targetHeight) targetHeight.style.display = 'block';
-						if (heightSep) heightSep.style.display = 'inline';
-					}
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		declare const JSZip: any;
+
+		interface Task {
+			id: string;
+			file: File;
+			name: string;
+			originalSize: number;
+			status: 'pending' | 'done';
+			blob: Blob | null;
+			ratio?: string;
+			outputInfo?: string;
+			webpName: string;
+		}
+
+		const dropZone = document.getElementById('dropZone');
+		const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+		const fileList = document.getElementById('fileList');
+		const actionBar = document.getElementById('actionBar');
+		const fileCount = document.getElementById('fileCount');
+		const btnClear = document.getElementById('btnClear');
+		const btnDownloadZip = document.getElementById('btnDownloadZip') as HTMLButtonElement;
+
+		const qualitySelect = document.getElementById('qualitySelect') as HTMLSelectElement;
+		const sizeModeSelect = document.getElementById('sizeModeSelect') as HTMLSelectElement;
+		const dimensionBox = document.getElementById('dimensionBox');
+		const targetWidth = document.getElementById('targetWidth') as HTMLInputElement;
+		const targetHeight = document.getElementById('targetHeight') as HTMLInputElement;
+		const heightSep = document.getElementById('heightSep');
+
+		let tasks: Task[] = [];
+
+		sizeModeSelect?.addEventListener('change', () => {
+			const mode = sizeModeSelect.value;
+			if (dimensionBox) {
+				if (mode === 'original') {
+					dimensionBox.style.display = 'none';
+				} else if (mode === 'customWidth') {
+					dimensionBox.style.display = 'flex';
+					if (targetHeight) targetHeight.style.display = 'none';
+					if (heightSep) heightSep.style.display = 'none';
+				} else if (mode === 'custom') {
+					dimensionBox.style.display = 'flex';
+					if (targetHeight) targetHeight.style.display = 'block';
+					if (heightSep) heightSep.style.display = 'inline';
 				}
-				reprocessAll();
-			});
+			}
+			reprocessAll();
+		});
 
-			qualitySelect?.addEventListener('change', reprocessAll);
-			targetWidth?.addEventListener('input', reprocessAll);
-			targetHeight?.addEventListener('input', reprocessAll);
+		qualitySelect?.addEventListener('change', reprocessAll);
+		targetWidth?.addEventListener('input', reprocessAll);
+		targetHeight?.addEventListener('input', reprocessAll);
 
-			dropZone?.addEventListener('click', () => fileInput?.click());
-			dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-			dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-			dropZone?.addEventListener('drop', (e) => {
-				e.preventDefault();
-				dropZone.classList.remove('dragover');
-				if (e.dataTransfer?.files.length) handleFiles(e.dataTransfer.files);
-			});
+		dropZone?.addEventListener('click', () => fileInput?.click());
+		dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+		dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+		dropZone?.addEventListener('drop', (e) => {
+			e.preventDefault();
+			dropZone.classList.remove('dragover');
+			if (e.dataTransfer?.files.length) handleFiles(e.dataTransfer.files);
+		});
 
-			fileInput?.addEventListener('change', () => {
-				if (fileInput.files?.length) handleFiles(fileInput.files);
-			});
+		fileInput?.addEventListener('change', () => {
+			if (fileInput.files?.length) handleFiles(fileInput.files);
+		});
 
-			btnClear?.addEventListener('click', () => {
-				tasks = [];
-				renderList();
-			});
+		btnClear?.addEventListener('click', () => {
+			tasks = [];
+			renderList();
+		});
 
-			function handleFiles(files: FileList) {
-				const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
-				newFiles.forEach(file => {
-					const id = Math.random().toString(36).substring(2, 9);
-					tasks.push({
-						id,
-						file,
-						name: file.name,
-						originalSize: file.size,
-						status: 'pending',
-						blob: null,
-						webpName: file.name.replace(/\.[^/.]+$/, "") + ".webp"
-					});
+		function handleFiles(files: FileList) {
+			const newFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+			newFiles.forEach(file => {
+				const id = Math.random().toString(36).substring(2, 9);
+				tasks.push({
+					id,
+					file,
+					name: file.name,
+					originalSize: file.size,
+					status: 'pending',
+					blob: null,
+					webpName: file.name.replace(/\.[^/.]+$/, "") + ".webp"
 				});
-				renderList();
-				processQueue();
-			}
+			});
+			renderList();
+			processQueue();
+		}
 
-			function reprocessAll() {
-				tasks.forEach(t => t.status = 'pending');
-				renderList();
-				processQueue();
-			}
+		function reprocessAll() {
+			tasks.forEach(t => t.status = 'pending');
+			renderList();
+			processQueue();
+		}
 
-			function renderList() {
-				if (!fileList || !fileCount || !actionBar || !btnDownloadZip) return;
-				fileList.innerHTML = '';
-				fileCount.textContent = tasks.length.toString();
-				actionBar.style.display = tasks.length ? 'flex' : 'none';
+		function renderList() {
+			if (!fileList || !fileCount || !actionBar || !btnDownloadZip) return;
+			fileList.innerHTML = '';
+			fileCount.textContent = tasks.length.toString();
+			actionBar.style.display = tasks.length ? 'flex' : 'none';
 
-				const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
-				btnDownloadZip.disabled = !allDone;
+			const allDone = tasks.length > 0 && tasks.every(t => t.status === 'done');
+			btnDownloadZip.disabled = !allDone;
 
-				tasks.forEach(task => {
-					const item = document.createElement('div');
-					item.className = 'file-item';
-					item.innerHTML = `
-						<div class="file-info">
-							<img class="file-preview" id="prev-${task.id}" src="" alt="" />
-							<div class="file-details">
-								<h4>${task.name}</h4>
-								<p>Original: ${formatBytes(task.originalSize)} ${task.outputInfo ? ' ➔ <strong>' + task.outputInfo + '</strong>' : ''}</p>
-							</div>
+			tasks.forEach(task => {
+				const item = document.createElement('div');
+				item.className = 'file-item';
+				item.innerHTML = `
+					<div class="file-info">
+						<img class="file-preview" id="prev-${task.id}" src="" alt="" />
+						<div class="file-details">
+							<h4>${task.name}</h4>
+							<p>Original: ${formatBytes(task.originalSize)} ${task.outputInfo ? ' ➔ <strong>' + task.outputInfo + '</strong>' : ''}</p>
 						</div>
-						<div class="file-status">
-							${task.status === 'done' && task.blob
-								? `<span class="badge badge-success">Saved -${task.ratio}%</span>
-								   <a class="btn btn-sm" href="${URL.createObjectURL(task.blob)}" download="${task.webpName}">Download</a>`
-								: `<span class="badge badge-pending">Converting...</span>`
-							}
-						</div>
-					`;
-					fileList.appendChild(item);
-
-					const imgEl = item.querySelector(`#prev-${task.id}`) as HTMLImageElement;
-					if (imgEl && task.file) {
-						imgEl.src = URL.createObjectURL(task.file);
-					}
-				});
-			}
-
-			async function processQueue() {
-				const quality = parseFloat(qualitySelect?.value || '0.8');
-				const mode = sizeModeSelect?.value || 'original';
-				const tw = parseInt(targetWidth?.value || '800') || 800;
-				const th = parseInt(targetHeight?.value || '600') || 600;
-
-				for (let task of tasks) {
-					if (task.status === 'done') continue;
-
-					try {
-						const blob = await convertToWebP(task.file, quality, mode, tw, th);
-						task.blob = blob;
-						task.status = 'done';
-						
-						const saved = ((task.originalSize - blob.size) / task.originalSize * 100).toFixed(1);
-						task.ratio = parseFloat(saved) > 0 ? saved : '0';
-						task.outputInfo = `${formatBytes(blob.size)}`;
-					} catch (e) {
-						console.error('Conversion failed:', e);
-					}
-				}
-				renderList();
-			}
-
-			function convertToWebP(file: File, quality: number, mode: string, customW: number, customH: number): Promise<Blob> {
-				return new Promise((resolve, reject) => {
-					const img = new Image();
-					img.onload = () => {
-						let w = img.width;
-						let h = img.height;
-
-						if (mode === 'customWidth') {
-							w = customW;
-							h = Math.round((img.height * customW) / img.width);
-						} else if (mode === 'custom') {
-							w = customW;
-							h = customH;
+					</div>
+					<div class="file-status">
+						${task.status === 'done' && task.blob
+							? `<span class="badge badge-success">Saved -${task.ratio}%</span>
+							   <a class="btn btn-sm" href="${URL.createObjectURL(task.blob)}" download="${task.webpName}">Download</a>`
+							: `<span class="badge badge-pending">Converting...</span>`
 						}
+					</div>
+				`;
+				fileList.appendChild(item);
 
-						const canvas = document.createElement('canvas');
-						canvas.width = w;
-						canvas.height = h;
-						const ctx = canvas.getContext('2d');
-						ctx?.drawImage(img, 0, 0, w, h);
-
-						canvas.toBlob((blob) => {
-							if (blob) resolve(blob);
-							else reject(new Error('Canvas toBlob failed'));
-						}, 'image/webp', quality);
-					};
-					img.onerror = reject;
-					img.src = URL.createObjectURL(file);
-				});
-			}
-
-			btnDownloadZip?.addEventListener('click', async () => {
-				if (typeof JSZip === 'undefined') {
-					alert('JSZip library failed to load!');
-					return;
+				const imgEl = item.querySelector(`#prev-${task.id}`) as HTMLImageElement;
+				if (imgEl && task.file) {
+					imgEl.src = URL.createObjectURL(task.file);
 				}
-				const zip = new JSZip();
-				tasks.forEach(t => {
-					if (t.blob) zip.file(t.webpName, t.blob);
-				});
-				const content = await zip.generateAsync({ type: 'blob' });
-				const link = document.createElement('a');
-				link.href = URL.createObjectURL(content);
-				link.download = `webp_converted_${Date.now()}.zip`;
-				link.click();
 			});
+		}
 
-			function formatBytes(bytes: number): string {
-				if (bytes === 0) return '0 B';
-				const k = 1024;
-				const sizes = ['B', 'KB', 'MB', 'GB'];
-				const i = Math.floor(Math.log(bytes) / Math.log(k));
-				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		async function processQueue() {
+			const quality = parseFloat(qualitySelect?.value || '0.8');
+			const mode = sizeModeSelect?.value || 'original';
+			const tw = parseInt(targetWidth?.value || '800') || 800;
+			const th = parseInt(targetHeight?.value || '600') || 600;
+
+			for (let task of tasks) {
+				if (task.status === 'done') continue;
+
+				try {
+					const blob = await convertToWebP(task.file, quality, mode, tw, th);
+					task.blob = blob;
+					task.status = 'done';
+					
+					const saved = ((task.originalSize - blob.size) / task.originalSize * 100).toFixed(1);
+					task.ratio = parseFloat(saved) > 0 ? saved : '0';
+					task.outputInfo = `${formatBytes(blob.size)}`;
+				} catch (e) {
+					console.error('Conversion failed:', e);
+				}
 			}
-		</script>
-	</body>
-</html>
+			renderList();
+		}
+
+		function convertToWebP(file: File, quality: number, mode: string, customW: number, customH: number): Promise<Blob> {
+			return new Promise((resolve, reject) => {
+				const img = new Image();
+				img.onload = () => {
+					let w = img.width;
+					let h = img.height;
+
+					if (mode === 'customWidth') {
+						w = customW;
+						h = Math.round((img.height * customW) / img.width);
+					} else if (mode === 'custom') {
+						w = customW;
+						h = customH;
+					}
+
+					const canvas = document.createElement('canvas');
+					canvas.width = w;
+					canvas.height = h;
+					const ctx = canvas.getContext('2d');
+					ctx?.drawImage(img, 0, 0, w, h);
+
+					canvas.toBlob((blob) => {
+						if (blob) resolve(blob);
+						else reject(new Error('Canvas toBlob failed'));
+					}, 'image/webp', quality);
+				};
+				img.onerror = reject;
+				img.src = URL.createObjectURL(file);
+			});
+		}
+
+		btnDownloadZip?.addEventListener('click', async () => {
+			if (typeof JSZip === 'undefined') {
+				alert('JSZip library failed to load!');
+				return;
+			}
+			const zip = new JSZip();
+			tasks.forEach(t => {
+				if (t.blob) zip.file(t.webpName, t.blob);
+			});
+			const content = await zip.generateAsync({ type: 'blob' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(content);
+			link.download = `webp_converted_${Date.now()}.zip`;
+			link.click();
+		});
+
+		function formatBytes(bytes: number): string {
+			if (bytes === 0) return '0 B';
+			const k = 1024;
+			const sizes = ['B', 'KB', 'MB', 'GB'];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		}
+	</script>
+</ToolLayout>
