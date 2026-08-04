@@ -277,65 +277,73 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const generateBtn = document.getElementById('generateBtn');
-		const topicInput = document.getElementById('topicInput') as HTMLInputElement;
-		const brandInput = document.getElementById('brandInput') as HTMLInputElement;
-		const resultsWrapper = document.getElementById('resultsWrapper') as HTMLDivElement;
+		function initTool() {
+			const generateBtn = document.getElementById('generateBtn');
+			const topicInput = document.getElementById('topicInput');
+			const brandInput = document.getElementById('brandInput');
+			const resultsWrapper = document.getElementById('resultsWrapper');
 
-		function updateOption(id: string, title: string, desc: string) {
-			const titleEl = document.getElementById(`title${id}`);
-			const descEl = document.getElementById(`desc${id}`);
-			const lenTitleEl = document.getElementById(`lenTitle${id}`);
-			const lenDescEl = document.getElementById(`lenDesc${id}`);
+			function updateOption(id, title, desc) {
+				const titleEl = document.getElementById(`title${id}`);
+				const descEl = document.getElementById(`desc${id}`);
+				const lenTitleEl = document.getElementById(`lenTitle${id}`);
+				const lenDescEl = document.getElementById(`lenDesc${id}`);
 
-			if (titleEl) titleEl.textContent = title;
-			if (descEl) descEl.textContent = desc;
+				if (titleEl) titleEl.textContent = title;
+				if (descEl) descEl.textContent = desc;
 
-			if (lenTitleEl) lenTitleEl.textContent = `Title: ${title.length} / 60 chars ${title.length > 60 ? '⚠️ Too long' : '✅'}`;
-			if (lenDescEl) lenDescEl.textContent = `Desc: ${desc.length} / 155 chars ${desc.length > 155 ? '⚠️ Too long' : '✅'}`;
-		}
-
-		generateBtn?.addEventListener('click', () => {
-			const topic = topicInput?.value.trim();
-			const brand = brandInput?.value.trim();
-
-			if (!topic) {
-				alert('Please enter a page topic or primary keyword!');
-				return;
+				if (lenTitleEl) lenTitleEl.textContent = `Title: ${title.length} / 60 chars ${title.length > 60 ? '⚠️ Too long' : '✅'}`;
+				if (lenDescEl) lenDescEl.textContent = `Desc: ${desc.length} / 155 chars ${desc.length > 155 ? '⚠️ Too long' : '✅'}`;
 			}
 
-			const brandSuffix = brand ? ` | ${brand}` : '';
+			generateBtn?.addEventListener('click', () => {
+				const topic = topicInput?.value?.trim();
+				const brand = brandInput?.value?.trim();
 
-			// Option 1: High CTR / Guide
-			const t1 = `10+ Proven ${topic} (Step-by-Step Guide)${brandSuffix}`;
-			const d1 = `Looking for the best ${topic}? Discover actionable tips, expert strategies, and top recommendations to boost your results today!`;
+				if (!topic) {
+					alert('Please enter a page topic or primary keyword!');
+					return;
+				}
 
-			// Option 2: Professional / Ultimate
-			const t2 = `The Ultimate Guide to ${topic} [Updated]${brandSuffix}`;
-			const d2 = `Master ${topic} with our comprehensive framework. Learn proven techniques and avoid common pitfalls with expert insights.`;
+				const brandSuffix = brand ? ` | ${brand}` : '';
 
-			updateOption('1', t1, d1);
-			updateOption('2', t2, d2);
+				// Option 1: High CTR / Guide
+				const t1 = `10+ Proven ${topic} (Step-by-Step Guide)${brandSuffix}`;
+				const d1 = `Looking for the best ${topic}? Discover actionable tips, expert strategies, and top recommendations to boost your results today!`;
 
-			if (resultsWrapper) resultsWrapper.style.display = 'block';
-		});
+				// Option 2: Professional / Ultimate
+				const t2 = `The Ultimate Guide to ${topic} [Updated]${brandSuffix}`;
+				const d2 = `Master ${topic} with our comprehensive framework. Learn proven techniques and avoid common pitfalls with expert insights.`;
 
-		document.querySelectorAll('.btn-copy-sm').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const target = (e.target as HTMLElement).getAttribute('data-target');
-				const id = target === 'opt1' ? '1' : '2';
-				const titleText = document.getElementById(`title${id}`)?.textContent || '';
-				const descText = document.getElementById(`desc${id}`)?.textContent || '';
+				updateOption('1', t1, d1);
+				updateOption('2', t2, d2);
 
-				const textToCopy = `Meta Title: ${titleText}\nMeta Description: ${descText}`;
-				navigator.clipboard.writeText(textToCopy);
-
-				const originalText = btn.textContent;
-				btn.textContent = 'Copied!';
-				setTimeout(() => { btn.textContent = originalText; }, 2000);
+				if (resultsWrapper) resultsWrapper.style.display = 'block';
 			});
-		});
+
+			document.querySelectorAll('.btn-copy-sm').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.target?.getAttribute('data-target');
+					const id = target === 'opt1' ? '1' : '2';
+					const titleText = document.getElementById(`title${id}`)?.textContent || '';
+					const descText = document.getElementById(`desc${id}`)?.textContent || '';
+
+					const textToCopy = `Meta Title: ${titleText}\nMeta Description: ${descText}`;
+					navigator.clipboard.writeText(textToCopy);
+
+					const originalText = btn.textContent;
+					btn.textContent = 'Copied!';
+					setTimeout(() => { btn.textContent = originalText; }, 2000);
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
