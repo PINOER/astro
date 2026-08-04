@@ -295,55 +295,65 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const subjectInput = document.getElementById('subjectInput') as HTMLInputElement;
-		const actionInput = document.getElementById('actionInput') as HTMLInputElement;
-		const cameraMoveSelect = document.getElementById('cameraMoveSelect') as HTMLSelectElement;
-		const focusSelect = document.getElementById('focusSelect') as HTMLSelectElement;
-		const speedSelect = document.getElementById('speedSelect') as HTMLSelectElement;
-		const envSelect = document.getElementById('envSelect') as HTMLSelectElement;
-		const lightingSelect = document.getElementById('lightingSelect') as HTMLSelectElement;
-		const qualitySelect = document.getElementById('qualitySelect') as HTMLSelectElement;
+		function initTool() {
+			const subjectInput = document.getElementById('subjectInput');
+			const actionInput = document.getElementById('actionInput');
+			const cameraMoveSelect = document.getElementById('cameraMoveSelect');
+			const focusSelect = document.getElementById('focusSelect');
+			const speedSelect = document.getElementById('speedSelect');
+			const envSelect = document.getElementById('envSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const qualitySelect = document.getElementById('qualitySelect');
 
-		const promptOutput = document.getElementById('promptOutput') as HTMLTextAreaElement;
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const subject = subjectInput?.value.trim() || 'A cyberpunk detective in neon city';
-			const action = actionInput?.value.trim() || 'walking down the rain-soaked street, turning head slowly to look at the camera';
+			function buildPrompt() {
+				const subject = subjectInput?.value.trim() || 'A cyberpunk detective in neon city';
+				const action = actionInput?.value.trim() || 'walking down the rain-soaked street, turning head slowly to look at the camera';
 
-			const components = [
-				cameraMoveSelect?.value,
-				`of ${subject}`,
-				action,
-				envSelect?.value,
-				focusSelect?.value,
-				speedSelect?.value,
-				lightingSelect?.value,
-				qualitySelect?.value
-			].filter(Boolean);
+				const components = [
+					cameraMoveSelect?.value,
+					`of ${subject}`,
+					action,
+					envSelect?.value,
+					focusSelect?.value,
+					speedSelect?.value,
+					lightingSelect?.value,
+					qualitySelect?.value
+				].filter(Boolean);
 
-			if (promptOutput) promptOutput.value = components.join(', ');
+				if (promptOutput) {
+					promptOutput.value = components.join(', ');
+				}
+			}
+
+			[
+				subjectInput, actionInput, cameraMoveSelect, focusSelect,
+				speedSelect, envSelect, lightingSelect, qualitySelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		[
-			subjectInput, actionInput, cameraMoveSelect, focusSelect,
-			speedSelect, envSelect, lightingSelect, qualitySelect
-		].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput || !promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
