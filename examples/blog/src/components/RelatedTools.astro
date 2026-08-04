@@ -9,7 +9,7 @@ interface Props {
 	limit?: number;      // 展示数量 (默认 2 个)
 }
 
-const { currentPath = '', tag = 'General', lang = 'en', limit = 2 } = Astro.props;
+const { currentPath = '', tag = 'General', lang = 'en', limit = 4 } = Astro.props;
 
 // 1. 自动抓取同语言路径下的所有 .astro 工具页面
 let toolModules: Record<string, any> = {};
