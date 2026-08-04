@@ -203,87 +203,101 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const inputText = document.getElementById('inputText') as HTMLTextAreaElement;
-		const statsText = document.getElementById('statsText');
-		const btnCopy = document.getElementById('btnCopy') as HTMLButtonElement;
-		const btnClear = document.getElementById('btnClear');
-		const actionBtns = document.querySelectorAll('.btn-action');
+		function initTool() {
+			const inputText = document.getElementById('inputText');
+			const statsText = document.getElementById('statsText');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnClear = document.getElementById('btnClear');
+			const actionBtns = document.querySelectorAll('.btn-action');
 
-		inputText?.addEventListener('input', updateStats);
+			function updateStats() {
+				if (!inputText) return;
+				const text = inputText.value;
+				const chars = text.length;
+				const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+				if (statsText) statsText.textContent = `Characters: ${chars} | Words: ${words}`;
+			}
 
-		function updateStats() {
-			const text = inputText.value;
-			const chars = text.length;
-			const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-			if (statsText) statsText.textContent = `Characters: ${chars} | Words: ${words}`;
-		}
+			inputText?.addEventListener('input', updateStats);
 
-		function getWords(str: string): string[] {
-			return str
-				.replace(/([a-z])([A-Z])/g, '$1 $2')
-				.replace(/[_-]+/g, ' ')
-				.trim()
-				.split(/\s+/);
-		}
+			function getWords(str) {
+				return str
+					.replace(/([a-z])([A-Z])/g, '$1 $2')
+					.replace(/[_-]+/g, ' ')
+					.trim()
+					.split(/\s+/);
+			}
 
-		actionBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				const type = (btn as HTMLElement).dataset.type;
-				const val = inputText.value;
-				if (!val) return;
+			actionBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					if (!inputText) return;
+					const type = btn.getAttribute('data-type');
+					const val = inputText.value;
+					if (!val) return;
 
-				switch (type) {
-					case 'upper':
-						inputText.value = val.toUpperCase();
-						break;
-					case 'lower':
-						inputText.value = val.toLowerCase();
-						break;
-					case 'title':
-						inputText.value = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-						break;
-					case 'sentence':
-						inputText.value = val.toLowerCase().replace(/(^\s*\w|[\.\!\?]\s*\w)/g, c => c.toUpperCase());
-						break;
-					case 'camel':
-						inputText.value = getWords(val)
-							.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-							.join('');
-						break;
-					case 'pascal':
-						inputText.value = getWords(val)
-							.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-							.join('');
-						break;
-					case 'snake':
-						inputText.value = getWords(val).map(w => w.toLowerCase()).join('_');
-						break;
-					case 'kebab':
-						inputText.value = getWords(val).map(w => w.toLowerCase()).join('-');
-						break;
-					case 'constant':
-						inputText.value = getWords(val).map(w => w.toUpperCase()).join('_');
-						break;
-					case 'toggle':
-						inputText.value = val.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-						break;
-				}
+					switch (type) {
+						case 'upper':
+							inputText.value = val.toUpperCase();
+							break;
+						case 'lower':
+							inputText.value = val.toLowerCase();
+							break;
+						case 'title':
+							inputText.value = val.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+							break;
+						case 'sentence':
+							inputText.value = val.toLowerCase().replace(/(^\s*\w|[\.\!\?]\s*\w)/g, c => c.toUpperCase());
+							break;
+						case 'camel':
+							inputText.value = getWords(val)
+								.map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+								.join('');
+							break;
+						case 'pascal':
+							inputText.value = getWords(val)
+								.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+								.join('');
+							break;
+						case 'snake':
+							inputText.value = getWords(val).map(w => w.toLowerCase()).join('_');
+							break;
+						case 'kebab':
+							inputText.value = getWords(val).map(w => w.toLowerCase()).join('-');
+							break;
+						case 'constant':
+							inputText.value = getWords(val).map(w => w.toUpperCase()).join('_');
+							break;
+						case 'toggle':
+							inputText.value = val.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
+							break;
+					}
+					updateStats();
+				});
+			});
+
+			btnClear?.addEventListener('click', () => {
+				if (inputText) inputText.value = '';
 				updateStats();
 			});
-		});
 
-		btnClear?.addEventListener('click', () => {
-			inputText.value = '';
+			btnCopy?.addEventListener('click', () => {
+				if (!inputText || !inputText.value) return;
+				navigator.clipboard.writeText(inputText.value);
+				if (btnCopy) {
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = 'Copy Result'; }, 2000);
+				}
+			});
+
 			updateStats();
-		});
+		}
 
-		btnCopy?.addEventListener('click', () => {
-			if (!inputText.value) return;
-			navigator.clipboard.writeText(inputText.value);
-			btnCopy.textContent = 'Copied!';
-			setTimeout(() => { btnCopy.textContent = 'Copy Result'; }, 2000);
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
