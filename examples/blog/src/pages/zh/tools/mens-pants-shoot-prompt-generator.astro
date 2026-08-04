@@ -3,7 +3,7 @@ import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "AI 男装下装与裤装商拍提示词生成器",
-	description: "专为男装裤装电商卖家设计的 AI 商拍工具！精准控制牛仔裤、工装裤、西裤与休裤版型、水洗面料细节、鞋靴搭配与垂坠感，适用于 Midjourney, Flux, SDXL 与豆包。",
+	description: "专为男装裤装电商卖家设计的 AI 商拍工具！精准控制牛仔裤、工装裤、西裤与休裤版型、水洗面料细节、鞋靴搭配、镜头焦段、打光与垂坠感，适用于 Midjourney, Flux, SDXL 与豆包。",
 	icon: "👖",
 	tag: "男装商拍",
 	keywords: "AI 男装裤装换装 男裤电商商拍 牛仔裤提示词 工装裤商拍 模特姿态 提示词生成器 midjourney flux 豆包",
@@ -304,22 +304,39 @@ const faqSchema = {
 				<input type="text" id="customSceneInput" placeholder="例如：雨后夜幕下的霓虹街头、复古火车站台、高尔夫球场草坪..." />
 			</div>
 
-			<!-- 相机与光线 -->
+			<!-- 相机设备 -->
 			<div class="form-group">
-				<label for="cameraSelect">相机设备与视角</label>
+				<label for="cameraSelect">相机机身/设备</label>
 				<select id="cameraSelect">
-					<option value="shot on Sony Alpha A7R V, ultra sharp fabric weave detail">索尼 Sony A7R V (现代极锐/面料纤维可见)</option>
-					<option value="shot on Leica M11 with natural street aesthetic">徕卡 Leica M11 (经典人文胶片色彩)</option>
-					<option value="shot on Hasselblad H6D-100c for high-end lookbook">哈苏 Hasselblad (顶级画册质感)</option>
+					<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐/面料纤维可见)</option>
+					<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩与胶片感)</option>
+					<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (顶级中画幅画质)</option>
+					<option value="shot on iPhone 15 Pro Max, authentic mobile photography aesthetic">iPhone 15 Pro Max (小红书真实生活感)</option>
+					<option value="shot on 35mm film camera">35mm 复古胶片相机 (自然复古颗粒感)</option>
 				</select>
 			</div>
 
+			<!-- 镜头与焦段 -->
+			<div class="form-group">
+				<label for="lensSelect">镜头焦段与视角</label>
+				<select id="lensSelect">
+					<option value="85mm f/1.2 prime lens, creamy bokeh depth of field, sharp pant detail focus">85mm f/1.2 (经典大光圈虚化/突出裤装质感)</option>
+					<option value="50mm f/1.4 prime lens, natural eye-level perspective lookbook framing">50mm f/1.4 (标准人眼视角 Lookbook 构图)</option>
+					<option value="35mm lens, candid street style lower-body framing">35mm (人文街拍视角/裤装动态流动感)</option>
+					<option value="24mm wide angle lens, dynamic low-angle flattering long leg perspective">24mm 广角 (低视角拉长身材腿长比例)</option>
+					<option value="full-body lookbook framing, fashion editorial angle">全身姿态 Lookbook 时尚大片构图</option>
+				</select>
+			</div>
+
+			<!-- 光线打光设计 -->
 			<div class="form-group">
 				<label for="lightingSelect">光线风格</label>
 				<select id="lightingSelect">
-					<option value="clean studio softbox lighting highlighting pant drape and silhouette">柔光箱摄影棚光线 (突出裤装垂坠感与轮廓)</option>
-					<option value="soft natural directional sunlight creating realistic fabric texture shadow">自然定向阳光 (真实面料光影折痕)</option>
-					<option value="golden hour sunset side lighting with warm glow">黄金小时侧逆光 (温暖轮廓光感)</option>
+					<option value="clean studio softbox lighting highlighting pant drape and silhouette">柔光箱摄影棚光线 (商业极简/突出裤装垂坠感)</option>
+					<option value="soft natural directional sunlight creating realistic fabric texture shadow">自然漫射阳光 (真实面料纹理与光影折痕)</option>
+					<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳 (暖色边缘轮廓光感)</option>
+					<option value="overcast soft ambient light, crisp fabric contrast">阴天漫射柔光 (清爽通透/清晰面料对比度)</option>
+					<option value="dramatic rim lighting with strong edge highlights outlining pant cuts">高光轮廓光 (强烈边缘剪影/强调裤型剪裁)</option>
 				</select>
 			</div>
 
@@ -358,7 +375,7 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端逻辑脚本 (添加 DOMContentLoaded 生命周期防护) -->
+	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
 		function initTool() {
 			let currentMode = 'outfit';
@@ -379,6 +396,7 @@ const faqSchema = {
 			const modelSelect = document.getElementById('modelSelect');
 			const angleSelect = document.getElementById('angleSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
 			const lightingSelect = document.getElementById('lightingSelect');
 			const arSelect = document.getElementById('arSelect');
 
@@ -440,6 +458,7 @@ const faqSchema = {
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'ultra-detailed denim and fabric weave, realistic pant crease and drape, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -453,6 +472,7 @@ const faqSchema = {
 						angleSelect?.value || '',
 						`into setting: ${sceneVal}`,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'realistic ground shadows, sharp fabric texture, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -466,6 +486,7 @@ const faqSchema = {
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'crisp pocket and stitching details, natural hem break over shoes, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -480,6 +501,7 @@ const faqSchema = {
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'ultra-detailed fabric texture, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -606,7 +628,7 @@ const faqSchema = {
 			});
 
 			// 下拉框改变监听
-			[modelSelect, angleSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
+			[modelSelect, angleSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
