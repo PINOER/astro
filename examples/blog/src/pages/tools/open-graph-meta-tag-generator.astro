@@ -287,96 +287,104 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const ogTitleIn = document.getElementById('ogTitle') as HTMLInputElement;
-		const ogDescIn = document.getElementById('ogDesc') as HTMLTextAreaElement;
-		const ogUrlIn = document.getElementById('ogUrl') as HTMLInputElement;
-		const ogImageIn = document.getElementById('ogImage') as HTMLInputElement;
-		const ogSiteNameIn = document.getElementById('ogSiteName') as HTMLInputElement;
+		function initTool() {
+			const ogTitleIn = document.getElementById('ogTitle');
+			const ogDescIn = document.getElementById('ogDesc');
+			const ogUrlIn = document.getElementById('ogUrl');
+			const ogImageIn = document.getElementById('ogImage');
+			const ogSiteNameIn = document.getElementById('ogSiteName');
 
-		const cardImgBox = document.getElementById('cardImgBox');
-		const cardDomain = document.getElementById('cardDomain');
-		const cardTitle = document.getElementById('cardTitle');
-		const cardDesc = document.getElementById('cardDesc');
-		const codeOutput = document.getElementById('codeOutput') as HTMLTextAreaElement;
+			const cardImgBox = document.getElementById('cardImgBox');
+			const cardDomain = document.getElementById('cardDomain');
+			const cardTitle = document.getElementById('cardTitle');
+			const cardDesc = document.getElementById('cardDesc');
+			const codeOutput = document.getElementById('codeOutput');
 
-		function updateOg() {
-			const title = ogTitleIn.value.trim();
-			const desc = ogDescIn.value.trim();
-			const url = ogUrlIn.value.trim();
-			const image = ogImageIn.value.trim();
-			const siteName = ogSiteNameIn.value.trim();
+			function updateOg() {
+				const title = ogTitleIn?.value?.trim() || '';
+				const desc = ogDescIn?.value?.trim() || '';
+				const url = ogUrlIn?.value?.trim() || '';
+				const image = ogImageIn?.value?.trim() || '';
+				const siteName = ogSiteNameIn?.value?.trim() || '';
 
-			// Card Live Preview Updates
-			if (cardTitle) cardTitle.textContent = title || 'Page Title Preview';
-			if (cardDesc) cardDesc.textContent = desc || 'Page description preview will appear here...';
+				// Card Live Preview Updates
+				if (cardTitle) cardTitle.textContent = title || 'Page Title Preview';
+				if (cardDesc) cardDesc.textContent = desc || 'Page description preview will appear here...';
 
-			try {
-				const parsedUrl = new URL(url.startsWith('http') ? url : 'https://' + url);
-				if (cardDomain) cardDomain.textContent = parsedUrl.hostname.toUpperCase();
-			} catch (e) {
-				if (cardDomain) cardDomain.textContent = 'EXAMPLE.COM';
-			}
-
-			if (cardImgBox) {
-				if (image) {
-					cardImgBox.style.backgroundImage = `url('${image}')`;
-					cardImgBox.innerHTML = '';
-				} else {
-					cardImgBox.style.backgroundImage = 'none';
-					cardImgBox.innerHTML = '<span>Image Preview</span>';
+				try {
+					const parsedUrl = new URL(url.startsWith('http') ? url : 'https://' + url);
+					if (cardDomain) cardDomain.textContent = parsedUrl.hostname.toUpperCase();
+				} catch (e) {
+					if (cardDomain) cardDomain.textContent = 'EXAMPLE.COM';
 				}
+
+				if (cardImgBox) {
+					if (image) {
+						cardImgBox.style.backgroundImage = `url('${image}')`;
+						cardImgBox.innerHTML = '';
+					} else {
+						cardImgBox.style.backgroundImage = 'none';
+						cardImgBox.innerHTML = '<span>Image Preview</span>';
+					}
+				}
+
+				// Code Output Builder
+				const tags = [
+					'<!-- HTML Meta Tags -->',
+					`<title>${title}</title>`,
+					`<meta name="description" content="${desc}">`,
+					'',
+					'<!-- Facebook / Open Graph Meta Tags -->',
+					`<meta property="og:type" content="website">`,
+					`<meta property="og:url" content="${url}">`,
+					`<meta property="og:title" content="${title}">`,
+					`<meta property="og:description" content="${desc}">`,
+					`<meta property="og:image" content="${image}">`,
+					siteName ? `<meta property="og:site_name" content="${siteName}">` : '',
+					'',
+					'<!-- Twitter / X Meta Tags -->',
+					`<meta name="twitter:card" content="summary_large_image">`,
+					`<meta property="twitter:domain" content="${cardDomain ? cardDomain.textContent?.toLowerCase() : ''}">`,
+					`<meta property="twitter:url" content="${url}">`,
+					`<meta name="twitter:title" content="${title}">`,
+					`<meta name="twitter:description" content="${desc}">`,
+					`<meta name="twitter:image" content="${image}">`
+				].filter(line => line !== null && line !== undefined).join('\n');
+
+				if (codeOutput) codeOutput.value = tags;
 			}
 
-			// Code Output Builder
-			const tags = [
-				'<!-- HTML Meta Tags -->',
-				`<title>${title}</title>`,
-				`<meta name="description" content="${desc}">`,
-				'',
-				'<!-- Facebook / Open Graph Meta Tags -->',
-				`<meta property="og:type" content="website">`,
-				`<meta property="og:url" content="${url}">`,
-				`<meta property="og:title" content="${title}">`,
-				`<meta property="og:description" content="${desc}">`,
-				`<meta property="og:image" content="${image}">`,
-				siteName ? `<meta property="og:site_name" content="${siteName}">` : '',
-				'',
-				'<!-- Twitter / X Meta Tags -->',
-				`<meta name="twitter:card" content="summary_large_image">`,
-				`<meta property="twitter:domain" content="${cardDomain ? cardDomain.textContent?.toLowerCase() : ''}">`,
-				`<meta property="twitter:url" content="${url}">`,
-				`<meta name="twitter:title" content="${title}">`,
-				`<meta name="twitter:description" content="${desc}">`,
-				`<meta name="twitter:image" content="${image}">`
-			].filter(line => line !== null && line !== undefined).join('\n');
+			[ogTitleIn, ogDescIn, ogUrlIn, ogImageIn, ogSiteNameIn].forEach(input => {
+				input?.addEventListener('input', updateOg);
+			});
 
-			codeOutput.value = tags;
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				if (ogTitleIn) ogTitleIn.value = '';
+				if (ogDescIn) ogDescIn.value = '';
+				if (ogUrlIn) ogUrlIn.value = '';
+				if (ogImageIn) ogImageIn.value = '';
+				if (ogSiteNameIn) ogSiteNameIn.value = '';
+				updateOg();
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!codeOutput || !codeOutput.value) return;
+				navigator.clipboard.writeText(codeOutput.value);
+				const btn = e.target;
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = originalText; }, 2000);
+			});
+
+			updateOg();
 		}
 
-		[ogTitleIn, ogDescIn, ogUrlIn, ogImageIn, ogSiteNameIn].forEach(input => {
-			input?.addEventListener('input', updateOg);
-		});
-
-		document.getElementById('btnClear')?.addEventListener('click', () => {
-			ogTitleIn.value = '';
-			ogDescIn.value = '';
-			ogUrlIn.value = '';
-			ogImageIn.value = '';
-			ogSiteNameIn.value = '';
-			updateOg();
-		});
-
-		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-			if (!codeOutput.value) return;
-			navigator.clipboard.writeText(codeOutput.value);
-			const btn = e.target as HTMLButtonElement;
-			const originalText = btn.textContent;
-			btn.textContent = 'Copied!';
-			setTimeout(() => { btn.textContent = originalText; }, 2000);
-		});
-
-		updateOg();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
