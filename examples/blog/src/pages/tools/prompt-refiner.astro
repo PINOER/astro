@@ -1,195 +1,228 @@
 ---
-import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
-import { SITE_TITLE } from '../../consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
-    title: "Prompt Structurer & Refiner",
-    description: "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.",
-    icon: "📝",
-    tag: "AI Tools",
-    keywords: "prompt structurer refiner co-star framework chatgpt claude developer tools",
-    pinned: false,
-    priority: 91
+	title: "Prompt Structurer & Refiner",
+	description: "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.",
+	icon: "📝",
+	tag: "AI Tools",
+	keywords: "prompt structurer refiner co-star framework chatgpt claude developer tools",
+	pinned: false,
+	priority: 91
 };
 
-const pageTitle = `Prompt Structurer & Refiner — ${SITE_TITLE}`;
-const pageDescription = "Transform rough, one-line ideas into structured, high-converting prompts using the CO-STAR framework for ChatGPT and Claude.";
+const faqList = [
+	{
+		question: "What is the CO-STAR framework for AI prompt engineering?",
+		answer: "CO-STAR stands for Context, Objective, Style, Tone, Audience, and Response Format. Structuring prompts with these six key pillars ensures AI models like ChatGPT and Claude produce highly targeted, professional responses with zero hallucination or filler."
+	},
+	{
+		question: "Which Large Language Models (LLMs) work best with these structured prompts?",
+		answer: "The generated CO-STAR prompt structure is universally compatible with all modern LLMs, including OpenAI ChatGPT (GPT-4o), Anthropic Claude 3.5, Google Gemini 1.5, and open-source models like Llama 3."
+	},
+	{
+		question: "Is my input text uploaded or recorded on any remote server?",
+		answer: "No. 100% private. All prompt refinement and template generation execute locally in your web browser using JavaScript. No text is ever transmitted or logged on external servers."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<style>
-			main {
-				width: 800px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
-			.form-group {
-				margin-bottom: 1.5em;
-			}
-			label {
-				display: block;
-				font-weight: 600;
-				margin-bottom: 0.5em;
-				color: var(--text-main);
-			}
-			textarea, select {
-				width: 100%;
-				padding: 0.8em 1em;
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.95rem;
-				box-sizing: border-box;
-				outline: none;
-				transition: border-color 0.2s, box-shadow 0.2s;
-			}
-			textarea:focus, select:focus {
-				border-color: var(--accent);
-				box-shadow: 0 0 10px var(--accent-glow);
-			}
-			.btn-generate {
-				width: 100%;
-				background: var(--accent);
-				color: #ffffff;
-				border: none;
-				padding: 0.9em;
-				font-size: 1rem;
-				font-weight: 700;
-				border-radius: 8px;
-				cursor: pointer;
-				transition: background 0.2s;
-			}
-			.btn-generate:hover {
-				background: var(--accent-hover);
-			}
-			.result-area {
-				margin-top: 2em;
-				display: none;
-			}
-			.result-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-bottom: 0.8em;
-			}
-			.result-header label {
-				margin-bottom: 0;
-			}
-			.btn-copy {
-				background: var(--gray-light);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-				padding: 0.4em 0.8em;
-				border-radius: 6px;
-				cursor: pointer;
-				font-size: 0.85rem;
-				font-weight: 600;
-				transition: all 0.2s ease;
-			}
-			.btn-copy:hover {
-				border-color: var(--accent);
-				color: var(--accent);
-			}
-			pre {
-				background: var(--code-bg) !important;
-				padding: 1.2em;
-				border-radius: 10px;
-				border: 1px solid var(--card-border);
-				white-space: pre-wrap;
-				word-break: break-word;
-				color: var(--text-main);
-				font-size: 0.9rem;
-				line-height: 1.6;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>📝 Prompt Structurer & Refiner</h1>
-				<p>Turn basic ideas into expert-level structured prompts for ChatGPT, Claude, and Gemini.</p>
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.form-group {
+			margin-bottom: 1.5em;
+		}
+		label {
+			display: block;
+			font-weight: 600;
+			margin-bottom: 0.5em;
+			color: var(--text-main);
+		}
+		textarea, select {
+			width: 100%;
+			padding: 0.8em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.95rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+		textarea:focus, select:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+		.btn-generate {
+			width: 100%;
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.9em;
+			font-size: 1rem;
+			font-weight: 700;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: background 0.2s;
+		}
+		.btn-generate:hover {
+			background: var(--accent-hover);
+		}
+		.result-area {
+			margin-top: 2em;
+			display: none;
+		}
+		.result-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 0.8em;
+		}
+		.result-header label {
+			margin-bottom: 0;
+		}
+		.btn-copy {
+			background: var(--gray-light);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.4em 0.8em;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 0.85rem;
+			font-weight: 600;
+			transition: all 0.2s ease;
+		}
+		.btn-copy:hover {
+			border-color: var(--accent);
+			color: var(--accent);
+		}
+		pre {
+			background: var(--code-bg) !important;
+			padding: 1.2em;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+			white-space: pre-wrap;
+			word-break: break-word;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			line-height: 1.6;
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具主体内容区 -->
+	<div class="tool-box">
+		<div class="form-group">
+			<label for="rawPrompt">Your Basic Idea / Task:</label>
+			<textarea id="rawPrompt" rows="4" placeholder="e.g., Write an SEO article about Shopify dropshipping tips for beginners."></textarea>
+		</div>
+
+		<div class="form-group">
+			<label for="roleSelect">Target Persona / Role:</label>
+			<select id="roleSelect">
+				<option value="Senior SEO Specialist & Content Strategist">Senior SEO Specialist & Content Strategist</option>
+				<option value="Expert Full-Stack Software Engineer">Expert Full-Stack Software Engineer</option>
+				<option value="Direct-Response Copywriter">Direct-Response Copywriter</option>
+				<option value="Product Manager">Product Manager</option>
+			</select>
+		</div>
+
+		<button class="btn-generate" id="generateBtn">Refine & Structure Prompt ✨</button>
+
+		<div class="result-area" id="resultArea">
+			<div class="result-header">
+				<label>Optimized CO-STAR Prompt:</label>
+				<button class="btn-copy" id="copyBtn">📋 Copy Prompt</button>
 			</div>
+			<pre id="outputPrompt"></pre>
+		</div>
+	</div>
 
-			<div class="tool-box">
-				<div class="form-group">
-					<label for="rawPrompt">Your Basic Idea / Task:</label>
-					<textarea id="rawPrompt" rows="4" placeholder="e.g., Write an SEO article about Shopify dropshipping tips for beginners."></textarea>
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
 				</div>
+			))}
+		</div>
+	</section>
 
-				<div class="form-group">
-					<label for="roleSelect">Target Persona / Role:</label>
-					<select id="roleSelect">
-						<option value="Senior SEO Specialist & Content Strategist">Senior SEO Specialist & Content Strategist</option>
-						<option value="Expert Full-Stack Software Engineer">Expert Full-Stack Software Engineer</option>
-						<option value="Direct-Response Copywriter">Direct-Response Copywriter</option>
-						<option value="Product Manager">Product Manager</option>
-					</select>
-				</div>
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		const generateBtn = document.getElementById('generateBtn');
+		const copyBtn = document.getElementById('copyBtn');
+		const rawPrompt = document.getElementById('rawPrompt') as HTMLTextAreaElement;
+		const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
+		const resultArea = document.getElementById('resultArea') as HTMLDivElement;
+		const outputPrompt = document.getElementById('outputPrompt') as HTMLPreElement;
 
-				<button class="btn-generate" id="generateBtn">Refine & Structure Prompt ✨</button>
+		generateBtn?.addEventListener('click', () => {
+			const input = rawPrompt.value.trim();
+			if (!input) {
+				alert('Please enter a basic prompt idea first!');
+				return;
+			}
 
-				<div class="result-area" id="resultArea">
-					<div class="result-header">
-						<label>Optimized CO-STAR Prompt:</label>
-						<button class="btn-copy" id="copyBtn">📋 Copy Prompt</button>
-					</div>
-					<pre id="outputPrompt"></pre>
-				</div>
-			</div>
-		</main>
-		<Footer />
+			const role = roleSelect.value;
 
-		<script>
-			const generateBtn = document.getElementById('generateBtn');
-			const copyBtn = document.getElementById('copyBtn');
-			const rawPrompt = document.getElementById('rawPrompt') as HTMLTextAreaElement;
-			const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
-			const resultArea = document.getElementById('resultArea') as HTMLDivElement;
-			const outputPrompt = document.getElementById('outputPrompt') as HTMLPreElement;
-
-			generateBtn?.addEventListener('click', () => {
-				const input = rawPrompt.value.trim();
-				if (!input) {
-					alert('Please enter a basic prompt idea first!');
-					return;
-				}
-
-				const role = roleSelect.value;
-
-				// CO-STAR 模板拼接逻辑（纯前端运行，零 API 成本）
-				const structuredPrompt = `# ROLE
+			const structuredPrompt = `# ROLE
 Act as a ${role}. You have extensive experience and deep expertise in this domain.
 
 # CONTEXT
@@ -214,17 +247,18 @@ Structure your output logically with:
 
 Please confirm you understand these instructions and proceed with the response.`;
 
-				outputPrompt.textContent = structuredPrompt;
-				resultArea.style.display = 'block';
-			});
+			if (outputPrompt) outputPrompt.textContent = structuredPrompt;
+			if (resultArea) resultArea.style.display = 'block';
+		});
 
-			copyBtn?.addEventListener('click', () => {
-				navigator.clipboard.writeText(outputPrompt.textContent || '');
-				copyBtn.textContent = '✅ Copied!';
-				setTimeout(() => {
-					copyBtn.textContent = '📋 Copy Prompt';
-				}, 2000);
-			});
-		</script>
-	</body>
-</html>
+		copyBtn?.addEventListener('click', () => {
+			if (!outputPrompt) return;
+			navigator.clipboard.writeText(outputPrompt.textContent || '');
+			const originalText = copyBtn.textContent;
+			copyBtn.textContent = '✅ Copied!';
+			setTimeout(() => {
+				copyBtn.textContent = originalText;
+			}, 2000);
+		});
+	</script>
+</ToolLayout>
