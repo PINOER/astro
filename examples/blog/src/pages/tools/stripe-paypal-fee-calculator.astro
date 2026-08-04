@@ -1,8 +1,5 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "Stripe & PayPal Fee Calculator",
@@ -13,9 +10,6 @@ export const frontmatter = {
 	pinned: false,
 	priority: 88
 };
-
-const pageTitle = `Stripe & PayPal Fee Calculator — ${SITE_TITLE}`;
-const pageDescription = "Calculate transaction fees, net payout income, or inverse ask amounts to pass processing fees to clients.";
 
 const faqList = [
 	{
@@ -46,308 +40,270 @@ const faqSchema = {
 };
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
-		<style>
-			main {
-				width: 850px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			.preset-row {
-				display: flex;
-				gap: 0.6rem;
-				margin-bottom: 1.5rem;
-				flex-wrap: wrap;
-			}
-			.preset-btn {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-				padding: 0.5em 0.9em;
-				border-radius: 8px;
-				font-size: 0.85rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.2s;
-			}
-			.preset-btn:hover, .preset-btn.active {
-				border-color: var(--accent);
-				color: var(--accent);
-				background: var(--badge-bg);
-			}
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.preset-row {
+			display: flex;
+			gap: 0.6rem;
+			margin-bottom: 1.5rem;
+			flex-wrap: wrap;
+		}
+		.preset-btn {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.5em 0.9em;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		.preset-btn:hover, .preset-btn.active {
+			border-color: var(--accent);
+			color: var(--accent);
+			background: var(--badge-bg);
+		}
 
-			.form-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-				gap: 1.2rem;
-				margin-bottom: 1.5rem;
-			}
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				gap: 0.4rem;
-			}
-			.form-group label {
-				font-size: 0.88rem;
-				font-weight: 600;
-				color: var(--text-main);
-			}
-			input[type="number"], select {
-				width: 100%;
-				padding: 0.6em 0.8em;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.95rem;
-				outline: none;
-				box-sizing: border-box;
-				transition: border-color 0.2s;
-			}
-			input[type="number"]:focus, select:focus {
-				border-color: var(--accent);
-			}
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 1.5rem;
+		}
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.4rem;
+		}
+		.form-group label {
+			font-size: 0.88rem;
+			font-weight: 600;
+			color: var(--text-main);
+		}
+		input[type="number"], select {
+			width: 100%;
+			padding: 0.6em 0.8em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.95rem;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s;
+		}
+		input[type="number"]:focus, select:focus {
+			border-color: var(--accent);
+		}
 
-			.results-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-				gap: 1.2rem;
-				margin-top: 1.5rem;
-			}
-			.result-card {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 1.5em;
-			}
-			.result-card h3 {
-				margin: 0 0 1rem 0;
-				font-size: 1.05rem;
-				color: var(--text-main);
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-			}
-			.result-row {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				padding: 0.5rem 0;
-				border-bottom: 1px dashed var(--card-border);
-				font-size: 0.9rem;
-			}
-			.result-row:last-child {
-				border-bottom: none;
-				padding-top: 0.8rem;
-				font-weight: 700;
-				font-size: 1.05rem;
-			}
-			.val-highlight {
-				color: var(--accent);
-			}
-			.val-fee {
-				color: #ef4444;
-			}
+		.results-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+			margin-top: 1.5rem;
+		}
+		.result-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.5em;
+		}
+		.result-card h3 {
+			margin: 0 0 1rem 0;
+			font-size: 1.05rem;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.result-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0.5rem 0;
+			border-bottom: 1px dashed var(--card-border);
+			font-size: 0.9rem;
+		}
+		.result-row:last-child {
+			border-bottom: none;
+			padding-top: 0.8rem;
+			font-weight: 700;
+			font-size: 1.05rem;
+		}
+		.val-highlight {
+			color: var(--accent);
+		}
+		.val-fee {
+			color: #ef4444;
+		}
 
-			.faq-section {
-				margin-top: 3.5em;
-				padding-top: 2em;
-				border-top: 1px solid var(--card-border);
-			}
-			.faq-title {
-				font-size: 1.4rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin-bottom: 1em;
-			}
-			.faq-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-				gap: 1.2rem;
-			}
-			.faq-card {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 1.2em;
-			}
-			.faq-card h3 {
-				font-size: 0.95rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin: 0 0 0.5rem 0;
-			}
-			.faq-card p {
-				font-size: 0.85rem;
-				color: var(--text-muted);
-				margin: 0;
-				line-height: 1.6;
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>💳 Stripe & PayPal Fee Calculator</h1>
-				<p>Calculate processing fees, net payout income, and exact invoice amounts to cover fees.</p>
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 3.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.4rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具主体计算卡片 -->
+	<div class="tool-box">
+		<div class="form-group" style="margin-bottom: 0.8rem;">
+			<label>Quick Fee Presets:</label>
+			<div class="preset-row">
+				<button class="preset-btn active" data-fee="2.9" data-fix="0.30">Stripe US Standard (2.9% + $0.30)</button>
+				<button class="preset-btn" data-fee="3.9" data-fix="0.30">Stripe International (3.9% + $0.30)</button>
+				<button class="preset-btn" data-fee="3.49" data-fix="0.49">PayPal Standard (3.49% + $0.49)</button>
+				<button class="preset-btn" data-fee="4.99" data-fix="0.49">PayPal Cross-Border (4.99% + $0.49)</button>
 			</div>
+		</div>
 
-			<div class="tool-box">
-				<div class="form-group" style="margin-bottom: 0.8rem;">
-					<label>Quick Fee Presets:</label>
-					<div class="preset-row">
-						<button class="preset-btn active" data-fee="2.9" data-fix="0.30">Stripe US Standard (2.9% + $0.30)</button>
-						<button class="preset-btn" data-fee="3.9" data-fix="0.30">Stripe International (3.9% + $0.30)</button>
-						<button class="preset-btn" data-fee="3.49" data-fix="0.49">PayPal Standard (3.49% + $0.49)</button>
-						<button class="preset-btn" data-fee="4.99" data-fix="0.49">PayPal Cross-Border (4.99% + $0.49)</button>
-					</div>
+		<div class="form-grid">
+			<div class="form-group">
+				<label for="amountInput">Amount ($)</label>
+				<input type="number" id="amountInput" value="100" min="0" step="any" placeholder="Enter amount" />
+			</div>
+			<div class="form-group">
+				<label for="feePercent">Fee Rate (%)</label>
+				<input type="number" id="feePercent" value="2.9" min="0" step="0.01" />
+			</div>
+			<div class="form-group">
+				<label for="feeFixed">Fixed Fee ($)</label>
+				<input type="number" id="feeFixed" value="0.30" min="0" step="0.01" />
+			</div>
+		</div>
+
+		<div class="results-grid">
+			<div class="result-card">
+				<h3>If you charge <span id="cardA_Amount">$100.00</span>:</h3>
+				<div class="result-row">
+					<span>Deducted Fee</span>
+					<span class="val-fee" id="cardA_Fee">-$3.20</span>
 				</div>
-
-				<div class="form-grid">
-					<div class="form-group">
-						<label for="amountInput">Amount ($)</label>
-						<input type="number" id="amountInput" value="100" min="0" step="any" placeholder="Enter amount" />
-					</div>
-					<div class="form-group">
-						<label for="feePercent">Fee Rate (%)</label>
-						<input type="number" id="feePercent" value="2.9" min="0" step="0.01" />
-					</div>
-					<div class="form-group">
-						<label for="feeFixed">Fixed Fee ($)</label>
-						<input type="number" id="feeFixed" value="0.30" min="0" step="0.01" />
-					</div>
-				</div>
-
-				<div class="results-grid">
-					<div class="result-card">
-						<h3>If you charge <span id="cardA_Amount">$100.00</span>:</h3>
-						<div class="result-row">
-							<span>Deducted Fee</span>
-							<span class="val-fee" id="cardA_Fee">-$3.20</span>
-						</div>
-						<div class="result-row">
-							<span>Net Payout (You Receive)</span>
-							<span class="val-highlight" id="cardA_Net">$96.80</span>
-						</div>
-					</div>
-
-					<div class="result-card">
-						<h3>To receive net <span id="cardB_Target">$100.00</span>:</h3>
-						<div class="result-row">
-							<span>You Should Invoice / Ask</span>
-							<span class="val-highlight" id="cardB_Ask">$103.30</span>
-						</div>
-						<div class="result-row">
-							<span>Total Estimated Fee</span>
-							<span class="val-fee" id="cardB_Fee">-$3.30</span>
-						</div>
-					</div>
+				<div class="result-row">
+					<span>Net Payout (You Receive)</span>
+					<span class="val-highlight" id="cardA_Net">$96.80</span>
 				</div>
 			</div>
 
-			<section class="faq-section">
-				<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
-				<div class="faq-grid">
-					{faqList.map(item => (
-						<div class="faq-card">
-							<h3>{item.question}</h3>
-							<p>{item.answer}</p>
-						</div>
-					))}
+			<div class="result-card">
+				<h3>To receive net <span id="cardB_Target">$100.00</span>:</h3>
+				<div class="result-row">
+					<span>You Should Invoice / Ask</span>
+					<span class="val-highlight" id="cardB_Ask">$103.30</span>
 				</div>
-			</section>
-		</main>
-		<Footer />
+				<div class="result-row">
+					<span>Total Estimated Fee</span>
+					<span class="val-fee" id="cardB_Fee">-$3.30</span>
+				</div>
+			</div>
+		</div>
+	</div>
 
-		<script>
-			const amountInput = document.getElementById('amountInput') as HTMLInputElement;
-			const feePercent = document.getElementById('feePercent') as HTMLInputElement;
-			const feeFixed = document.getElementById('feeFixed') as HTMLInputElement;
-			const presetBtns = document.querySelectorAll('.preset-btn');
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
 
-			const cardA_Amount = document.getElementById('cardA_Amount');
-			const cardA_Fee = document.getElementById('cardA_Fee');
-			const cardA_Net = document.getElementById('cardA_Net');
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		const amountInput = document.getElementById('amountInput') as HTMLInputElement;
+		const feePercent = document.getElementById('feePercent') as HTMLInputElement;
+		const feeFixed = document.getElementById('feeFixed') as HTMLInputElement;
+		const presetBtns = document.querySelectorAll('.preset-btn');
 
-			const cardB_Target = document.getElementById('cardB_Target');
-			const cardB_Ask = document.getElementById('cardB_Ask');
-			const cardB_Fee = document.getElementById('cardB_Fee');
+		const cardA_Amount = document.getElementById('cardA_Amount');
+		const cardA_Fee = document.getElementById('cardA_Fee');
+		const cardA_Net = document.getElementById('cardA_Net');
 
-			presetBtns.forEach(btn => {
-				btn.addEventListener('click', () => {
-					presetBtns.forEach(b => b.classList.remove('active'));
-					btn.classList.add('active');
+		const cardB_Target = document.getElementById('cardB_Target');
+		const cardB_Ask = document.getElementById('cardB_Ask');
+		const cardB_Fee = document.getElementById('cardB_Fee');
 
-					const fee = (btn as HTMLElement).dataset.fee || '2.9';
-					const fix = (btn as HTMLElement).dataset.fix || '0.30';
+		presetBtns.forEach(btn => {
+			btn.addEventListener('click', () => {
+				presetBtns.forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
 
-					feePercent.value = fee;
-					feeFixed.value = fix;
-					calculate();
-				});
+				const fee = (btn as HTMLElement).dataset.fee || '2.9';
+				const fix = (btn as HTMLElement).dataset.fix || '0.30';
+
+				if (feePercent) feePercent.value = fee;
+				if (feeFixed) feeFixed.value = fix;
+				calculate();
 			});
+		});
 
-			amountInput?.addEventListener('input', calculate);
-			feePercent?.addEventListener('input', calculate);
-			feeFixed?.addEventListener('input', calculate);
+		amountInput?.addEventListener('input', calculate);
+		feePercent?.addEventListener('input', calculate);
+		feeFixed?.addEventListener('input', calculate);
 
-			function calculate() {
-				const amount = parseFloat(amountInput.value) || 0;
-				const rate = (parseFloat(feePercent.value) || 0) / 100;
-				const fixed = parseFloat(feeFixed.value) || 0;
+		function calculate() {
+			const amount = parseFloat(amountInput?.value) || 0;
+			const rate = (parseFloat(feePercent?.value) || 0) / 100;
+			const fixed = parseFloat(feeFixed?.value) || 0;
 
-				const feeA = amount * rate + fixed;
-				const netA = amount - feeA;
+			const feeA = amount * rate + fixed;
+			const netA = amount - feeA;
 
-				if (cardA_Amount) cardA_Amount.textContent = `$${amount.toFixed(2)}`;
-				if (cardA_Fee) cardA_Fee.textContent = `-$${Math.max(0, feeA).toFixed(2)}`;
-				if (cardA_Net) cardA_Net.textContent = `$${Math.max(0, netA).toFixed(2)}`;
+			if (cardA_Amount) cardA_Amount.textContent = `$${amount.toFixed(2)}`;
+			if (cardA_Fee) cardA_Fee.textContent = `-$${Math.max(0, feeA).toFixed(2)}`;
+			if (cardA_Net) cardA_Net.textContent = `$${Math.max(0, netA).toFixed(2)}`;
 
-				let askB = 0;
-				let feeB = 0;
+			let askB = 0;
+			let feeB = 0;
 
-				if (rate < 1) {
-					askB = (amount + fixed) / (1 - rate);
-					feeB = askB - amount;
-				}
-
-				if (cardB_Target) cardB_Target.textContent = `$${amount.toFixed(2)}`;
-				if (cardB_Ask) cardB_Ask.textContent = `$${Math.max(0, askB).toFixed(2)}`;
-				if (cardB_Fee) cardB_Fee.textContent = `-$${Math.max(0, feeB).toFixed(2)}`;
+			if (rate < 1) {
+				askB = (amount + fixed) / (1 - rate);
+				feeB = askB - amount;
 			}
 
-			calculate();
-		</script>
-	</body>
-</html>
+			if (cardB_Target) cardB_Target.textContent = `$${amount.toFixed(2)}`;
+			if (cardB_Ask) cardB_Ask.textContent = `$${Math.max(0, askB).toFixed(2)}`;
+			if (cardB_Fee) cardB_Fee.textContent = `-$${Math.max(0, feeB).toFixed(2)}`;
+		}
+
+		calculate();
+	</script>
+</ToolLayout>
