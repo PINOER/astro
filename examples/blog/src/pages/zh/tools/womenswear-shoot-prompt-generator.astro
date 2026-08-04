@@ -1,351 +1,363 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
-    title: "Pro AI 女装电商商拍与精准换装/换背景提示词生成器",
-    description: "专为女装电商卖家设计的 AI 商拍工具！涵盖女装换装、背景切换、模特姿态视角控制（9大角度）、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
-    icon: "👗",
-    tag: "女装商拍",
-    keywords: "AI 女装换装 电商商拍 模特角度 模特换头 女装换背景 鞋包穿搭 提示词生成器 midjourney flux 豆包",
-    pinned: true,
-    priority: 94
+	title: "Pro AI 女装电商商拍与精准换装/换背景提示词生成器",
+	description: "专为女装电商卖家设计的 AI 商拍工具！涵盖女装换装、背景切换、模特姿态视角控制（9大角度）、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
+	icon: "👗",
+	tag: "女装商拍",
+	keywords: "AI 女装换装 电商商拍 模特角度 模特换头 女装换背景 鞋包穿搭 提示词生成器 midjourney flux 豆包",
+	pinned: true,
+	priority: 94
 };
 
-const pageTitle = `Pro AI 女装电商商拍与精准换装/换背景提示词生成器 — ${SITE_TITLE}`;
-const pageDescription = "专为女装电商卖家设计的 AI 商拍工具！涵盖女装换装、背景切换、模特 9 大姿态视角控制、双图参考换装，支持保持原图背景不变。";
+const faqList = [
+	{
+		question: "如何利用 AI 提示词实现女装双图精准换装？",
+		answer: "在 Midjourney、Flux 或豆包中使用时，建议采用双图参考（Image-to-Image / ControlNet）模式。将女装款式的平铺/白底图作为图一、模特原图作为图二，配合本工具生成的规范 Prompt，可精准将版型与面料纹理迁移至模特身上。"
+	},
+	{
+		question: "如何保持原图女模背景不变，仅替换女装款式或模特头像？",
+		answer: "在“拍摄与生活场景”下拉菜单中选择“🔒 默认原图背景 (preserve original background)”。系统会在生成 Prompt 中加入背景锁定约束词，适合局部 Inpainting 重绘模式。"
+	},
+	{
+		question: "自定义女装拍摄背景支持中文输入吗？",
+		answer: "支持！你在自定义背景输入框中输入的中文词汇（如“法式庄园草坪”、“海边日落晚霞”），系统会在 500ms 内自动翻译为英文 Prompt。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
-<!doctype html>
-<html lang="zh-CN">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<style>
-			main {
-				width: 1000px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 2.5em 1em 4em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.5rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 0.95rem;
-			}
+<ToolLayout frontmatter={frontmatter} lang="zh">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			/* 模式选择切换选项卡 */
-			.mode-tabs {
-				display: flex;
-				justify-content: center;
-				gap: 0.8rem;
-				margin-bottom: 1.8rem;
-				flex-wrap: wrap;
-			}
-			.tab-btn {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				color: var(--text-muted);
-				padding: 0.7em 1.4em;
-				border-radius: 10px;
-				font-size: 0.9rem;
-				font-weight: 700;
-				cursor: pointer;
-				transition: all 0.2s ease;
-			}
-			.tab-btn.active {
-				background: var(--accent);
-				color: #ffffff;
-				border-color: var(--accent);
-				box-shadow: 0 4px 15px var(--accent-glow);
-			}
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		/* 模式选择选项卡 */
+		.mode-tabs {
+			display: flex;
+			justify-content: center;
+			gap: 0.8rem;
+			margin-bottom: 1.8rem;
+			flex-wrap: wrap;
+		}
+		.tab-btn {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			color: var(--text-muted);
+			padding: 0.6em 1.2em;
+			border-radius: 10px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+			border-color: var(--accent);
+			box-shadow: 0 4px 15px var(--accent-glow);
+		}
 
-			.form-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-				gap: 1.2rem;
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.8rem;
-				backdrop-filter: blur(12px);
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-				margin-bottom: 2rem;
-			}
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				gap: 0.5rem;
-			}
-			.form-group.full-width {
-				grid-column: 1 / -1;
-			}
-			label {
-				font-size: 0.88rem;
-				font-weight: 700;
-				color: var(--text-main);
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-			}
-			label .sub-tag {
-				font-size: 0.75rem;
-				color: var(--text-muted);
-				font-weight: normal;
-			}
-			.translate-status {
-				font-size: 0.75rem;
-				color: var(--accent);
-				font-weight: 600;
-				margin-left: auto;
-			}
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			margin-bottom: 2rem;
+		}
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+		label .sub-tag {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			font-weight: normal;
+		}
+		.translate-status {
+			font-size: 0.75rem;
+			color: var(--accent);
+			font-weight: 600;
+			margin-left: auto;
+		}
 
-			input[type="text"], select, textarea {
-				width: 100%;
-				padding: 0.75em 1em;
-				background: var(--search-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.92rem;
-				box-sizing: border-box;
-				outline: none;
-				transition: border-color 0.2s, box-shadow 0.2s;
-			}
-			input[type="text"]:focus, select:focus, textarea:focus {
-				border-color: var(--accent);
-				box-shadow: 0 0 10px var(--accent-glow);
-			}
+		input[type="text"], select, textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+		input[type="text"]:focus, select:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
 
-			.output-card {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 1.5rem;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
-			.output-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-bottom: 1rem;
-			}
-			.output-title {
-				font-size: 1.05rem;
-				font-weight: 700;
-				color: var(--text-main);
-			}
-			.btn-copy {
-				background: var(--accent);
-				color: #ffffff;
-				border: none;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-size: 0.88rem;
-				font-weight: 700;
-				cursor: pointer;
-				transition: all 0.2s ease;
-			}
-			.btn-copy:hover {
-				background: var(--accent-hover);
-				transform: translateY(-1px);
-			}
-			.prompt-output {
-				width: 100%;
-				height: 140px;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 10px;
-				padding: 1rem;
-				color: var(--text-main);
-				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-				font-size: 0.9rem;
-				line-height: 1.6;
-				resize: vertical;
-				box-sizing: border-box;
-				outline: none;
-			}
+		.output-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+		.output-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		.output-title {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+		.prompt-output {
+			width: 100%;
+			height: 140px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
 
-			.toast {
-				position: fixed;
-				bottom: 2rem;
-				right: 2rem;
-				background: var(--accent);
-				color: #fff;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-size: 0.88rem;
-				font-weight: 600;
-				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-				opacity: 0;
-				transform: translateY(10px);
-				transition: all 0.3s ease;
-				pointer-events: none;
-				z-index: 100;
-			}
-			.toast.show {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		</style>
-	</head>
-	<body>
-		<Header lang="zh" />
-		<main>
-			<div class="tool-header">
-				<h1>👗 Pro AI 女装电商商拍与精准换装/换背景提示词生成器</h1>
-				<p>支持换女装（双图服装精准迁移）、换背景、换女模（保持背景原貌），精准控制 9 大模特视角与姿态，生成适用于豆包、Flux 与 Midjourney 的商拍 Prompt。</p>
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具卡片主体 -->
+	<div class="tool-box">
+		<!-- 核心模式选择 Tab -->
+		<div class="mode-tabs">
+			<button class="tab-btn active" data-mode="outfit">一、女装换装模式 (双图参考)</button>
+			<button class="tab-btn" data-mode="scene">二、女装换背景模式</button>
+			<button class="tab-btn" data-mode="head">三、女装换头像模式</button>
+			<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
+		</div>
+
+		<div class="form-grid">
+			<!-- 女模特征选择 -->
+			<div class="form-group" id="modelGroup">
+				<label for="modelSelect">女模特征与形象</label>
+				<select id="modelSelect">
+					<option value="stunning 20s East Asian female model with delicate features, long wavy hair, elegant sweet aesthetic">20代东亚甜美优雅女模 (韩系甜美/五官精致/波浪长发)</option>
+					<option value="chic Parisian 20s Caucasian female model with messy bob haircut, effortless elegant style">法式复古时尚女模 (法式波波头/随性高级感)</option>
+					<option value="sophisticated 30s East Asian female model, minimalist cold aesthetic, high fashion face">30代东亚高级冷感女模 (静奢风/清冷御姐/超模脸)</option>
+					<option value="gorgeous young blonde Caucasian female model, bright smile, slender build">欧美金发阳光女模 (高挑苗条/法式度假风)</option>
+					<option value="stylish Black female model with afro curls, high fashion editorial look">高街时尚黑人女模 (蓬松卷发/封面超模气场)</option>
+				</select>
 			</div>
 
-			<!-- 核心模式选择Tab -->
-			<div class="mode-tabs">
-				<button class="tab-btn active" data-mode="outfit">一、女装换装模式 (双图参考: 衣服图+模特图)</button>
-				<button class="tab-btn" data-mode="scene">二、女装换背景模式 (固定模特+服装)</button>
-				<button class="tab-btn" data-mode="head">三、女装换头像模式 (固定服装)</button>
-				<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
+			<!-- 模特姿态与拍摄角度 -->
+			<div class="form-group">
+				<label for="angleSelect">模特姿态/视角 (Model Angle)</label>
+				<select id="angleSelect">
+					<option value="">不指定 (Default / Random)</option>
+					<option value="front view, standing facing directly forward towards camera, full symmetric posture">正面 (Front View)</option>
+					<option value="three-quarter left side view, model turned 45 degrees to the left">左微侧 45° (Left 3/4 View)</option>
+					<option value="exact left side profile view, model facing 90 degrees left, full side profile shot">左正侧 (Left Profile View)</option>
+					<option value="three-quarter right side view, model turned 45 degrees to the right">右微侧 45° (Right 3/4 View)</option>
+					<option value="exact right side profile view, model facing 90 degrees right, full side profile shot">右正侧 (Right Profile View)</option>
+					<option value="back view, full rear view showing back details of clothing, facing away from camera">正背面 (Back View)</option>
+				</select>
 			</div>
 
-			<div class="form-grid">
-				<!-- 女模特征选择 -->
-				<div class="form-group" id="modelGroup">
-					<label for="modelSelect">女模特征与形象</label>
-					<select id="modelSelect">
-						<option value="stunning 20s East Asian female model with delicate features, long wavy hair, elegant sweet aesthetic">20代东亚甜美优雅女模 (韩系甜美/五官精致/波浪长发)</option>
-						<option value="chic Parisian 20s Caucasian female model with messy bob haircut, effortless elegant style">法式复古时尚女模 (法式波波头/随性高级感)</option>
-						<option value="sophisticated 30s East Asian female model, minimalist cold aesthetic, high fashion face">30代东亚高级冷感女模 (静奢风/清冷御姐/超模脸)</option>
-						<option value="gorgeous young blonde Caucasian female model, bright smile, slender build">欧美金发阳光女模 (高挑苗条/法式度假风)</option>
-						<option value="stylish Black female model with afro curls, high fashion editorial look">高街时尚黑人女模 (蓬松卷发/封面超模气场)</option>
-					</select>
-				</div>
-
-				<!-- 模特姿态与拍摄角度 -->
-				<div class="form-group">
-					<label for="angleSelect">模特姿态/视角</label>
-					<select id="angleSelect">
-						<option value="">不指定 (Default / Random)</option>
-						<option value="front view, standing facing directly forward towards camera, full symmetric posture">正面 (Front View)</option>
-						<option value="three-quarter left side view, model turned 45 degrees to the left">左微侧 45° (Left 3/4 View)</option>
-						<option value="exact left side profile view, model facing 90 degrees left, full side profile shot">左正侧 (Left Profile View)</option>
-						<option value="three-quarter right side view, model turned 45 degrees to the right">右微侧 45° (Right 3/4 View)</option>
-						<option value="exact right side profile view, model facing 90 degrees right, full side profile shot">右正侧 (Right Profile View)</option>
-						<option value="back view, full rear view showing back details of clothing, facing away from camera">正背面 (Back View)</option>
-						<option value="rear three-quarter left view, model turned 45 degrees away to the left">背面左微侧 45° (Rear Left 3/4)</option>
-						<option value="rear three-quarter right view, model turned 45 degrees away to the right">背面右微侧 45° (Rear Right 3/4)</option>
-					</select>
-				</div>
-
-				<!-- 女装品类与版型 -->
-				<div class="form-group full-width" id="outfitGroup">
-					<label for="outfitInput">
-						<span>女装主服饰、材质与细节</span>
-						<span class="sub-tag">支持中文输入，系统将自动转换为英文精准服装词汇</span>
-						<span id="outfitStatus" class="translate-status"></span>
-					</label>
-					<input type="text" id="outfitInput" placeholder="例如：香槟色桑蚕丝吊带连衣裙复古印花、廓形小香风粗花呢外套搭配高腰阔腿裤..." />
-				</div>
-
-				<!-- 鞋靴与穿搭配饰 -->
-				<div class="form-group full-width" id="accessoryGroup">
-					<label for="accessoryInput">
-						<span>鞋靴与穿搭配饰</span>
-						<span class="sub-tag">可选：高跟鞋、手提包、珍珠项链、墨镜、草帽等</span>
-						<span id="accessoryStatus" class="translate-status"></span>
-					</label>
-					<input type="text" id="accessoryInput" placeholder="例如：黑色尖头细高跟鞋、复古珍珠耳环搭配菱格皮质手提包..." />
-				</div>
-
-				<!-- 女装生活拍摄场景 -->
-				<div class="form-group" id="sceneGroup">
-					<label for="sceneSelect">拍摄与生活场景</label>
-					<select id="sceneSelect">
-						<option value="preserve original background environment and scene lighting exactly as is">🔒 默认原图背景</option>
-						<option value="at a sunlit outdoor Parisian sidewalk cafe with marble table and bistro chairs">巴黎露天街角咖啡馆 (大理石台面/法式休闲)</option>
-						<option value="on a sunny Mediterranean beach resort with blue ocean and palm trees background">地中海海滨度假胜地 (阳光蔚蓝海景/椰林度假风)</option>
-						<option value="in a luxury bright Scandinavian minimalist interior with soft beige furniture">北欧极简极奢室内家居 (米色柔和审美)</option>
-						<option value="walking on a retro European cobblestone street with vintage boutique shops">欧洲复古鹅卵石街区 (时尚街拍 Lookbook)</option>
-						<option value="in an elegant luxury hotel lobby with marble columns and warm golden lighting">高端奢华酒店大堂 (大理石柱/温暖金光)</option>
-						<option value="in a lush botanical greenhouse garden with tropical flowers and soft sunlight">植物园玻璃温室花园 (热带花卉/漫射阳光)</option>
-						<option value="in a clean professional commercial photo studio with neutral backdrop">商业摄影棚纯色背景 (电商高清主图)</option>
-					</select>
-				</div>
-
-				<!-- 相机机身 -->
-				<div class="form-group">
-					<label for="cameraSelect">相机机身/设备</label>
-					<select id="cameraSelect">
-						<option value="shot on iPhone 15 Pro Max, authentic mobile photography aesthetic">iPhone 15 Pro Max (原图直出/小红书真实生活感)</option>
-						<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D (顶级中画幅画质)</option>
-						<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩与胶片感)</option>
-						<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐商业画质)</option>
-						<option value="shot on 35mm film camera">35mm 复古胶片相机 (自然复古颗粒感)</option>
-					</select>
-				</div>
-
-				<!-- 镜头与焦段 -->
-				<div class="form-group">
-					<label for="lensSelect">镜头焦段</label>
-					<select id="lensSelect">
-						<option value="85mm f/1.2 prime lens, creamy bokeh depth of field">85mm f/1.2 (经典人像大光圈虚化)</option>
-						<option value="50mm f/1.4 prime lens, natural eye-level perspective">50mm f/1.4 (标准人眼视角 Lookbook)</option>
-						<option value="35mm lens, candid street style framing">35mm (法式环境街拍视角)</option>
-						<option value="24mm wide angle lens, dynamic full-body perspective">24mm 广角 (拉长腿部线条/大空间感)</option>
-						<option value="full-body lookbook framing, fashion editorial angle">全身姿态 Lookbook 时尚大片构图</option>
-					</select>
-				</div>
-
-				<!-- 光线打光设计 -->
-				<div class="form-group">
-					<label for="lightingSelect">光线风格</label>
-					<select id="lightingSelect">
-						<option value="soft natural sunlight filtering through leaves and windows">自然漫射阳光 (Soft Natural Sunlight)</option>
-						<option value="golden hour warm sunset backlighting with subtle lens flare">黄金小时逆光夕阳 (Golden Hour Glow)</option>
-						<option value="overcast soft ambient light, clean natural skin tones">阴天漫射柔光 (Overcast Light / 通透肤色)</option>
-						<option value="dramatic rim lighting with strong edge highlights">高光轮廓光 (Dramatic Rim Lighting / 轮廓剪影)</option>
-						<option value="sunlight filtering through window shutter creating dappled shadows">百叶窗斑驳光影 (Shutter Dappled Light)</option>
-						<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (商业极简/突出面料)</option>
-					</select>
-				</div>
-
-				<!-- 画幅比例 -->
-				<div class="form-group">
-					<label for="arSelect">画面宽高比 (--ar)</label>
-					<select id="arSelect">
-						<option value="--ar 3:4">--ar 3:4 (淘宝/天猫/Shopify 服装主图与详情页)</option>
-						<option value="--ar 4:5">--ar 4:5 (Instagram / 小红书 / TikTok 种草图)</option>
-						<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏海报)</option>
-						<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
-					</select>
-				</div>
+			<!-- 女装品类与版型 -->
+			<div class="form-group full-width" id="outfitGroup">
+				<label for="outfitInput">
+					<span>女装主服饰、材质与细节</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="outfitStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="outfitInput" placeholder="例如：香槟色桑蚕丝吊带连衣裙复古印花、廓形小香风粗花呢外套搭配高腰阔腿裤..." />
 			</div>
 
-			<!-- 实时生成预览 -->
-			<div class="output-card">
-				<div class="output-header">
-					<span class="output-title">✨ 生成的英文女装商拍 Prompt (可直接用于 豆包 / Flux / Midjourney / SD)</span>
-					<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
-				</div>
-				<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+			<!-- 鞋靴与穿搭配饰 -->
+			<div class="form-group full-width" id="accessoryGroup">
+				<label for="accessoryInput">
+					<span>鞋靴与穿搭配饰</span>
+					<span class="sub-tag">可选：高跟鞋、手提包、珍珠项链、墨镜、草帽等</span>
+					<span id="accessoryStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="accessoryInput" placeholder="例如：黑色尖头细高跟鞋、复古珍珠耳环搭配菱格皮质手提包..." />
 			</div>
-		</main>
 
-		<div id="toast" class="toast">提示词已成功复制到剪贴板！</div>
+			<!-- 女装生活拍摄场景（包含自定义背景） -->
+			<div class="form-group full-width">
+				<label for="sceneSelect">拍摄与生活场景</label>
+				<select id="sceneSelect">
+					<option value="preserve original background environment and scene lighting exactly as is">🔒 默认原图背景</option>
+					<option value="custom">✍️ 自定义背景 (Custom Environment)</option>
+					<option value="at a sunlit outdoor Parisian sidewalk cafe with marble table and bistro chairs">巴黎露天街角咖啡馆 (大理石台面/法式休闲)</option>
+					<option value="on a sunny Mediterranean beach resort with blue ocean and palm trees background">地中海海滨度假胜地 (阳光蔚蓝海景/椰林度假风)</option>
+					<option value="in a luxury bright Scandinavian minimalist interior with soft beige furniture">北欧极简极奢室内家居 (米色柔和审美)</option>
+					<option value="walking on a retro European cobblestone street with vintage boutique shops">欧洲复古鹅卵石街区 (时尚街拍 Lookbook)</option>
+					<option value="in an elegant luxury hotel lobby with marble columns and warm golden lighting">高端奢华酒店大堂 (大理石柱/温暖金光)</option>
+					<option value="in a lush botanical greenhouse garden with tropical flowers and soft sunlight">植物园玻璃温室花园 (热带花卉/漫射阳光)</option>
+					<option value="in a clean professional commercial photo studio with neutral backdrop">商业摄影棚纯色背景 (电商高清主图)</option>
+				</select>
+			</div>
 
-		<Footer lang="zh" />
+			<!-- 自定义背景输入框（默认隐藏，选中“自定义背景”时展开） -->
+			<div class="form-group full-width" id="customSceneGroup" style="display: none;">
+				<label for="customSceneInput">
+					<span>自定义背景描述</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="customSceneStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="customSceneInput" placeholder="例如：法式优雅庄园草坪、莫奈花园水池边、落日余晖海边沙滩..." />
+			</div>
 
-		<script is:inline>
-			let currentMode = 'outfit'; // 默认模式：女装换装
+			<!-- 相机与光线 -->
+			<div class="form-group">
+				<label for="cameraSelect">相机设备</label>
+				<select id="cameraSelect">
+					<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐画质)</option>
+					<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩)</option>
+					<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad (顶级中画幅)</option>
+					<option value="shot on iPhone 15 Pro Max">iPhone 15 Pro Max (真实生活感)</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="lightingSelect">光线风格</label>
+				<select id="lightingSelect">
+					<option value="soft natural sunlight filtering through leaves and windows">自然漫射阳光 (Soft Natural Sunlight)</option>
+					<option value="golden hour warm sunset backlighting">黄金小时逆光夕阳 (Golden Hour Glow)</option>
+					<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (突出面料质感)</option>
+					<option value="dramatic rim lighting with strong edge highlights">高光轮廓光 (Dramatic Rim Light)</option>
+				</select>
+			</div>
+
+			<!-- 画幅比例 -->
+			<div class="form-group full-width">
+				<label for="arSelect">画面宽高比 (--ar)</label>
+				<select id="arSelect">
+					<option value="--ar 3:4">--ar 3:4 (服装电商主图与详情页)</option>
+					<option value="--ar 4:5">--ar 4:5 (Instagram / 小红书 / TikTok)</option>
+					<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏海报)</option>
+					<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
+				</select>
+			</div>
+		</div>
+
+		<!-- 实时生成预览卡片 -->
+		<div class="output-card">
+			<div class="output-header">
+				<span class="output-title">✨ 生成的英文女装商拍 Prompt</span>
+				<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+			</div>
+			<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+		</div>
+	</div>
+
+	<!-- FAQ 模块区 -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ 常见问题 (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端逻辑脚本 (添加 DOMContentLoaded 生命周期防护) -->
+	<script slot="scripts">
+		function initTool() {
+			let currentMode = 'outfit';
 
 			const tabBtns = document.querySelectorAll('.tab-btn');
 			const outfitInput = document.getElementById('outfitInput');
@@ -353,23 +365,27 @@ const pageDescription = "专为女装电商卖家设计的 AI 商拍工具！涵
 			const accessoryInput = document.getElementById('accessoryInput');
 			const accessoryStatus = document.getElementById('accessoryStatus');
 
+			const sceneSelect = document.getElementById('sceneSelect');
+			const customSceneGroup = document.getElementById('customSceneGroup');
+			const customSceneInput = document.getElementById('customSceneInput');
+			const customSceneStatus = document.getElementById('customSceneStatus');
+
 			const modelSelect = document.getElementById('modelSelect');
 			const angleSelect = document.getElementById('angleSelect');
-			const sceneSelect = document.getElementById('sceneSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
-			const lensSelect = document.getElementById('lensSelect');
 			const lightingSelect = document.getElementById('lightingSelect');
 			const arSelect = document.getElementById('arSelect');
 
 			const promptOutput = document.getElementById('promptOutput');
 			const btnCopy = document.getElementById('btnCopy');
-			const toast = document.getElementById('toast');
 
 			let translatedOutfit = 'champagne silk slip dress with vintage floral pattern';
 			let translatedAccessory = '';
+			let translatedCustomScene = '';
 
 			let outfitTimer = null;
 			let accessoryTimer = null;
+			let customSceneTimer = null;
 
 			function containsChinese(text) {
 				return /[\u4e00-\u9fa5]/.test(text);
@@ -387,157 +403,196 @@ const pageDescription = "专为女装电商卖家设计的 AI 商拍工具！涵
 				}
 			}
 
+			function getSceneValue() {
+				if (sceneSelect?.value === 'custom') {
+					return translatedCustomScene ? `in ${translatedCustomScene}` : 'in an elegant luxury setting';
+				}
+				return sceneSelect?.value || '';
+			}
+
 			function buildPrompt() {
+				if (!promptOutput) return;
+
 				const outfit = translatedOutfit || 'champagne silk slip dress';
 				const accessoryStr = translatedAccessory ? `styled with ${translatedAccessory}` : '';
+				const sceneVal = getSceneValue();
 
 				let modePrefix = '';
 				let components = [];
 
 				if (currentMode === 'outfit') {
-					// 场景一：换装模式 (双图参考逻辑，结合姿态角度控制)
 					modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
 					components = [
-						`Commercial womenswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
-						`replacing current outfit with ${outfit}`,
+						`Commercial womenswear photography, precisely transplanting garment design from Reference Image onto Target Model`,
+						`replacing outfit with ${outfit}`,
 						accessoryStr,
-						`worn by ${modelSelect.value}`,
-						angleSelect.value,
-						sceneSelect.value,
-						cameraSelect.value,
-						lensSelect.value,
-						lightingSelect.value,
+						`worn by ${modelSelect?.value || ''}`,
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
 						'ultra-detailed fabric texture, realistic garment drapes, 8k resolution, raw photo',
-						arSelect.value
+						arSelect?.value || ''
 					];
 				} else if (currentMode === 'scene') {
-					// 场景二：换背景模式 (固定模特+服装)
 					modePrefix = '[Background Swap Focus]';
 					components = [
 						`Commercial womenswear photography, placing model wearing ${outfit}`,
 						accessoryStr,
-						angleSelect.value,
-						`into new setting: ${sceneSelect.value}`,
-						cameraSelect.value,
-						lensSelect.value,
-						lightingSelect.value,
-						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
-						arSelect.value
+						angleSelect?.value || '',
+						`into setting: ${sceneVal}`,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'realistic light integration, shallow depth of field, 8k resolution, raw photo',
+						arSelect?.value || ''
 					];
 				} else if (currentMode === 'head') {
-					// 场景三：换模特/换头模式 (支持保持背景原貌不变)
 					modePrefix = '[Model / Head Swap Focus]';
 					components = [
-						`Commercial womenswear photography, replacing model face and body with ${modelSelect.value}`,
+						`Commercial womenswear photography, replacing model face with ${modelSelect?.value || ''}`,
 						`wearing ${outfit}`,
 						accessoryStr,
-						angleSelect.value,
-						sceneSelect.value,
-						cameraSelect.value,
-						lensSelect.value,
-						lightingSelect.value,
-						'natural skin texture, seamless face swap, preserve garment integrity, 8k resolution, raw photo',
-						arSelect.value
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'natural skin texture, seamless face swap, 8k resolution, raw photo',
+						arSelect?.value || ''
 					];
 				} else {
-					// 场景四：全定制商拍模式
 					modePrefix = '[Full Custom Shoot]';
 					components = [
-						`Commercial womenswear photography shot featuring ${modelSelect.value}`,
+						`Commercial womenswear photography featuring ${modelSelect?.value || ''}`,
 						`wearing ${outfit}`,
 						accessoryStr,
-						angleSelect.value,
-						sceneSelect.value,
-						cameraSelect.value,
-						lensSelect.value,
-						lightingSelect.value,
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
 						'ultra-detailed fabric texture, 8k resolution, raw photo',
-						arSelect.value
+						arSelect?.value || ''
 					];
 				}
 
 				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
 			}
 
-			// Tab 按钮切换事件
+			// Tab 按钮切换
 			tabBtns.forEach(btn => {
 				btn.addEventListener('click', () => {
 					tabBtns.forEach(b => b.classList.remove('active'));
 					btn.classList.add('active');
-					currentMode = btn.dataset.mode;
+					currentMode = btn.getAttribute('data-mode') || 'outfit';
 					buildPrompt();
 				});
 			});
 
-			// 监听主服装输入框防抖翻译
+			// 背景下拉框切换监听（支持自定义背景展开）
+			sceneSelect?.addEventListener('change', () => {
+				if (sceneSelect.value === 'custom') {
+					if (customSceneGroup) customSceneGroup.style.display = 'flex';
+				} else {
+					if (customSceneGroup) customSceneGroup.style.display = 'none';
+				}
+				buildPrompt();
+			});
+
+			// 防抖翻译：主服装
 			outfitInput?.addEventListener('input', () => {
 				clearTimeout(outfitTimer);
-				const rawValue = outfitInput.value.trim();
-
-				if (!rawValue) {
+				const raw = outfitInput.value.trim();
+				if (!raw) {
 					translatedOutfit = '';
-					outfitStatus.textContent = '';
+					if (outfitStatus) outfitStatus.textContent = '';
 					buildPrompt();
 					return;
 				}
-
-				if (!containsChinese(rawValue)) {
-					translatedOutfit = rawValue;
-					outfitStatus.textContent = '';
+				if (!containsChinese(raw)) {
+					translatedOutfit = raw;
+					if (outfitStatus) outfitStatus.textContent = '';
 					buildPrompt();
 					return;
 				}
-
-				outfitStatus.textContent = '翻译中...';
+				if (outfitStatus) outfitStatus.textContent = '翻译中...';
 				outfitTimer = setTimeout(async () => {
-					translatedOutfit = await translateText(rawValue);
-					outfitStatus.textContent = '✓ 已转英文';
+					translatedOutfit = await translateText(raw);
+					if (outfitStatus) outfitStatus.textContent = '✓ 已转英文';
 					buildPrompt();
 				}, 500);
 			});
 
-			// 监听穿搭配饰输入框防抖翻译
+			// 防抖翻译：穿搭配饰
 			accessoryInput?.addEventListener('input', () => {
 				clearTimeout(accessoryTimer);
-				const rawValue = accessoryInput.value.trim();
-
-				if (!rawValue) {
+				const raw = accessoryInput.value.trim();
+				if (!raw) {
 					translatedAccessory = '';
-					accessoryStatus.textContent = '';
+					if (accessoryStatus) accessoryStatus.textContent = '';
 					buildPrompt();
 					return;
 				}
-
-				if (!containsChinese(rawValue)) {
-					translatedAccessory = rawValue;
-					accessoryStatus.textContent = '';
+				if (!containsChinese(raw)) {
+					translatedAccessory = raw;
+					if (accessoryStatus) accessoryStatus.textContent = '';
 					buildPrompt();
 					return;
 				}
-
-				accessoryStatus.textContent = '翻译中...';
+				if (accessoryStatus) accessoryStatus.textContent = '翻译中...';
 				accessoryTimer = setTimeout(async () => {
-					translatedAccessory = await translateText(rawValue);
-					accessoryStatus.textContent = '✓ 已转英文';
+					translatedAccessory = await translateText(raw);
+					if (accessoryStatus) accessoryStatus.textContent = '✓ 已转英文';
 					buildPrompt();
 				}, 500);
 			});
 
-			// 下拉框监听
-			[modelSelect, angleSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+			// 防抖翻译：自定义背景
+			customSceneInput?.addEventListener('input', () => {
+				clearTimeout(customSceneTimer);
+				const raw = customSceneInput.value.trim();
+				if (!raw) {
+					translatedCustomScene = '';
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedCustomScene = raw;
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (customSceneStatus) customSceneStatus.textContent = '翻译中...';
+				customSceneTimer = setTimeout(async () => {
+					translatedCustomScene = await translateText(raw);
+					if (customSceneStatus) customSceneStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 下拉框改变监听
+			[modelSelect, angleSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
 			buildPrompt();
 
-			// 一键复制
+			// 复制功能
 			btnCopy?.addEventListener('click', () => {
-				if (!promptOutput.value) return;
+				if (!promptOutput || !promptOutput.value) return;
 				navigator.clipboard.writeText(promptOutput.value).then(() => {
-					toast.classList.add('show');
-					setTimeout(() => toast.classList.remove('show'), 2000);
+					if (btnCopy) {
+						const originalText = btnCopy.textContent;
+						btnCopy.textContent = 'Copied!';
+						setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+					}
 				});
 			});
-		</script>
-	</body>
-</html>
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
+	</script>
+</ToolLayout>
