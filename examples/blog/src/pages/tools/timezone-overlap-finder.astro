@@ -1,0 +1,457 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Global Timezone Overlap Finder & Meeting Scheduler",
+	description: "Find overlap working hours across remote teams in PST, EST, UTC, CET, JST, and worldwide. 100% free and client-side.",
+	icon: "🌐",
+	tag: "Remote Work",
+	keywords: "timezone overlap finder remote work meeting scheduler time zone converter global overlap calculator",
+	pinned: false,
+	priority: 95
+};
+
+const faqList = [
+	{
+		question: "How does the Timezone Overlap Finder calculate working hours?",
+		answer: "It converts a 24-hour day across selected global time zones relative to local time, highlighting overlapping blocks where all locations fall within reasonable working hours (e.g., 9:00 AM – 6:00 PM)."
+	},
+	{
+		question: "Does this tool support Daylight Saving Time (DST) changes?",
+		answer: "Yes! All calculations use native browser Intl API time zone database rules, ensuring 100% accurate DST shifts and offset adjustments dynamically."
+	},
+	{
+		question: "Is any company meeting data or local time preference uploaded to a server?",
+		answer: "No, 100% private. All conversions execute locally inside your web browser. No locations or schedule settings leave your device."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.tool-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			margin-bottom: 2rem;
+		}
+
+		.control-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		select, input[type="time"] {
+			width: 100%;
+			padding: 0.7em 0.9em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s;
+		}
+
+		select:focus, input[type="time"]:focus {
+			border-color: var(--accent);
+		}
+
+		.zone-selector-list {
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.zone-row-item {
+			display: flex;
+			align-items: center;
+			gap: 0.8rem;
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			padding: 0.8rem 1rem;
+			border-radius: 10px;
+		}
+
+		.zone-row-item select {
+			flex: 1;
+		}
+
+		.btn-del-zone {
+			background: rgba(239, 68, 68, 0.15);
+			color: #ef4444;
+			border: none;
+			padding: 0.6em 0.9em;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: 700;
+		}
+
+		.btn-add-zone {
+			background: var(--gray-light);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-weight: 600;
+			cursor: pointer;
+			font-size: 0.88rem;
+			transition: all 0.2s;
+		}
+
+		.btn-add-zone:hover {
+			border-color: var(--accent);
+			color: var(--accent);
+		}
+
+		/* Matrix Overlap Visualizer */
+		.matrix-wrapper {
+			margin-top: 2rem;
+			overflow-x: auto;
+		}
+
+		.matrix-table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 650px;
+		}
+
+		.matrix-table th, .matrix-table td {
+			padding: 0.6em 0.4em;
+			text-align: center;
+			font-size: 0.8rem;
+			border: 1px solid var(--card-border);
+		}
+
+		.matrix-table th {
+			background: var(--code-bg);
+			color: var(--text-main);
+			font-weight: 700;
+		}
+
+		.cell-hour {
+			border-radius: 4px;
+			font-weight: 600;
+		}
+
+		/* Hour Status Colors */
+		.cell-work {
+			background: rgba(34, 197, 94, 0.2);
+			color: #16a34a;
+		}
+
+		.cell-overlap {
+			background: var(--accent) !important;
+			color: #ffffff !important;
+			font-weight: 800;
+		}
+
+		.cell-sleep {
+			background: transparent;
+			color: var(--text-muted);
+			opacity: 0.5;
+		}
+
+		.summary-badge {
+			background: rgba(99, 102, 241, 0.12);
+			border: 1px solid var(--accent);
+			color: var(--accent);
+			padding: 1rem;
+			border-radius: 12px;
+			margin-top: 1.5rem;
+			font-size: 0.95rem;
+			font-weight: 700;
+			text-align: center;
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-card">
+		<div class="control-grid">
+			<div class="form-group">
+				<label for="workStart">Workday Start Hour</label>
+				<select id="workStart">
+					<option value="8">08:00 AM</option>
+					<option value="9" selected>09:00 AM</option>
+					<option value="10">10:00 AM</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="workEnd">Workday End Hour</label>
+				<select id="workEnd">
+					<option value="17">05:00 PM (17:00)</option>
+					<option value="18" selected>06:00 PM (18:00)</option>
+					<option value="19">07:00 PM (19:00)</option>
+					<option value="20">08:00 PM (20:00)</option>
+				</select>
+			</div>
+		</div>
+
+		<label style="margin-bottom: 0.6rem; display: block;">Selected Timezones:</label>
+		<div class="zone-selector-list" id="zoneList"></div>
+		
+		<button class="btn-add-zone" id="btnAddZone">+ Add Location / Timezone</button>
+
+		<div class="summary-badge" id="summaryBox">
+			Calculating optimal team overlap windows...
+		</div>
+
+		<!-- 24-Hour Comparison Grid -->
+		<div class="matrix-wrapper">
+			<table class="matrix-table" id="matrixTable">
+				<thead>
+					<tr id="matrixHeader"></tr>
+				</thead>
+				<tbody id="matrixBody"></tbody>
+			</table>
+		</div>
+	</div>
+
+	<!-- FAQ 面板区 -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端脚本插槽 -->
+	<script slot="scripts">
+		function initTool() {
+			const timezonesList = [
+				{ name: "US Pacific (PST/PDT - San Francisco/LA)", tz: "America/Los_Angeles" },
+				{ name: "US Eastern (EST/EDT - New York)", tz: "America/New_York" },
+				{ name: "UTC / GMT (London)", tz: "Europe/London" },
+				{ name: "Central Europe (CET/CEST - Berlin/Paris)", tz: "Europe/Berlin" },
+				{ name: "Japan Standard Time (JST - Tokyo)", tz: "Asia/Tokyo" },
+				{ name: "Singapore / China (SGT/CST)", tz: "Asia/Singapore" },
+				{ name: "Australia Eastern (AEST - Sydney)", tz: "Australia/Sydney" },
+				{ name: "India Standard Time (IST - Bangalore)", tz: "Asia/Kolkata" }
+			];
+
+			let selectedZones = [
+				"America/Los_Angeles",
+				"America/New_York",
+				"Europe/London"
+			];
+
+			const zoneListContainer = document.getElementById('zoneList');
+			const btnAddZone = document.getElementById('btnAddZone');
+			const workStartSelect = document.getElementById('workStart');
+			const workEndSelect = document.getElementById('workEnd');
+			const matrixHeader = document.getElementById('matrixHeader');
+			const matrixBody = document.getElementById('matrixBody');
+			const summaryBox = document.getElementById('summaryBox');
+
+			function renderZoneSelectors() {
+				if (!zoneListContainer) return;
+				zoneListContainer.innerHTML = '';
+
+				selectedZones.forEach((tz, index) => {
+					const div = document.createElement('div');
+					div.className = 'zone-row-item';
+
+					let optionsHtml = timezonesList.map(item => 
+						`<option value="${item.tz}" ${item.tz === tz ? 'selected' : ''}>${item.name}</option>`
+					).join('');
+
+					div.innerHTML = `
+						<select data-index="${index}">${optionsHtml}</select>
+						${selectedZones.length > 2 ? `<button class="btn-del-zone" data-index="${index}">×</button>` : ''}
+					`;
+					zoneListContainer.appendChild(div);
+				});
+
+				bindZoneEvents();
+				calculateOverlap();
+			}
+
+			function bindZoneEvents() {
+				zoneListContainer?.querySelectorAll('select').forEach(select => {
+					select.addEventListener('change', (e) => {
+						const idx = parseInt(e.target.getAttribute('data-index') || '0');
+						selectedZones[idx] = e.target.value;
+						calculateOverlap();
+					});
+				});
+
+				zoneListContainer?.querySelectorAll('.btn-del-zone').forEach(btn => {
+					btn.addEventListener('click', (e) => {
+						const idx = parseInt(e.target.getAttribute('data-index') || '0');
+						selectedZones.splice(idx, 1);
+						renderZoneSelectors();
+					});
+				});
+			}
+
+			btnAddZone?.addEventListener('click', () => {
+				if (selectedZones.length >= 6) {
+					alert('Maximum 6 time zones supported at once.');
+					return;
+				}
+				selectedZones.push('Asia/Tokyo');
+				renderZoneSelectors();
+			});
+
+			workStartSelect?.addEventListener('change', calculateOverlap);
+			workEndSelect?.addEventListener('change', calculateOverlap);
+
+			function calculateOverlap() {
+				if (!matrixHeader || !matrixBody || !summaryBox) return;
+
+				const startWork = parseInt(workStartSelect?.value || '9');
+				const endWork = parseInt(workEndSelect?.value || '18');
+
+				matrixHeader.innerHTML = '<th>Base Hour (UTC)</th>';
+				selectedZones.forEach(tz => {
+					const label = timezonesList.find(item => item.tz === tz)?.name.split('(')[0] || tz;
+					matrixHeader.innerHTML += `<th>${label}</th>`;
+				});
+
+				matrixBody.innerHTML = '';
+
+				let overlapHoursCount = 0;
+				let overlapHoursList = [];
+
+				const baseDate = new Date();
+				baseDate.setUTCHours(0, 0, 0, 0);
+
+				for (let h = 0; h < 24; h++) {
+					const tr = document.createElement('tr');
+					const utcHourStr = `${h.toString().padStart(2, '0')}:00 UTC`;
+					tr.innerHTML = `<td><strong>${utcHourStr}</strong></td>`;
+
+					let isOverlapHour = true;
+
+					selectedZones.forEach(tz => {
+						const currentDate = new Date(baseDate.getTime() + h * 3600000);
+						const localHourStr = new Intl.DateTimeFormat('en-US', {
+							timeZone: tz,
+							hour: 'numeric',
+							hour12: false
+						}).format(currentDate);
+
+						const localHour = parseInt(localHourStr);
+						const isWorking = localHour >= startWork && localHour < endWork;
+
+						if (!isWorking) {
+							isOverlapHour = false;
+						}
+
+						const displayTime = new Intl.DateTimeFormat('en-US', {
+							timeZone: tz,
+							hour: 'numeric',
+							minute: '2-digit',
+							hour12: true
+						}).format(currentDate);
+
+						tr.innerHTML += `<td class="cell-hour ${isWorking ? 'cell-work' : 'cell-sleep'}" data-tz="${tz}" data-hour="${h}">${displayTime}</td>`;
+					});
+
+					if (isOverlapHour) {
+						overlapHoursCount++;
+						overlapHoursList.push(`${h.toString().padStart(2, '0')}:00 UTC`);
+						tr.querySelectorAll('td').forEach((td, idx) => {
+							if (idx > 0) td.classList.add('cell-overlap');
+						});
+					}
+
+					matrixBody.appendChild(tr);
+				}
+
+				if (overlapHoursCount > 0) {
+					summaryBox.style.borderColor = 'var(--accent)';
+					summaryBox.style.color = 'var(--accent)';
+					summaryBox.textContent = `🎯 Found ${overlapHoursCount} overlapping hour(s) for all selected team zones!`;
+				} else {
+					summaryBox.style.borderColor = '#ef4444';
+					summaryBox.style.color = '#ef4444';
+					summaryBox.textContent = `⚠️ No direct overlap found within ${startWork}:00 - ${endWork}:00 for all regions. Consider adjusting shift hours.`;
+				}
+			}
+
+			renderZoneSelectors();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
+	</script>
+</ToolLayout>
