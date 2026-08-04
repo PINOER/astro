@@ -1,322 +1,339 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
-    title: "JSON & YAML Converter",
-    description: "100% client-side JSON and YAML converter and syntax validator.",
-    icon: "🔄",
-    tag: "Developer",
-    keywords: "json yaml converter parser validator developer tools",
-    pinned: false,
-    priority: 86
+	title: "JSON & YAML Converter",
+	description: "100% client-side JSON and YAML converter and syntax validator.",
+	icon: "🔄",
+	tag: "Developer",
+	keywords: "json yaml converter parser validator developer tools",
+	pinned: false,
+	priority: 86
 };
 
-const title = 'JSON & YAML Converter - HelpMini';
-const description = '100% client-side JSON and YAML converter and syntax validator.';
+const faqList = [
+	{
+		question: "What is the key difference between JSON and YAML?",
+		answer: "JSON (JavaScript Object Notation) uses explicit brackets, braces, and commas for strict data structure definition, making it ideal for web APIs. YAML (YAML Ain't Markup Language) uses indentation and line breaks, offering superior human readability for configuration files (e.g., Docker, Kubernetes, GitHub Actions)."
+	},
+	{
+		question: "Will comments in my YAML file be preserved when converting to JSON?",
+		answer: "No. The JSON specification does not natively support comments. When converting YAML to JSON, all YAML comments (#) are stripped out during parsing."
+	},
+	{
+		question: "Is my JSON or YAML file processed on a remote server?",
+		answer: "No, 100% private. All conversions and syntax validations are executed locally in your browser using the js-yaml JavaScript library. No confidential configurations leave your device."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-		<style>
-			main {
-				width: 1000px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 2.5em 1em 4em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.5rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 0.95rem;
-			}
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入外部 js-yaml 库与 Schema.org FAQ 结构化数据 -->
+	<script slot="head" src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" is:inline></script>
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			.status-bar {
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				padding: 0.8rem 1.2rem;
-				margin-bottom: 1.2rem;
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				font-size: 0.88rem;
-			}
-			.status-success { color: #10b981; font-weight: 600; }
-			.status-error { color: #ef4444; font-weight: 600; }
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.status-bar {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 0.8rem 1.2rem;
+			margin-bottom: 1.2rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.88rem;
+		}
+		.status-success { color: #10b981; font-weight: 600; }
+		.status-error { color: #ef4444; font-weight: 600; }
 
+		.editor-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1.2rem;
+			margin-bottom: 1.5rem;
+		}
+		@media (max-width: 768px) {
 			.editor-grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 1.2rem;
-				margin-bottom: 1.5rem;
+				grid-template-columns: 1fr;
 			}
-			@media (max-width: 768px) {
-				.editor-grid {
-					grid-template-columns: 1fr;
-				}
-			}
+		}
 
-			.editor-box {
-				display: flex;
-				flex-direction: column;
-				gap: 0.6rem;
-			}
-			.editor-top {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-			}
-			.editor-title {
-				font-size: 0.9rem;
-				font-weight: 700;
-				color: var(--text-main);
-			}
-			.btn-text {
-				background: none;
-				border: none;
-				color: var(--accent);
-				font-size: 0.82rem;
-				cursor: pointer;
-				font-weight: 600;
-			}
-			.btn-text:hover {
-				text-decoration: underline;
-			}
+		.editor-box {
+			display: flex;
+			flex-direction: column;
+			gap: 0.6rem;
+		}
+		.editor-top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+		.editor-title {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+		.btn-text {
+			background: none;
+			border: none;
+			color: var(--accent);
+			font-size: 0.82rem;
+			cursor: pointer;
+			font-weight: 600;
+		}
+		.btn-text:hover {
+			text-decoration: underline;
+		}
 
-			textarea {
-				width: 100%;
-				height: 400px;
-				padding: 1rem;
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 12px;
-				color: var(--text-main);
-				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-				font-size: 0.88rem;
-				line-height: 1.6;
-				resize: vertical;
-				outline: none;
-				box-sizing: border-box;
-				transition: border-color 0.2s ease;
-			}
-			textarea:focus {
-				border-color: var(--accent);
-			}
+		textarea {
+			width: 100%;
+			height: 400px;
+			padding: 1rem;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.88rem;
+			line-height: 1.6;
+			resize: vertical;
+			outline: none;
+			box-sizing: border-box;
+			transition: border-color 0.2s ease;
+		}
+		textarea:focus {
+			border-color: var(--accent);
+		}
 
-			.action-bar {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 1rem;
-				flex-wrap: wrap;
-			}
-			.btn-group {
-				display: flex;
-				gap: 0.8rem;
-			}
-			.btn {
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-size: 0.88rem;
-				font-weight: 600;
-				cursor: pointer;
-				border: 1px solid var(--card-border);
-				transition: all 0.2s ease;
-			}
-			.btn-primary {
-				background: var(--accent);
-				color: #ffffff;
-				border-color: var(--accent);
-			}
-			.btn-primary:hover {
-				opacity: 0.9;
-				transform: translateY(-1px);
-			}
-			.btn-secondary {
-				background: var(--gray-light);
-				color: var(--text-main);
-			}
-			.btn-secondary:hover {
-				border-color: var(--accent);
-			}
+		.action-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+		.btn-group {
+			display: flex;
+			gap: 0.8rem;
+		}
+		.btn {
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 600;
+			cursor: pointer;
+			border: 1px solid var(--card-border);
+			transition: all 0.2s ease;
+		}
+		.btn-primary {
+			background: var(--accent);
+			color: #ffffff !important;
+			border-color: var(--accent);
+		}
+		.btn-primary:hover {
+			opacity: 0.9;
+			transform: translateY(-1px);
+		}
+		.btn-secondary {
+			background: var(--gray-light);
+			color: var(--text-main);
+		}
+		.btn-secondary:hover {
+			border-color: var(--accent);
+		}
 
-			.toast {
-				position: fixed;
-				bottom: 2rem;
-				right: 2rem;
-				background: var(--accent);
-				color: #fff;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-size: 0.88rem;
-				font-weight: 600;
-				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-				opacity: 0;
-				transform: translateY(10px);
-				transition: all 0.3s ease;
-				pointer-events: none;
-				z-index: 100;
-			}
-			.toast.show {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>🔄 JSON & YAML Converter</h1>
-				<p>100% client-side real-time conversion and syntax validation between JSON and YAML formats.</p>
-			</div>
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
 
-			<div class="status-bar">
-				<span id="statusText" class="status-success">✓ Ready (Type anything to convert instantly)</span>
-				<span id="modeText" style="color: var(--text-muted); font-size: 0.82rem;">Mode: JSON ➔ YAML</span>
-			</div>
+	<!-- 工具主体转换卡片 -->
+	<div class="tool-box">
+		<div class="status-bar">
+			<span id="statusText" class="status-success">✓ Ready (Type anything to convert instantly)</span>
+			<span id="modeText" style="color: var(--text-muted); font-size: 0.82rem;">Mode: JSON ➔ YAML</span>
+		</div>
 
-			<div class="editor-grid">
-				<div class="editor-box">
-					<div class="editor-top">
-						<span class="editor-title" id="leftTitle">JSON Input</span>
-						<button id="btnClearLeft" class="btn-text">Clear</button>
-					</div>
-					<textarea id="leftInput" placeholder="Enter JSON or YAML here..."></textarea>
+		<div class="editor-grid">
+			<div class="editor-box">
+				<div class="editor-top">
+					<span class="editor-title" id="leftTitle">JSON Input</span>
+					<button id="btnClearLeft" class="btn-text">Clear</button>
 				</div>
-
-				<div class="editor-box">
-					<div class="editor-top">
-						<span class="editor-title" id="rightTitle">YAML Output</span>
-						<button id="btnCopyRight" class="btn-text">📋 Copy Result</button>
-					</div>
-					<textarea id="rightOutput" placeholder="Converted result will appear here..." readonly></textarea>
-				</div>
+				<textarea id="leftInput" placeholder="Enter JSON or YAML here..."></textarea>
 			</div>
 
-			<div class="action-bar">
-				<div class="btn-group">
-					<button id="btnSample" class="btn btn-secondary">Load Sample</button>
-					<button id="btnSwap" class="btn btn-secondary">🔄 Swap Direction</button>
+			<div class="editor-box">
+				<div class="editor-top">
+					<span class="editor-title" id="rightTitle">YAML Output</span>
+					<button id="btnCopyRight" class="btn-text">📋 Copy Result</button>
 				</div>
+				<textarea id="rightOutput" placeholder="Converted result will appear here..." readonly></textarea>
 			</div>
-		</main>
+		</div>
 
-		<div id="toast" class="toast">Result copied to clipboard!</div>
+		<div class="action-bar">
+			<div class="btn-group">
+				<button id="btnSample" class="btn btn-secondary">Load Sample</button>
+				<button id="btnSwap" class="btn btn-secondary">🔄 Swap Direction</button>
+			</div>
+		</div>
+	</div>
 
-		<Footer />
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
 
-		<script is:inline>
-			const leftInput = document.getElementById('leftInput');
-			const rightOutput = document.getElementById('rightOutput');
-			const leftTitle = document.getElementById('leftTitle');
-			const rightTitle = document.getElementById('rightTitle');
-			const statusText = document.getElementById('statusText');
-			const modeText = document.getElementById('modeText');
-			const btnClearLeft = document.getElementById('btnClearLeft');
-			const btnCopyRight = document.getElementById('btnCopyRight');
-			const btnSwap = document.getElementById('btnSwap');
-			const btnSample = document.getElementById('btnSample');
-			const toast = document.getElementById('toast');
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		const leftInput = document.getElementById('leftInput');
+		const rightOutput = document.getElementById('rightOutput');
+		const leftTitle = document.getElementById('leftTitle');
+		const rightTitle = document.getElementById('rightTitle');
+		const statusText = document.getElementById('statusText');
+		const modeText = document.getElementById('modeText');
+		const btnClearLeft = document.getElementById('btnClearLeft');
+		const btnCopyRight = document.getElementById('btnCopyRight');
+		const btnSwap = document.getElementById('btnSwap');
+		const btnSample = document.getElementById('btnSample');
 
-			let direction = 'json-to-yaml';
+		let direction = 'json-to-yaml';
 
-			function convert() {
-				const val = leftInput.value.trim();
-				if (!val) {
-					rightOutput.value = '';
+		function convert() {
+			const val = leftInput.value.trim();
+			if (!val) {
+				rightOutput.value = '';
+				statusText.className = 'status-success';
+				statusText.textContent = '✓ Ready';
+				return;
+			}
+
+			try {
+				if (direction === 'json-to-yaml') {
+					const jsonObj = JSON.parse(val);
+					const yamlStr = window.jsyaml.dump(jsonObj, { indent: 2 });
+					rightOutput.value = yamlStr;
 					statusText.className = 'status-success';
-					statusText.textContent = '✓ Ready';
-					return;
+					statusText.textContent = '✓ JSON parsed and converted to YAML successfully';
+				} else {
+					const jsonObj = window.jsyaml.load(val);
+					const jsonStr = JSON.stringify(jsonObj, null, 2);
+					rightOutput.value = jsonStr;
+					statusText.className = 'status-success';
+					statusText.textContent = '✓ YAML parsed and converted to JSON successfully';
 				}
-
-				try {
-					if (direction === 'json-to-yaml') {
-						const jsonObj = JSON.parse(val);
-						const yamlStr = window.jsyaml.dump(jsonObj, { indent: 2 });
-						rightOutput.value = yamlStr;
-						statusText.className = 'status-success';
-						statusText.textContent = '✓ JSON parsed and converted to YAML successfully';
-					} else {
-						const jsonObj = window.jsyaml.load(val);
-						const jsonStr = JSON.stringify(jsonObj, null, 2);
-						rightOutput.value = jsonStr;
-						statusText.className = 'status-success';
-						statusText.textContent = '✓ YAML parsed and converted to JSON successfully';
-					}
-				} catch (err) {
-					statusText.className = 'status-error';
-					statusText.textContent = `❌ Syntax Error: ${err.message}`;
-				}
+			} catch (err) {
+				statusText.className = 'status-error';
+				statusText.textContent = `❌ Syntax Error: ${err.message}`;
 			}
+		}
 
-			leftInput?.addEventListener('input', convert);
+		leftInput?.addEventListener('input', convert);
 
-			btnSwap?.addEventListener('click', () => {
-				direction = direction === 'json-to-yaml' ? 'yaml-to-json' : 'json-to-yaml';
-				if (direction === 'json-to-yaml') {
-					leftTitle.textContent = 'JSON Input';
-					rightTitle.textContent = 'YAML Output';
-					modeText.textContent = 'Mode: JSON ➔ YAML';
-				} else {
-					leftTitle.textContent = 'YAML Input';
-					rightTitle.textContent = 'JSON Output';
-					modeText.textContent = 'Mode: YAML ➔ JSON';
-				}
-				const temp = leftInput.value;
-				leftInput.value = rightOutput.value;
-				rightOutput.value = temp;
-				convert();
+		btnSwap?.addEventListener('click', () => {
+			direction = direction === 'json-to-yaml' ? 'yaml-to-json' : 'json-to-yaml';
+			if (direction === 'json-to-yaml') {
+				leftTitle.textContent = 'JSON Input';
+				rightTitle.textContent = 'YAML Output';
+				modeText.textContent = 'Mode: JSON ➔ YAML';
+			} else {
+				leftTitle.textContent = 'YAML Input';
+				rightTitle.textContent = 'JSON Output';
+				modeText.textContent = 'Mode: YAML ➔ JSON';
+			}
+			const temp = leftInput.value;
+			leftInput.value = rightOutput.value;
+			rightOutput.value = temp;
+			convert();
+		});
+
+		btnClearLeft?.addEventListener('click', () => {
+			leftInput.value = '';
+			convert();
+		});
+
+		btnCopyRight?.addEventListener('click', () => {
+			if (!rightOutput.value) return;
+			navigator.clipboard.writeText(rightOutput.value).then(() => {
+				const originalText = btnCopyRight.textContent;
+				btnCopyRight.textContent = 'Copied!';
+				setTimeout(() => { btnCopyRight.textContent = originalText; }, 2000);
 			});
+		});
 
-			btnClearLeft?.addEventListener('click', () => {
-				leftInput.value = '';
-				convert();
-			});
-
-			btnCopyRight?.addEventListener('click', () => {
-				if (!rightOutput.value) return;
-				navigator.clipboard.writeText(rightOutput.value).then(() => {
-					toast.classList.add('show');
-					setTimeout(() => toast.classList.remove('show'), 2000);
-				});
-			});
-
-			btnSample?.addEventListener('click', () => {
-				if (direction === 'json-to-yaml') {
-					leftInput.value = JSON.stringify({
-						site: {
-							name: "HelpMini",
-							version: "2.6.0",
-							features: ["AI Tools", "SEO Optimized", "Client-Side Privacy"],
-							config: {
-								theme: "dark",
-								maxItems: 20
-							}
+		btnSample?.addEventListener('click', () => {
+			if (direction === 'json-to-yaml') {
+				leftInput.value = JSON.stringify({
+					site: {
+						name: "HelpMini",
+						version: "2.6.0",
+						features: ["AI Tools", "SEO Optimized", "Client-Side Privacy"],
+						config: {
+							theme: "dark",
+							maxItems: 20
 						}
-					}, null, 2);
-				} else {
-					leftInput.value = `site:\n  name: HelpMini\n  version: 2.6.0\n  features:\n    - AI Tools\n    - SEO Optimized\n  config:\n    theme: dark\n    maxItems: 20`;
-				}
-				convert();
-			});
-		</script>
-	</body>
-</html>
+					}
+				}, null, 2);
+			} else {
+				leftInput.value = `site:\n  name: HelpMini\n  version: 2.6.0\n  features:\n    - AI Tools\n    - SEO Optimized\n  config:\n    theme: dark\n    maxItems: 20`;
+			}
+			convert();
+		});
+	</script>
+</ToolLayout>
