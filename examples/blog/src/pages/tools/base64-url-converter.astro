@@ -45,41 +45,74 @@ export const frontmatter = {
 		</div>
 	</div>
 
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		let currentMode = 'base64';
-		const modeBase64 = document.getElementById('modeBase64');
-		const modeURL = document.getElementById('modeURL');
-		const inputText = document.getElementById('inputText');
-		const outputText = document.getElementById('outputText');
+		function initTool() {
+			let currentMode = 'base64';
+			const modeBase64 = document.getElementById('modeBase64');
+			const modeURL = document.getElementById('modeURL');
+			const inputText = document.getElementById('inputText');
+			const outputText = document.getElementById('outputText');
 
-		modeBase64?.addEventListener('click', () => { currentMode = 'base64'; modeBase64.classList.add('active'); modeURL?.classList.remove('active'); });
-		modeURL?.addEventListener('click', () => { currentMode = 'url'; modeURL.classList.add('active'); modeBase64?.classList.remove('active'); });
+			modeBase64?.addEventListener('click', () => { 
+				currentMode = 'base64'; 
+				modeBase64.classList.add('active'); 
+				modeURL?.classList.remove('active'); 
+			});
 
-		document.getElementById('btnEncode')?.addEventListener('click', () => {
-			const val = inputText.value;
-			try {
-				if (currentMode === 'base64') {
-					outputText.value = btoa(encodeURIComponent(val).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
-				} else { outputText.value = encodeURIComponent(val); }
-			} catch (e) { outputText.value = 'Encoding error: ' + e.message; }
-		});
+			modeURL?.addEventListener('click', () => { 
+				currentMode = 'url'; 
+				modeURL.classList.add('active'); 
+				modeBase64?.classList.remove('active'); 
+			});
 
-		document.getElementById('btnDecode')?.addEventListener('click', () => {
-			const val = inputText.value;
-			try {
-				if (currentMode === 'base64') {
-					outputText.value = decodeURIComponent(Array.prototype.map.call(atob(val.trim()), (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-				} else { outputText.value = decodeURIComponent(val); }
-			} catch (e) { outputText.value = 'Decoding error: Invalid input format.'; }
-		});
+			document.getElementById('btnEncode')?.addEventListener('click', () => {
+				if (!inputText || !outputText) return;
+				const val = inputText.value;
+				try {
+					if (currentMode === 'base64') {
+						outputText.value = btoa(encodeURIComponent(val).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+					} else { 
+						outputText.value = encodeURIComponent(val); 
+					}
+				} catch (e) { 
+					outputText.value = 'Encoding error: ' + e.message; 
+				}
+			});
 
-		document.getElementById('btnClear')?.addEventListener('click', () => { inputText.value = ''; outputText.value = ''; });
-		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-			if (!outputText.value) return;
-			navigator.clipboard.writeText(outputText.value);
-			const btn = e.target;
-			btn.textContent = 'Copied!';
-			setTimeout(() => { btn.textContent = 'Copy Result'; }, 2000);
-		});
+			document.getElementById('btnDecode')?.addEventListener('click', () => {
+				if (!inputText || !outputText) return;
+				const val = inputText.value;
+				try {
+					if (currentMode === 'base64') {
+						outputText.value = decodeURIComponent(Array.prototype.map.call(atob(val.trim()), (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+					} else { 
+						outputText.value = decodeURIComponent(val); 
+					}
+				} catch (e) { 
+					outputText.value = 'Decoding error: Invalid input format.'; 
+				}
+			});
+
+			document.getElementById('btnClear')?.addEventListener('click', () => { 
+				if (inputText) inputText.value = ''; 
+				if (outputText) outputText.value = ''; 
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!outputText || !outputText.value) return;
+				navigator.clipboard.writeText(outputText.value);
+				const btn = e.target;
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = originalText; }, 2000);
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
