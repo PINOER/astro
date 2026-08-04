@@ -245,74 +245,82 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		let calcMode: 'add' | 'remove' = 'add';
+		function initTool() {
+			let calcMode = 'add';
 
-		const modeAdd = document.getElementById('modeAdd');
-		const modeRemove = document.getElementById('modeRemove');
-		const amountLabel = document.getElementById('amountLabel');
-		const amountInput = document.getElementById('amountInput') as HTMLInputElement;
-		const taxRate = document.getElementById('taxRate') as HTMLInputElement;
+			const modeAdd = document.getElementById('modeAdd');
+			const modeRemove = document.getElementById('modeRemove');
+			const amountLabel = document.getElementById('amountLabel');
+			const amountInput = document.getElementById('amountInput');
+			const taxRate = document.getElementById('taxRate');
 
-		const presetBtns = document.querySelectorAll('.preset-btn');
-		const resNet = document.getElementById('resNet');
-		const resTax = document.getElementById('resTax');
-		const resGross = document.getElementById('resGross');
+			const presetBtns = document.querySelectorAll('.preset-btn');
+			const resNet = document.getElementById('resNet');
+			const resTax = document.getElementById('resTax');
+			const resGross = document.getElementById('resGross');
 
-		modeAdd?.addEventListener('click', () => {
-			calcMode = 'add';
-			modeAdd.classList.add('active');
-			modeRemove?.classList.remove('active');
-			if (amountLabel) amountLabel.textContent = 'Net Amount ($ / £ / €)';
-			calculate();
-		});
+			function calculate() {
+				const val = parseFloat(amountInput?.value) || 0;
+				const rate = (parseFloat(taxRate?.value) || 0) / 100;
 
-		modeRemove?.addEventListener('click', () => {
-			calcMode = 'remove';
-			modeRemove.classList.add('active');
-			modeAdd?.classList.remove('active');
-			if (amountLabel) amountLabel.textContent = 'Gross Amount ($ / £ / €)';
-			calculate();
-		});
+				let net = 0;
+				let tax = 0;
+				let gross = 0;
 
-		presetBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				presetBtns.forEach(b => b.classList.remove('active'));
-				btn.classList.add('active');
+				if (calcMode === 'add') {
+					net = val;
+					tax = net * rate;
+					gross = net + tax;
+				} else {
+					gross = val;
+					net = gross / (1 + rate);
+					tax = gross - net;
+				}
 
-				const rate = (btn as HTMLElement).dataset.rate || '20';
-				if (taxRate) taxRate.value = rate;
-				calculate();
-			});
-		});
-
-		amountInput?.addEventListener('input', calculate);
-		taxRate?.addEventListener('input', calculate);
-
-		function calculate() {
-			const val = parseFloat(amountInput?.value) || 0;
-			const rate = (parseFloat(taxRate?.value) || 0) / 100;
-
-			let net = 0;
-			let tax = 0;
-			let gross = 0;
-
-			if (calcMode === 'add') {
-				net = val;
-				tax = net * rate;
-				gross = net + tax;
-			} else {
-				gross = val;
-				net = gross / (1 + rate);
-				tax = gross - net;
+				if (resNet) resNet.textContent = `$${net.toFixed(2)}`;
+				if (resTax) resTax.textContent = `${calcMode === 'add' ? '+' : ''}$${tax.toFixed(2)}`;
+				if (resGross) resGross.textContent = `$${gross.toFixed(2)}`;
 			}
 
-			if (resNet) resNet.textContent = `$${net.toFixed(2)}`;
-			if (resTax) resTax.textContent = `${calcMode === 'add' ? '+' : ''}$${tax.toFixed(2)}`;
-			if (resGross) resGross.textContent = `$${gross.toFixed(2)}`;
+			modeAdd?.addEventListener('click', () => {
+				calcMode = 'add';
+				modeAdd.classList.add('active');
+				modeRemove?.classList.remove('active');
+				if (amountLabel) amountLabel.textContent = 'Net Amount ($ / £ / €)';
+				calculate();
+			});
+
+			modeRemove?.addEventListener('click', () => {
+				calcMode = 'remove';
+				modeRemove.classList.add('active');
+				modeAdd?.classList.remove('active');
+				if (amountLabel) amountLabel.textContent = 'Gross Amount ($ / £ / €)';
+				calculate();
+			});
+
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					presetBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+
+					const rate = btn.dataset.rate || '20';
+					if (taxRate) taxRate.value = rate;
+					calculate();
+				});
+			});
+
+			amountInput?.addEventListener('input', calculate);
+			taxRate?.addEventListener('input', calculate);
+
+			calculate();
 		}
 
-		calculate();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
