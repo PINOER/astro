@@ -21,7 +21,7 @@ export const sponsorItems: Record<string, SponsorItem[]> = {
       tag: "AD",
       keywords: "Google Search",
       pinned: false,
-      priority: 0
+      priority: 10
     }
   ],
   en: [
@@ -34,7 +34,7 @@ export const sponsorItems: Record<string, SponsorItem[]> = {
       tag: "Sponsored",
       keywords: "Google Search",
       pinned: false,
-      priority: 0
+      priority: 10
     }
   ]
 };
