@@ -204,25 +204,26 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const generateBtn = document.getElementById('generateBtn');
-		const copyBtn = document.getElementById('copyBtn');
-		const rawPrompt = document.getElementById('rawPrompt') as HTMLTextAreaElement;
-		const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
-		const resultArea = document.getElementById('resultArea') as HTMLDivElement;
-		const outputPrompt = document.getElementById('outputPrompt') as HTMLPreElement;
+		function initTool() {
+			const generateBtn = document.getElementById('generateBtn');
+			const copyBtn = document.getElementById('copyBtn');
+			const rawPrompt = document.getElementById('rawPrompt');
+			const roleSelect = document.getElementById('roleSelect');
+			const resultArea = document.getElementById('resultArea');
+			const outputPrompt = document.getElementById('outputPrompt');
 
-		generateBtn?.addEventListener('click', () => {
-			const input = rawPrompt.value.trim();
-			if (!input) {
-				alert('Please enter a basic prompt idea first!');
-				return;
-			}
+			generateBtn?.addEventListener('click', () => {
+				const input = rawPrompt?.value?.trim() || '';
+				if (!input) {
+					alert('Please enter a basic prompt idea first!');
+					return;
+				}
 
-			const role = roleSelect.value;
+				const role = roleSelect?.value || 'Expert';
 
-			const structuredPrompt = `# ROLE
+				const structuredPrompt = `# ROLE
 Act as a ${role}. You have extensive experience and deep expertise in this domain.
 
 # CONTEXT
@@ -247,18 +248,25 @@ Structure your output logically with:
 
 Please confirm you understand these instructions and proceed with the response.`;
 
-			if (outputPrompt) outputPrompt.textContent = structuredPrompt;
-			if (resultArea) resultArea.style.display = 'block';
-		});
+				if (outputPrompt) outputPrompt.textContent = structuredPrompt;
+				if (resultArea) resultArea.style.display = 'block';
+			});
 
-		copyBtn?.addEventListener('click', () => {
-			if (!outputPrompt) return;
-			navigator.clipboard.writeText(outputPrompt.textContent || '');
-			const originalText = copyBtn.textContent;
-			copyBtn.textContent = '✅ Copied!';
-			setTimeout(() => {
-				copyBtn.textContent = originalText;
-			}, 2000);
-		});
+			copyBtn?.addEventListener('click', () => {
+				if (!outputPrompt) return;
+				navigator.clipboard.writeText(outputPrompt.textContent || '');
+				const originalText = copyBtn.textContent;
+				copyBtn.textContent = '✅ Copied!';
+				setTimeout(() => {
+					copyBtn.textContent = originalText;
+				}, 2000);
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
