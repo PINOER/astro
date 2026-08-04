@@ -1,9 +1,10 @@
 ---
 // src/components/RelatedTools.astro
+import { sponsorItems } from '../data/tools';
 
 interface Props {
 	currentPath: string; // 用于过滤当前工具自身
-	tag: string;         // 当前工具的分类标签 (如 "Developer", "E-commerce")
+	tag: string;         // 当前工具的分类标签 (如 "Developer", "E-commerce", "AI Tools")
 	lang?: 'en' | 'zh';  // 当前语言维度
 	limit?: number;      // 展示数量 (默认 2 个)
 }
@@ -18,13 +19,11 @@ if (lang === 'zh') {
 	toolModules = import.meta.glob('../pages/tools/*.astro', { eager: true });
 }
 
-// 2. 解析每个工具页面的 frontmatter 与 URL
+// 2. 解析每个本地工具页面的 frontmatter 与 URL
 const localTools = Object.entries(toolModules)
 	.map(([filePath, mod]) => {
-		// 兼容各种导出情况：mod.frontmatter 或 mod 自身
 		const fm = mod.frontmatter || mod.default?.frontmatter || {};
 		
-		// 严谨推导 URL：从 ../pages 后面开始截取
 		const pagesIndex = filePath.indexOf('/pages');
 		let url = '';
 		if (pagesIndex !== -1) {
@@ -41,34 +40,34 @@ const localTools = Object.entries(toolModules)
 			tag: fm.tag || 'General',
 			priority: fm.priority || 0,
 			isExternal: false,
+			sponsorText: ''
 		};
 	})
-	.filter(t => t.title !== ''); // 过滤掉没有标题的文件
+	.filter(t => t.title !== '');
 
-// 3. 第三方付费广告/加盟推广工具池
-const sponsorTools = [
-	{
-		url: 'https://shopify.pxf.io/your-affiliate-link',
-		title: lang === 'zh' ? 'Shopify 独立站建站 (首月 $1)' : 'Shopify: Build Your Online Store',
-		description: lang === 'zh' ? '全球主流独立站平台，限时体验首月仅 $1。' : 'Start your e-commerce business for $1/month.',
-		icon: '🛍️',
-		tag: 'E-commerce',
-		priority: 999,
-		isExternal: true,
-		sponsorText: lang === 'zh' ? '赞助推荐' : 'Partner'
-	}
-];
+// 3. 规范化加载 src/data/tools.ts 里的第三方/赞助推广数据
+const rawSponsors = sponsorItems[lang] || sponsorItems['en'] || [];
+const sponsorTools = rawSponsors.map(item => ({
+	url: item.url,
+	title: item.title,
+	description: item.desc,
+	icon: item.icon || '💎',
+	tag: item.tag || (lang === 'zh' ? '赞助推广' : 'Sponsored'),
+	priority: item.priority ?? 999,
+	isExternal: true,
+	sponsorText: lang === 'zh' ? '赞助推荐' : 'Sponsored'
+}));
 
-// 4. 标准化路径对比 (统一转小写、去掉末尾斜杠)
+// 4. 标准化路径对比 (统一转小写、去掉首尾斜杠)
 const cleanPath = (p: string) => p.toLowerCase().replace(/\/+$|^\/+/g, '');
 const normalizedCurrent = cleanPath(currentPath);
 
 const candidateTools = localTools.filter(t => cleanPath(t.url) !== normalizedCurrent);
 
-// 5. 查找是否有匹配当前 Tag 的第三方赞助工具
-const matchedSponsor = sponsorTools.find(s => s.tag.toLowerCase() === tag.toLowerCase());
+// 5. 寻找匹配的赞助项：优先标签匹配，若无标签完全匹配则默认显示全局第一个赞助广告
+const matchedSponsor = sponsorTools.find(s => s.tag.toLowerCase() === tag.toLowerCase()) || sponsorTools[0];
 
-// 6. 算法排序：同 Tag 优先 (+1000 分) > 按 priority 降序
+// 6. 本地工具算法排序：同 Tag 优先 (+1000 分) > 按 priority 降序
 const sortedLocalTools = candidateTools.sort((a, b) => {
 	const aMatch = a.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
 	const bMatch = b.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
@@ -77,7 +76,7 @@ const sortedLocalTools = candidateTools.sort((a, b) => {
 	return bScore - aScore;
 });
 
-// 7. 组合最终展示列表
+// 7. 组合最终展示列表 (含 1 个赞助项 + N-1 个相关本地工具)
 let finalRecommendations = [];
 if (matchedSponsor) {
 	finalRecommendations = [matchedSponsor, ...sortedLocalTools.slice(0, limit - 1)];
