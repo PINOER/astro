@@ -208,98 +208,106 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const numInput = document.getElementById('numInput') as HTMLInputElement;
-		const wordsOutput = document.getElementById('wordsOutput') as HTMLTextAreaElement;
-		const fmtRadios = document.querySelectorAll('input[name="fmtType"]');
+		function initTool() {
+			const numInput = document.getElementById('numInput');
+			const wordsOutput = document.getElementById('wordsOutput');
+			const fmtRadios = document.querySelectorAll('input[name="fmtType"]');
 
-		const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-		const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+			const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+			const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
-		function convertChunk(num: number): string {
-			let str = '';
-			if (num >= 100) {
-				str += units[Math.floor(num / 100)] + ' Hundred ';
-				num %= 100;
+			function convertChunk(num) {
+				let str = '';
+				if (num >= 100) {
+					str += units[Math.floor(num / 100)] + ' Hundred ';
+					num %= 100;
+				}
+				if (num >= 20) {
+					str += tens[Math.floor(num / 10)] + (num % 10 > 0 ? ' ' + units[num % 10] : '');
+				} else if (num > 0) {
+					str += units[num];
+				}
+				return str.trim();
 			}
-			if (num >= 20) {
-				str += tens[Math.floor(num / 10)] + (num % 10 > 0 ? ' ' + units[num % 10] : '');
-			} else if (num > 0) {
-				str += units[num];
+
+			function numberToWords(num) {
+				if (num === 0) return 'Zero';
+				let integerPart = Math.floor(Math.abs(num));
+				let result = '';
+
+				const thousands = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
+				let i = 0;
+
+				while (integerPart > 0) {
+					let chunk = integerPart % 1000;
+					if (chunk > 0) {
+						let chunkText = convertChunk(chunk);
+						result = chunkText + (thousands[i] ? ' ' + thousands[i] : '') + (result ? ' ' + result : '');
+					}
+					integerPart = Math.floor(integerPart / 1000);
+					i++;
+				}
+
+				return result.trim();
 			}
-			return str.trim();
+
+			function updateConversion() {
+				const val = parseFloat(numInput?.value);
+				if (isNaN(val)) {
+					if (wordsOutput) wordsOutput.value = '';
+					return;
+				}
+
+				const isCurrency = document.querySelector('input[name="fmtType"]:checked')?.value === 'currency';
+
+				const absVal = Math.abs(val);
+				const dollars = Math.floor(absVal);
+				const cents = Math.round((absVal - dollars) * 100);
+
+				const dollarsText = numberToWords(dollars);
+
+				if (isCurrency) {
+					let finalStr = `${dollarsText} ${dollars === 1 ? 'Dollar' : 'Dollars'}`;
+					if (cents > 0) {
+						const centsText = numberToWords(cents);
+						finalStr += ` and ${centsText} ${cents === 1 ? 'Cent' : 'Cents'}`;
+					}
+					if (wordsOutput) wordsOutput.value = finalStr;
+				} else {
+					let finalStr = dollarsText;
+					if (cents > 0) {
+						finalStr += ` Point ${numberToWords(cents)}`;
+					}
+					if (wordsOutput) wordsOutput.value = finalStr;
+				}
+			}
+
+			numInput?.addEventListener('input', updateConversion);
+			fmtRadios.forEach(radio => radio.addEventListener('change', updateConversion));
+
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				if (numInput) numInput.value = '';
+				if (wordsOutput) wordsOutput.value = '';
+			});
+
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!wordsOutput || !wordsOutput.value) return;
+				navigator.clipboard.writeText(wordsOutput.value);
+				const btn = e.target;
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = originalText; }, 2000);
+			});
+
+			updateConversion();
 		}
 
-		function numberToWords(num: number): string {
-			if (num === 0) return 'Zero';
-			let integerPart = Math.floor(Math.abs(num));
-			let result = '';
-
-			const thousands = ['', 'Thousand', 'Million', 'Billion', 'Trillion'];
-			let i = 0;
-
-			while (integerPart > 0) {
-				let chunk = integerPart % 1000;
-				if (chunk > 0) {
-					let chunkText = convertChunk(chunk);
-					result = chunkText + (thousands[i] ? ' ' + thousands[i] : '') + (result ? ' ' + result : '');
-				}
-				integerPart = Math.floor(integerPart / 1000);
-				i++;
-			}
-
-			return result.trim();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
 		}
-
-		function updateConversion() {
-			const val = parseFloat(numInput.value);
-			if (isNaN(val)) {
-				wordsOutput.value = '';
-				return;
-			}
-
-			const isCurrency = (document.querySelector('input[name="fmtType"]:checked') as HTMLInputElement)?.value === 'currency';
-
-			const absVal = Math.abs(val);
-			const dollars = Math.floor(absVal);
-			const cents = Math.round((absVal - dollars) * 100);
-
-			const dollarsText = numberToWords(dollars);
-
-			if (isCurrency) {
-				let finalStr = `${dollarsText} ${dollars === 1 ? 'Dollar' : 'Dollars'}`;
-				if (cents > 0) {
-					const centsText = numberToWords(cents);
-					finalStr += ` and ${centsText} ${cents === 1 ? 'Cent' : 'Cents'}`;
-				}
-				wordsOutput.value = finalStr;
-			} else {
-				let finalStr = dollarsText;
-				if (cents > 0) {
-					finalStr += ` Point ${numberToWords(cents)}`;
-				}
-				wordsOutput.value = finalStr;
-			}
-		}
-
-		numInput?.addEventListener('input', updateConversion);
-		fmtRadios.forEach(radio => radio.addEventListener('change', updateConversion));
-
-		document.getElementById('btnClear')?.addEventListener('click', () => {
-			numInput.value = '';
-			wordsOutput.value = '';
-		});
-
-		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-			if (!wordsOutput.value) return;
-			navigator.clipboard.writeText(wordsOutput.value);
-			const btn = e.target as HTMLButtonElement;
-			const originalText = btn.textContent;
-			btn.textContent = 'Copied!';
-			setTimeout(() => { btn.textContent = originalText; }, 2000);
-		});
-
-		updateConversion();
 	</script>
 </ToolLayout>
