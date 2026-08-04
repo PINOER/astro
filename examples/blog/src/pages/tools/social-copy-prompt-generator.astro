@@ -258,38 +258,39 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const platformSelect = document.getElementById('platformSelect') as HTMLSelectElement;
-		const toneSelect = document.getElementById('toneSelect') as HTMLSelectElement;
-		const productInput = document.getElementById('productInput') as HTMLInputElement;
-		const audienceInput = document.getElementById('audienceInput') as HTMLInputElement;
-		const ctaSelect = document.getElementById('ctaSelect') as HTMLSelectElement;
+		function initTool() {
+			const platformSelect = document.getElementById('platformSelect');
+			const toneSelect = document.getElementById('toneSelect');
+			const productInput = document.getElementById('productInput');
+			const audienceInput = document.getElementById('audienceInput');
+			const ctaSelect = document.getElementById('ctaSelect');
 
-		const promptOutput = document.getElementById('promptOutput') as HTMLTextAreaElement;
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const platform = platformSelect?.value || 'TikTok';
-			const tone = toneSelect?.value || 'Enthusiastic & Viral';
-			const product = productInput?.value.trim() || 'Wireless Noise-Canceling Headphones with 40-hour battery life';
-			const audience = audienceInput?.value.trim() || 'Tech enthusiasts and daily commuters';
-			const cta = ctaSelect?.value || 'Click the link in Bio to shop now';
+			function buildPrompt() {
+				const platform = platformSelect?.value || 'TikTok';
+				const tone = toneSelect?.value || 'Enthusiastic & Viral';
+				const product = productInput?.value?.trim() || 'Wireless Noise-Canceling Headphones with 40-hour battery life';
+				const audience = audienceInput?.value?.trim() || 'Tech enthusiasts and daily commuters';
+				const cta = ctaSelect?.value || 'Click the link in Bio to shop now';
 
-			let platformSpec = '';
-			if (platform === 'TikTok') {
-				platformSpec = 'Format for TikTok. Must start with a 3-second scroll-stopping HOOK. Use trendy Gen-Z/viral social language, well-placed Emojis, line breaks for fast reading, and include 3-5 trending relevant hashtags.';
-			} else if (platform === 'Instagram') {
-				platformSpec = 'Format for Instagram Caption. Focus on aesthetic storytelling, line breaks for clean structure, engaging Emojis, a clear Call-to-Action to check link in bio, and a block of 8-10 targeted hashtags at the end.';
-			} else if (platform === 'Facebook') {
-				platformSpec = 'Format for Facebook Ad / Post. Focus on story-driven copywriting addressing customer pain points, building social proof, clear feature bullets, and a strong CTA link prompt.';
-			} else if (platform === 'Xiaohongshu') {
-				platformSpec = 'Format for Xiaohongshu (RED / 小红书). High emoji density, highly engaging personal experience tone, eye-catching Title with brackets [ ], pain-point analysis, and natural lifestyle recommendations.';
-			} else {
-				platformSpec = 'Format for Email Marketing. Provide 3 catchy, high-CTR Subject Line options, followed by a punchy email body with a clear CTA button callout.';
-			}
+				let platformSpec = '';
+				if (platform === 'TikTok') {
+					platformSpec = 'Format for TikTok. Must start with a 3-second scroll-stopping HOOK. Use trendy Gen-Z/viral social language, well-placed Emojis, line breaks for fast reading, and include 3-5 trending relevant hashtags.';
+				} else if (platform === 'Instagram') {
+					platformSpec = 'Format for Instagram Caption. Focus on aesthetic storytelling, line breaks for clean structure, engaging Emojis, a clear Call-to-Action to check link in bio, and a block of 8-10 targeted hashtags at the end.';
+				} else if (platform === 'Facebook') {
+					platformSpec = 'Format for Facebook Ad / Post. Focus on story-driven copywriting addressing customer pain points, building social proof, clear feature bullets, and a strong CTA link prompt.';
+				} else if (platform === 'Xiaohongshu') {
+					platformSpec = 'Format for Xiaohongshu (RED / 小红书). High emoji density, highly engaging personal experience tone, eye-catching Title with brackets [ ], pain-point analysis, and natural lifestyle recommendations.';
+				} else {
+					platformSpec = 'Format for Email Marketing. Provide 3 catchy, high-CTR Subject Line options, followed by a punchy email body with a clear CTA button callout.';
+				}
 
-			const prompt = `Act as an expert senior eCommerce Copywriter and Social Media Specialist.
+				const prompt = `Act as an expert senior eCommerce Copywriter and Social Media Specialist.
 
 Write a high-converting copy for ${platform}.
 
@@ -303,23 +304,32 @@ ${platformSpec}
 
 Please output 2 distinct creative variations so I can A/B test them. Keep the language natural, engaging, and persuasive!`;
 
-			if (promptOutput) promptOutput.value = prompt;
+				if (promptOutput) {
+					promptOutput.value = prompt;
+				}
+			}
+
+			[platformSelect, toneSelect, productInput, audienceInput, ctaSelect].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		[platformSelect, toneSelect, productInput, audienceInput, ctaSelect].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput || !promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
