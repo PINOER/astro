@@ -333,116 +333,124 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		let currentMode = 'outfit';
+		function initTool() {
+			let currentMode = 'outfit';
 
-		const tabBtns = document.querySelectorAll('.tab-btn');
-		const outfitInput = document.getElementById('outfitInput') as HTMLInputElement;
-		const accessoryInput = document.getElementById('accessoryInput') as HTMLInputElement;
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const outfitInput = document.getElementById('outfitInput');
+			const accessoryInput = document.getElementById('accessoryInput');
 
-		const modelSelect = document.getElementById('modelSelect') as HTMLSelectElement;
-		const sceneSelect = document.getElementById('sceneSelect') as HTMLSelectElement;
-		const cameraSelect = document.getElementById('cameraSelect') as HTMLSelectElement;
-		const lensSelect = document.getElementById('lensSelect') as HTMLSelectElement;
-		const lightingSelect = document.getElementById('lightingSelect') as HTMLSelectElement;
-		const arSelect = document.getElementById('arSelect') as HTMLSelectElement;
+			const modelSelect = document.getElementById('modelSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
 
-		const promptOutput = document.getElementById('promptOutput') as HTMLTextAreaElement;
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const outfit = outfitInput?.value.trim() || 'champagne silk slip dress with vintage floral pattern';
-			const accessoryVal = accessoryInput?.value.trim() || '';
-			const accessoryStr = accessoryVal ? `styled with ${accessoryVal}` : '';
+			function buildPrompt() {
+				const outfit = outfitInput?.value?.trim() || 'champagne silk slip dress with vintage floral pattern';
+				const accessoryVal = accessoryInput?.value?.trim() || '';
+				const accessoryStr = accessoryVal ? `styled with ${accessoryVal}` : '';
 
-			let modePrefix = '';
-			let components: string[] = [];
+				let modePrefix = '';
+				let components = [];
 
-			if (currentMode === 'outfit') {
-				modePrefix = '[Inpainting / Outfit Swap Focus]';
-				components = [
-					`Commercial womenswear photography, replacing outfit with ${outfit}`,
-					accessoryStr,
-					`worn by ${modelSelect?.value || ''}`,
-					sceneSelect?.value || '',
-					cameraSelect?.value || '',
-					lensSelect?.value || '',
-					lightingSelect?.value || '',
-					'ultra-detailed fabric texture, realistic garment drapes, 8k resolution, raw photo',
-					arSelect?.value || ''
-				];
-			} else if (currentMode === 'scene') {
-				modePrefix = '[Background Swap Focus]';
-				components = [
-					`Commercial womenswear photography, placing model wearing ${outfit}`,
-					accessoryStr,
-					`into new setting: ${sceneSelect?.value || ''}`,
-					cameraSelect?.value || '',
-					lensSelect?.value || '',
-					lightingSelect?.value || '',
-					'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
-					arSelect?.value || ''
-				];
-			} else if (currentMode === 'head') {
-				modePrefix = '[Model / Head Swap Focus]';
-				components = [
-					`Commercial womenswear photography, replacing model face and body with ${modelSelect?.value || ''}`,
-					`wearing ${outfit}`,
-					accessoryStr,
-					sceneSelect?.value || '',
-					cameraSelect?.value || '',
-					lensSelect?.value || '',
-					lightingSelect?.value || '',
-					'natural skin texture, seamless head swap, 8k resolution, raw photo',
-					arSelect?.value || ''
-				];
-			} else {
-				modePrefix = '[Full Custom Shoot]';
-				components = [
-					`Commercial womenswear photography shot featuring ${modelSelect?.value || ''}`,
-					`wearing ${outfit}`,
-					accessoryStr,
-					sceneSelect?.value || '',
-					cameraSelect?.value || '',
-					lensSelect?.value || '',
-					lightingSelect?.value || '',
-					'ultra-detailed fabric texture, 8k resolution, raw photo',
-					arSelect?.value || ''
-				];
+				if (currentMode === 'outfit') {
+					modePrefix = '[Inpainting / Outfit Swap Focus]';
+					components = [
+						`Commercial womenswear photography, replacing outfit with ${outfit}`,
+						accessoryStr,
+						`worn by ${modelSelect?.value || ''}`,
+						sceneSelect?.value || '',
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'ultra-detailed fabric texture, realistic garment drapes, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'scene') {
+					modePrefix = '[Background Swap Focus]';
+					components = [
+						`Commercial womenswear photography, placing model wearing ${outfit}`,
+						accessoryStr,
+						`into new setting: ${sceneSelect?.value || ''}`,
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'head') {
+					modePrefix = '[Model / Head Swap Focus]';
+					components = [
+						`Commercial womenswear photography, replacing model face and body with ${modelSelect?.value || ''}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect?.value || '',
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'natural skin texture, seamless head swap, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else {
+					modePrefix = '[Full Custom Shoot]';
+					components = [
+						`Commercial womenswear photography shot featuring ${modelSelect?.value || ''}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect?.value || '',
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'ultra-detailed fabric texture, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				}
+
+				if (promptOutput) {
+					promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+				}
 			}
 
-			if (promptOutput) {
-				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
-			}
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.dataset.mode || 'outfit';
+					buildPrompt();
+				});
+			});
+
+			[outfitInput, accessoryInput].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+			});
+
+			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		tabBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				tabBtns.forEach(b => b.classList.remove('active'));
-				btn.classList.add('active');
-				currentMode = (btn as HTMLElement).dataset.mode || 'outfit';
-				buildPrompt();
-			});
-		});
-
-		[outfitInput, accessoryInput].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-		});
-
-		[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput || !promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
