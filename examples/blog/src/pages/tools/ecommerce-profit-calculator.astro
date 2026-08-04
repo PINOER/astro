@@ -194,83 +194,100 @@ export const frontmatter = {
 		</div>
 	</div>
 
-	<!-- 交互逻辑脚本自动注入到底部 -->
+	<!-- 交互逻辑脚本（添加 DOMContentLoaded 机制） -->
 	<script slot="scripts">
-		const presetSelect = document.getElementById('presetSelect');
-		const priceInput = document.getElementById('priceInput');
-		const cogsInput = document.getElementById('cogsInput');
-		const shippingInput = document.getElementById('shippingInput');
-		const gatewayRateInput = document.getElementById('gatewayRateInput');
-		const gatewayFixedInput = document.getElementById('gatewayFixedInput');
-		const miscInput = document.getElementById('miscInput');
-		const adCpaInput = document.getElementById('adCpaInput');
+		function initTool() {
+			const presetSelect = document.getElementById('presetSelect');
+			const priceInput = document.getElementById('priceInput');
+			const cogsInput = document.getElementById('cogsInput');
+			const shippingInput = document.getElementById('shippingInput');
+			const gatewayRateInput = document.getElementById('gatewayRateInput');
+			const gatewayFixedInput = document.getElementById('gatewayFixedInput');
+			const miscInput = document.getElementById('miscInput');
+			const adCpaInput = document.getElementById('adCpaInput');
 
-		const profitVal = document.getElementById('profitVal');
-		const marginVal = document.getElementById('marginVal');
-		const roasVal = document.getElementById('roasVal');
-		const cpaVal = document.getElementById('cpaVal');
+			const profitVal = document.getElementById('profitVal');
+			const marginVal = document.getElementById('marginVal');
+			const roasVal = document.getElementById('roasVal');
+			const cpaVal = document.getElementById('cpaVal');
 
-		presetSelect?.addEventListener('change', () => {
-			const val = presetSelect.value;
-			if (val === 'shopify_basic') {
-				gatewayRateInput.value = '2.9';
-				gatewayFixedInput.value = '0.30';
-			} else if (val === 'shopify_standard') {
-				gatewayRateInput.value = '2.6';
-				gatewayFixedInput.value = '0.30';
-			} else if (val === 'shopify_advanced') {
-				gatewayRateInput.value = '2.4';
-				gatewayFixedInput.value = '0.30';
-			} else if (val === 'paypal_crossborder') {
-				gatewayRateInput.value = '4.4';
-				gatewayFixedInput.value = '0.30';
-			} else if (val === 'amazon_fba') {
-				gatewayRateInput.value = '15.0';
-				gatewayFixedInput.value = '0.00';
+			presetSelect?.addEventListener('change', () => {
+				const val = presetSelect.value;
+				if (val === 'shopify_basic') {
+					if (gatewayRateInput) gatewayRateInput.value = '2.9';
+					if (gatewayFixedInput) gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_standard') {
+					if (gatewayRateInput) gatewayRateInput.value = '2.6';
+					if (gatewayFixedInput) gatewayFixedInput.value = '0.30';
+				} else if (val === 'shopify_advanced') {
+					if (gatewayRateInput) gatewayRateInput.value = '2.4';
+					if (gatewayFixedInput) gatewayFixedInput.value = '0.30';
+				} else if (val === 'paypal_crossborder') {
+					if (gatewayRateInput) gatewayRateInput.value = '4.4';
+					if (gatewayFixedInput) gatewayFixedInput.value = '0.30';
+				} else if (val === 'amazon_fba') {
+					if (gatewayRateInput) gatewayRateInput.value = '15.0';
+					if (gatewayFixedInput) gatewayFixedInput.value = '0.00';
+				}
+				calculateProfit();
+			});
+
+			function calculateProfit() {
+				const price = parseFloat(priceInput?.value) || 0;
+				const cogs = parseFloat(cogsInput?.value) || 0;
+				const shipping = parseFloat(shippingInput?.value) || 0;
+				const gatewayRate = (parseFloat(gatewayRateInput?.value) || 0) / 100;
+				const gatewayFixed = parseFloat(gatewayFixedInput?.value) || 0;
+				const miscRate = (parseFloat(miscInput?.value) || 0) / 100;
+				const adCpa = parseFloat(adCpaInput?.value) || 0;
+
+				if (price <= 0) {
+					if (profitVal) profitVal.textContent = '$0.00';
+					if (marginVal) marginVal.textContent = '0.0%';
+					if (roasVal) roasVal.textContent = '0.00';
+					if (cpaVal) cpaVal.textContent = '$0.00';
+					return;
+				}
+
+				const gatewayFee = (price * gatewayRate) + gatewayFixed;
+				const miscCost = price * miscRate;
+				const totalBaseCost = cogs + shipping + gatewayFee + miscCost;
+
+				const maxCPA = price - totalBaseCost;
+				const netProfit = maxCPA - adCpa;
+				const netMargin = (netProfit / price) * 100;
+				const breakEvenROAS = maxCPA > 0 ? (price / maxCPA) : 0;
+
+				if (profitVal) {
+					profitVal.textContent = `$${netProfit.toFixed(2)}`;
+					profitVal.className = `stat-value ${netProfit >= 0 ? 'positive' : 'negative'}`;
+				}
+
+				if (marginVal) {
+					marginVal.textContent = `${netMargin.toFixed(1)}%`;
+					marginVal.className = `stat-value ${netMargin >= 0 ? 'positive' : 'negative'}`;
+				}
+
+				if (cpaVal) {
+					cpaVal.textContent = `$${maxCPA.toFixed(2)}`;
+				}
+
+				if (roasVal) {
+					roasVal.textContent = breakEvenROAS > 0 ? breakEvenROAS.toFixed(2) : 'N/A';
+				}
 			}
+
+			[priceInput, cogsInput, shippingInput, gatewayRateInput, gatewayFixedInput, miscInput, adCpaInput].forEach(el => {
+				el?.addEventListener('input', calculateProfit);
+			});
+
 			calculateProfit();
-		});
-
-		function calculateProfit() {
-			const price = parseFloat(priceInput.value) || 0;
-			const cogs = parseFloat(cogsInput.value) || 0;
-			const shipping = parseFloat(shippingInput.value) || 0;
-			const gatewayRate = (parseFloat(gatewayRateInput.value) || 0) / 100;
-			const gatewayFixed = parseFloat(gatewayFixedInput.value) || 0;
-			const miscRate = (parseFloat(miscInput.value) || 0) / 100;
-			const adCpa = parseFloat(adCpaInput.value) || 0;
-
-			if (price <= 0) {
-				profitVal.textContent = '$0.00';
-				marginVal.textContent = '0.0%';
-				roasVal.textContent = '0.00';
-				cpaVal.textContent = '$0.00';
-				return;
-			}
-
-			const gatewayFee = (price * gatewayRate) + gatewayFixed;
-			const miscCost = price * miscRate;
-			const totalBaseCost = cogs + shipping + gatewayFee + miscCost;
-
-			const maxCPA = price - totalBaseCost;
-			const netProfit = maxCPA - adCpa;
-			const netMargin = (netProfit / price) * 100;
-			const breakEvenROAS = maxCPA > 0 ? (price / maxCPA) : 0;
-
-			profitVal.textContent = `$${netProfit.toFixed(2)}`;
-			profitVal.className = `stat-value ${netProfit >= 0 ? 'positive' : 'negative'}`;
-
-			marginVal.textContent = `${netMargin.toFixed(1)}%`;
-			marginVal.className = `stat-value ${netMargin >= 0 ? 'positive' : 'negative'}`;
-
-			cpaVal.textContent = `$${maxCPA.toFixed(2)}`;
-			roasVal.textContent = breakEvenROAS > 0 ? breakEvenROAS.toFixed(2) : 'N/A';
 		}
 
-		[priceInput, cogsInput, shippingInput, gatewayRateInput, gatewayFixedInput, miscInput, adCpaInput].forEach(el => {
-			el?.addEventListener('input', calculateProfit);
-		});
-
-		calculateProfit();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
