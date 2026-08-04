@@ -269,51 +269,59 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const billAmountIn = document.getElementById('billAmount') as HTMLInputElement;
-		const tipPercentIn = document.getElementById('tipPercent') as HTMLInputElement;
-		const numPeopleIn = document.getElementById('numPeople') as HTMLInputElement;
+		function initTool() {
+			const billAmountIn = document.getElementById('billAmount');
+			const tipPercentIn = document.getElementById('tipPercent');
+			const numPeopleIn = document.getElementById('numPeople');
 
-		const valPerPerson = document.getElementById('valPerPerson');
-		const valTipPerPerson = document.getElementById('valTipPerPerson');
-		const valTotalTip = document.getElementById('valTotalTip');
-		const valGrandTotal = document.getElementById('valGrandTotal');
-		const presetBtns = document.querySelectorAll('.preset-btn');
+			const valPerPerson = document.getElementById('valPerPerson');
+			const valTipPerPerson = document.getElementById('valTipPerPerson');
+			const valTotalTip = document.getElementById('valTotalTip');
+			const valGrandTotal = document.getElementById('valGrandTotal');
+			const presetBtns = document.querySelectorAll('.preset-btn');
 
-		function calculateTip() {
-			const bill = parseFloat(billAmountIn?.value) || 0;
-			const tipRate = (parseFloat(tipPercentIn?.value) || 0) / 100;
-			const people = Math.max(1, parseInt(numPeopleIn?.value) || 1);
+			function calculateTip() {
+				const bill = parseFloat(billAmountIn?.value) || 0;
+				const tipRate = (parseFloat(tipPercentIn?.value) || 0) / 100;
+				const people = Math.max(1, parseInt(numPeopleIn?.value) || 1);
 
-			const totalTip = bill * tipRate;
-			const grandTotal = bill + totalTip;
-			const perPersonTotal = grandTotal / people;
-			const perPersonTip = totalTip / people;
+				const totalTip = bill * tipRate;
+				const grandTotal = bill + totalTip;
+				const perPersonTotal = grandTotal / people;
+				const perPersonTip = totalTip / people;
 
-			if (valPerPerson) valPerPerson.textContent = `$${perPersonTotal.toFixed(2)}`;
-			if (valTipPerPerson) valTipPerPerson.textContent = `$${perPersonTip.toFixed(2)}`;
-			if (valTotalTip) valTotalTip.textContent = `$${totalTip.toFixed(2)}`;
-			if (valGrandTotal) valGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
+				if (valPerPerson) valPerPerson.textContent = `$${perPersonTotal.toFixed(2)}`;
+				if (valTipPerPerson) valTipPerPerson.textContent = `$${perPersonTip.toFixed(2)}`;
+				if (valTotalTip) valTotalTip.textContent = `$${totalTip.toFixed(2)}`;
+				if (valGrandTotal) valGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
+			}
+
+			[billAmountIn, tipPercentIn, numPeopleIn].forEach(input => {
+				input?.addEventListener('input', calculateTip);
+			});
+
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					presetBtns.forEach(b => b.classList.remove('active'));
+					const target = e.currentTarget;
+					target?.classList.add('active');
+					const tip = target?.getAttribute('data-tip');
+					if (tip && tipPercentIn) {
+						tipPercentIn.value = tip;
+						calculateTip();
+					}
+				});
+			});
+
+			calculateTip();
 		}
 
-		[billAmountIn, tipPercentIn, numPeopleIn].forEach(input => {
-			input?.addEventListener('input', calculateTip);
-		});
-
-		presetBtns.forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				presetBtns.forEach(b => b.classList.remove('active'));
-				const target = e.currentTarget as HTMLButtonElement;
-				target.classList.add('active');
-				const tip = target.getAttribute('data-tip');
-				if (tip && tipPercentIn) {
-					tipPercentIn.value = tip;
-					calculateTip();
-				}
-			});
-		});
-
-		calculateTip();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
