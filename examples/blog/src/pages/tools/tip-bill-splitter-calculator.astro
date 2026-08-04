@@ -1,414 +1,319 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "Tip & Bill Splitter Calculator",
 	description: "Fast, 100% private online calculator to compute restaurant tips and split bills evenly among groups.",
 	icon: "🍽️",
 	tag: "Finance",
-	keywords: "tip calculator bill splitter restaurant tip calculator split bill calculator gratuity calculator"
+	keywords: "tip calculator bill splitter restaurant tip calculator split bill calculator gratuity calculator",
+	pinned: false,
+	priority: 87
 };
 
-const pageTitle = `${frontmatter.title} — ${SITE_TITLE}`;
-const pageDescription = frontmatter.description;
+const faqList = [
+	{
+		question: "What is the standard tip rate in US restaurants?",
+		answer: "In the United States, standard tipping ranges between 15% and 20% for good service. 18% is typical for standard sit-down dining, while 20%+ is awarded for exceptional service."
+	},
+	{
+		question: "Should I calculate the tip before or after tax?",
+		answer: "By standard etiquette, tips are calculated based on the pre-tax bill subtotal. However, many people simply tip on the final total for simplicity."
+	},
+	{
+		question: "Is my financial calculation private?",
+		answer: "Yes, 100% private. All calculations run client-side inside your web browser. No bill amounts or guest counts are ever uploaded to any server."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<style>
-			main {
-				width: 900px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
-			.calc-grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 2rem;
-			}
-			.section-title {
-				font-size: 1.15rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin-bottom: 1rem;
-			}
-			.field-group {
-				display: flex;
-				flex-direction: column;
-				gap: 0.4rem;
-				margin-bottom: 1rem;
-			}
-			label {
-				font-size: 0.88rem;
-				font-weight: 600;
-				color: var(--text-main);
-			}
-			input[type="number"] {
-				width: 100%;
-				padding: 0.7em 0.9em;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 8px;
-				color: var(--text-main);
-				font-size: 0.95rem;
-				box-sizing: border-box;
-				outline: none;
-				transition: border-color 0.2s, box-shadow 0.2s;
-			}
-			input[type="number"]:focus {
-				border-color: var(--accent);
-				box-shadow: 0 0 10px var(--accent-glow);
-			}
-			.tip-presets {
-				display: flex;
-				gap: 0.5rem;
-				margin-top: 0.3rem;
-			}
-			.preset-btn {
-				flex: 1;
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-				padding: 0.5em;
-				border-radius: 6px;
-				font-size: 0.85rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.2s;
-			}
-			.preset-btn.active, .preset-btn:hover {
-				background: var(--badge-bg);
-				color: var(--accent);
-				border-color: var(--accent);
-			}
-			.metrics-grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 0.8rem;
-				margin-bottom: 1.2rem;
-			}
-			.metric-card {
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				padding: 1rem;
-				border-radius: 10px;
-				display: flex;
-				flex-direction: column;
-				gap: 0.2rem;
-			}
-			.metric-card.primary {
-				border-color: var(--accent);
-				background: var(--badge-bg);
-			}
-			.metric-label {
-				font-size: 0.78rem;
-				color: var(--text-muted);
-				font-weight: 600;
-			}
-			.metric-value {
-				font-size: 1.4rem;
-				font-weight: 800;
-				color: var(--accent);
-			}
-			.breakdown-list {
-				display: flex;
-				flex-direction: column;
-				gap: 0.6rem;
-				background: var(--code-bg);
-				padding: 1rem;
-				border-radius: 10px;
-				border: 1px solid var(--card-border);
-			}
-			.breakdown-item {
-				display: flex;
-				justify-content: space-between;
-				font-size: 0.88rem;
-				color: var(--text-muted);
-			}
-			.breakdown-item strong {
-				color: var(--text-main);
-			}
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
-			/* Content Sections */
-			.content-section {
-				margin-top: 2.5rem;
-				background: var(--bg-card);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-			}
-			.content-section h2 {
-				font-size: 1.3rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin-bottom: 1.2rem;
-			}
-			.faq-list {
-				display: flex;
-				flex-direction: column;
-				gap: 1.2rem;
-			}
-			.faq-item h3 {
-				font-size: 1rem;
-				font-weight: 700;
-				color: var(--text-main);
-				margin-bottom: 0.3rem;
-			}
-			.faq-item p {
-				font-size: 0.9rem;
-				color: var(--text-muted);
-				line-height: 1.5;
-			}
-			.related-grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 1rem;
-			}
-			.related-card {
-				display: flex;
-				align-items: center;
-				gap: 0.8rem;
-				padding: 0.9rem;
-				background: var(--code-bg);
-				border: 1px solid var(--card-border);
-				border-radius: 10px;
-				text-decoration: none !important;
-				transition: border-color 0.2s;
-			}
-			.related-card:hover {
-				border-color: var(--accent);
-			}
-			.card-icon {
-				font-size: 1.6rem;
-			}
-			.related-card h4 {
-				margin: 0 0 0.2rem 0;
-				color: var(--text-main);
-				font-size: 0.92rem;
-				font-weight: 700;
-			}
-			.related-card p {
-				margin: 0;
-				color: var(--text-muted);
-				font-size: 0.8rem;
-			}
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.calc-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+		}
+		.section-title {
+			font-size: 1.15rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1rem;
+		}
+		.field-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.4rem;
+			margin-bottom: 1rem;
+		}
+		label {
+			font-size: 0.88rem;
+			font-weight: 600;
+			color: var(--text-main);
+		}
+		input[type="number"] {
+			width: 100%;
+			padding: 0.7em 0.9em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.95rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+		input[type="number"]:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+		.tip-presets {
+			display: flex;
+			gap: 0.5rem;
+			margin-top: 0.3rem;
+		}
+		.preset-btn {
+			flex: 1;
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.5em;
+			border-radius: 6px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		.preset-btn.active, .preset-btn:hover {
+			background: var(--badge-bg);
+			color: var(--accent);
+			border-color: var(--accent);
+		}
+		.metrics-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.8rem;
+			margin-bottom: 1.2rem;
+		}
+		.metric-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			padding: 1rem;
+			border-radius: 10px;
+			display: flex;
+			flex-direction: column;
+			gap: 0.2rem;
+		}
+		.metric-card.primary {
+			border-color: var(--accent);
+			background: var(--badge-bg);
+		}
+		.metric-label {
+			font-size: 0.78rem;
+			color: var(--text-muted);
+			font-weight: 600;
+		}
+		.metric-value {
+			font-size: 1.4rem;
+			font-weight: 800;
+			color: var(--accent);
+		}
+		.breakdown-list {
+			display: flex;
+			flex-direction: column;
+			gap: 0.6rem;
+			background: var(--code-bg);
+			padding: 1rem;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+		}
+		.breakdown-item {
+			display: flex;
+			justify-content: space-between;
+			font-size: 0.88rem;
+			color: var(--text-muted);
+		}
+		.breakdown-item strong {
+			color: var(--text-main);
+		}
 
-			@media (max-width: 768px) {
-				.calc-grid, .metrics-grid, .related-grid {
-					grid-template-columns: 1fr;
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+
+		@media (max-width: 768px) {
+			.calc-grid, .metrics-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+
+	<!-- 工具主体计算卡片 -->
+	<div class="tool-box">
+		<div class="calc-grid">
+			<!-- Input Column -->
+			<div class="input-section">
+				<div class="section-title">Bill & Party Details</div>
+				
+				<div class="field-group">
+					<label for="billAmount">Total Bill Amount ($)</label>
+					<input type="number" id="billAmount" value="120.00" step="0.01" min="0" placeholder="Bill total before tip" />
+				</div>
+
+				<div class="field-group">
+					<label for="tipPercent">Tip Percentage (%)</label>
+					<input type="number" id="tipPercent" value="18" step="1" min="0" placeholder="e.g. 18%" />
+					<div class="tip-presets">
+						<button class="preset-btn" data-tip="15">15%</button>
+						<button class="preset-btn active" data-tip="18">18%</button>
+						<button class="preset-btn" data-tip="20">20%</button>
+						<button class="preset-btn" data-tip="25">25%</button>
+					</div>
+				</div>
+
+				<div class="field-group">
+					<label for="numPeople">Number of People (Split)</label>
+					<input type="number" id="numPeople" value="4" step="1" min="1" placeholder="Number of guests" />
+				</div>
+			</div>
+
+			<!-- Output Column -->
+			<div class="output-section">
+				<div class="section-title">Split Calculation</div>
+
+				<div class="metrics-grid">
+					<div class="metric-card primary">
+						<span class="metric-label">Total per Person</span>
+						<span class="metric-value" id="valPerPerson">$0.00</span>
+					</div>
+
+					<div class="metric-card">
+						<span class="metric-label">Tip per Person</span>
+						<span class="metric-value" id="valTipPerPerson">$0.00</span>
+					</div>
+				</div>
+
+				<div class="breakdown-list">
+					<div class="breakdown-item">
+						<span>Total Tip Amount</span>
+						<strong id="valTotalTip">$0.00</strong>
+					</div>
+					<div class="breakdown-item">
+						<span>Grand Total (Bill + Tip)</span>
+						<strong id="valGrandTotal">$0.00</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ 模块区 (挂载至 ToolLayout 的 faq 插槽) -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<script slot="scripts">
+		const billAmountIn = document.getElementById('billAmount') as HTMLInputElement;
+		const tipPercentIn = document.getElementById('tipPercent') as HTMLInputElement;
+		const numPeopleIn = document.getElementById('numPeople') as HTMLInputElement;
+
+		const valPerPerson = document.getElementById('valPerPerson');
+		const valTipPerPerson = document.getElementById('valTipPerPerson');
+		const valTotalTip = document.getElementById('valTotalTip');
+		const valGrandTotal = document.getElementById('valGrandTotal');
+		const presetBtns = document.querySelectorAll('.preset-btn');
+
+		function calculateTip() {
+			const bill = parseFloat(billAmountIn?.value) || 0;
+			const tipRate = (parseFloat(tipPercentIn?.value) || 0) / 100;
+			const people = Math.max(1, parseInt(numPeopleIn?.value) || 1);
+
+			const totalTip = bill * tipRate;
+			const grandTotal = bill + totalTip;
+			const perPersonTotal = grandTotal / people;
+			const perPersonTip = totalTip / people;
+
+			if (valPerPerson) valPerPerson.textContent = `$${perPersonTotal.toFixed(2)}`;
+			if (valTipPerPerson) valTipPerPerson.textContent = `$${perPersonTip.toFixed(2)}`;
+			if (valTotalTip) valTotalTip.textContent = `$${totalTip.toFixed(2)}`;
+			if (valGrandTotal) valGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
+		}
+
+		[billAmountIn, tipPercentIn, numPeopleIn].forEach(input => {
+			input?.addEventListener('input', calculateTip);
+		});
+
+		presetBtns.forEach(btn => {
+			btn.addEventListener('click', (e) => {
+				presetBtns.forEach(b => b.classList.remove('active'));
+				const target = e.currentTarget as HTMLButtonElement;
+				target.classList.add('active');
+				const tip = target.getAttribute('data-tip');
+				if (tip && tipPercentIn) {
+					tipPercentIn.value = tip;
+					calculateTip();
 				}
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>🍽️ {frontmatter.title}</h1>
-				<p>{frontmatter.description}</p>
-			</div>
-
-			<div class="tool-box">
-				<div class="calc-grid">
-					<!-- Input Column -->
-					<div class="input-section">
-						<div class="section-title">Bill & Party Details</div>
-						
-						<div class="field-group">
-							<label for="billAmount">Total Bill Amount ($)</label>
-							<input type="number" id="billAmount" value="120.00" step="0.01" min="0" placeholder="Bill total before tip" />
-						</div>
-
-						<div class="field-group">
-							<label for="tipPercent">Tip Percentage (%)</label>
-							<input type="number" id="tipPercent" value="18" step="1" min="0" placeholder="e.g. 18%" />
-							<div class="tip-presets">
-								<button class="preset-btn" data-tip="15">15%</button>
-								<button class="preset-btn active" data-tip="18">18%</button>
-								<button class="preset-btn" data-tip="20">20%</button>
-								<button class="preset-btn" data-tip="25">25%</button>
-							</div>
-						</div>
-
-						<div class="field-group">
-							<label for="numPeople">Number of People (Split)</label>
-							<input type="number" id="numPeople" value="4" step="1" min="1" placeholder="Number of guests" />
-						</div>
-					</div>
-
-					<!-- Output Column -->
-					<div class="output-section">
-						<div class="section-title">Split Calculation</div>
-
-						<div class="metrics-grid">
-							<div class="metric-card primary">
-								<span class="metric-label">Total per Person</span>
-								<span class="metric-value" id="valPerPerson">$0.00</span>
-							</div>
-
-							<div class="metric-card">
-								<span class="metric-label">Tip per Person</span>
-								<span class="metric-value" id="valTipPerPerson">$0.00</span>
-							</div>
-						</div>
-
-						<div class="breakdown-list">
-							<div class="breakdown-item">
-								<span>Total Tip Amount</span>
-								<strong id="valTotalTip">$0.00</strong>
-							</div>
-							<div class="breakdown-item">
-								<span>Grand Total (Bill + Tip)</span>
-								<strong id="valGrandTotal">$0.00</strong>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- FAQ Section -->
-			<section class="content-section">
-				<h2>Frequently Asked Questions (FAQ)</h2>
-				<div class="faq-list">
-					<div class="faq-item">
-						<h3>What is the standard tip rate in US restaurants?</h3>
-						<p>In the United States, standard tipping ranges between <strong>15% and 20%</strong> for good service. 18% is typical for standard sit-down dining, while 20%+ is awarded for exceptional service.</p>
-					</div>
-					<div class="faq-item">
-						<h3>Should I calculate the tip before or after tax?</h3>
-						<p>By standard etiquette, tips are calculated based on the <strong>pre-tax bill subtotal</strong>. However, many people simply tip on the final total for simplicity.</p>
-					</div>
-					<div class="faq-item">
-						<h3>Is my data private?</h3>
-						<p><strong>Yes.</strong> All calculations run 100% client-side inside your browser. No financial data or bill numbers are sent to any server.</p>
-					</div>
-				</div>
-			</section>
-
-			<!-- Related Tools Section -->
-			<section class="content-section">
-				<h2>You Might Also Like</h2>
-				<div class="related-grid">
-					<a href="/tools/ecommerce-profit-margin-calculator/" class="related-card">
-						<span class="card-icon">🧮</span>
-						<div>
-							<h4>E-commerce Margin Calculator</h4>
-							<p>Calculate net profit margins and breakeven sale prices.</p>
-						</div>
-					</a>
-					<a href="/tools/word-character-counter/" class="related-card">
-						<span class="card-icon">📝</span>
-						<div>
-							<h4>Word & Character Counter</h4>
-							<p>Count words, letters, paragraphs, and reading time.</p>
-						</div>
-					</a>
-				</div>
-			</section>
-		</main>
-		<Footer />
-
-		<!-- Schema.org FAQ Data -->
-		<script type="application/ld+json">
-			{
-				"@context": "https://schema.org",
-				"@type": "FAQPage",
-				"mainEntity": [
-					{
-						"@type": "Question",
-						"name": "What is the standard tip rate in US restaurants?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "In the United States, standard tipping ranges between 15% and 20% for good service."
-						}
-					},
-					{
-						"@type": "Question",
-						"name": "Should I calculate the tip before or after tax?",
-						"acceptedAnswer": {
-							"@type": "Answer",
-							"text": "By standard etiquette, tips are calculated based on the pre-tax bill subtotal."
-						}
-					}
-				]
-			}
-		</script>
-
-		<script>
-			const billAmountIn = document.getElementById('billAmount') as HTMLInputElement;
-			const tipPercentIn = document.getElementById('tipPercent') as HTMLInputElement;
-			const numPeopleIn = document.getElementById('numPeople') as HTMLInputElement;
-
-			const valPerPerson = document.getElementById('valPerPerson');
-			const valTipPerPerson = document.getElementById('valTipPerPerson');
-			const valTotalTip = document.getElementById('valTotalTip');
-			const valGrandTotal = document.getElementById('valGrandTotal');
-			const presetBtns = document.querySelectorAll('.preset-btn');
-
-			function calculateTip() {
-				const bill = parseFloat(billAmountIn.value) || 0;
-				const tipRate = (parseFloat(tipPercentIn.value) || 0) / 100;
-				const people = Math.max(1, parseInt(numPeopleIn.value) || 1);
-
-				const totalTip = bill * tipRate;
-				const grandTotal = bill + totalTip;
-				const perPersonTotal = grandTotal / people;
-				const perPersonTip = totalTip / people;
-
-				if (valPerPerson) valPerPerson.textContent = `$${perPersonTotal.toFixed(2)}`;
-				if (valTipPerPerson) valTipPerPerson.textContent = `$${perPersonTip.toFixed(2)}`;
-				if (valTotalTip) valTotalTip.textContent = `$${totalTip.toFixed(2)}`;
-				if (valGrandTotal) valGrandTotal.textContent = `$${grandTotal.toFixed(2)}`;
-			}
-
-			[billAmountIn, tipPercentIn, numPeopleIn].forEach(input => {
-				input?.addEventListener('input', calculateTip);
 			});
+		});
 
-			presetBtns.forEach(btn => {
-				btn.addEventListener('click', (e) => {
-					presetBtns.forEach(b => b.classList.remove('active'));
-					const target = e.currentTarget as HTMLButtonElement;
-					target.classList.add('active');
-					const tip = target.getAttribute('data-tip');
-					if (tip && tipPercentIn) {
-						tipPercentIn.value = tip;
-						calculateTip();
-					}
-				});
-			});
-
-			calculateTip();
-		</script>
-	</body>
-</html>
+		calculateTip();
+	</script>
+</ToolLayout>
