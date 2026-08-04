@@ -1,8 +1,5 @@
 ---
-import BaseHead from 'src/components/BaseHead.astro';
-import Header from 'src/components/Header.astro';
-import Footer from 'src/components/Footer.astro';
-import { SITE_TITLE } from 'src/consts';
+import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
     title: "Base64 & URL Encoder/Decoder",
@@ -13,217 +10,76 @@ export const frontmatter = {
     pinned: false,
     priority: 85
 };
-
-const pageTitle = `Base64 & URL Encoder/Decoder — ${SITE_TITLE}`;
-const pageDescription = "Fast, 100% private online tool to encode and decode Base64 text and URL parameters.";
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={pageTitle} description={pageDescription} />
-		<style>
-			main {
-				width: 850px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 3em 1em 5em;
-			}
-			.tool-header {
-				text-align: center;
-				margin-bottom: 2em;
-			}
-			.tool-header h1 {
-				font-size: 2.2rem;
-				font-weight: 800;
-				margin-bottom: 0.3em;
-				background: var(--hero-title-gradient);
-				-webkit-background-clip: text;
-				-webkit-text-fill-color: transparent;
-			}
-			.tool-header p {
-				color: var(--text-muted);
-				font-size: 1.05rem;
-			}
-			.tool-box {
-				background: var(--bg-card);
-				backdrop-filter: blur(12px);
-				border: 1px solid var(--card-border);
-				border-radius: 16px;
-				padding: 2em;
-				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-			}
-			.tab-group {
-				display: flex;
-				gap: 0.8rem;
-				margin-bottom: 1.5em;
-				border-bottom: 1px solid var(--card-border);
-				padding-bottom: 0.8em;
-			}
-			.tab-btn {
-				background: none;
-				border: 1px solid transparent;
-				color: var(--text-muted);
-				font-size: 1rem;
-				font-weight: 600;
-				cursor: pointer;
-				padding: 0.4em 0.9em;
-				border-radius: 8px;
-				transition: all 0.2s ease;
-			}
-			.tab-btn:hover {
-				color: var(--text-main);
-			}
-			.tab-btn.active {
-				background: var(--badge-bg);
-				color: var(--accent);
-				border-color: var(--badge-border);
-			}
-			.btn-group {
-				display: flex;
-				gap: 0.8rem;
-				margin: 1.2rem 0;
-				flex-wrap: wrap;
-			}
-			.btn {
-				background: var(--accent);
-				color: #ffffff !important;
-				border: none;
-				padding: 0.6em 1.2em;
-				border-radius: 8px;
-				font-weight: 600;
-				cursor: pointer;
-				transition: background 0.2s;
-			}
-			.btn:hover { background: var(--accent-hover); }
-			.btn-secondary { 
-				background: var(--gray-light); 
-				border: 1px solid var(--card-border);
-				color: var(--text-main);
-			}
-			.btn-secondary:hover { 
-				border-color: var(--accent);
-				color: var(--accent);
-			}
-			textarea {
-				width: 100%;
-				height: 160px;
-				padding: 1em;
-				background: var(--code-bg) !important;
-				border: 1px solid var(--card-border);
-				border-radius: 10px;
-				color: var(--text-main);
-				font-size: 0.95rem;
-				font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-				box-sizing: border-box;
-				outline: none;
-				resize: vertical;
-				line-height: 1.5;
-				transition: border-color 0.2s, box-shadow 0.2s;
-			}
-			textarea:focus { 
-				border-color: var(--accent); 
-				box-shadow: 0 0 10px var(--accent-glow);
-			}
-			label { 
-				display: block; 
-				font-weight: 600; 
-				margin-bottom: 0.5em; 
-				color: var(--text-main);
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<div class="tool-header">
-				<h1>🔤 Base64 & URL Encoder / Decoder</h1>
-				<p>100% client-side text and URL parameter conversion.</p>
-			</div>
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<style slot="head">
+		.tab-group { display: flex; gap: 0.8rem; margin-bottom: 1.5em; border-bottom: 1px solid var(--card-border); padding-bottom: 0.8em; }
+		.tab-btn { background: none; border: 1px solid transparent; color: var(--text-muted); font-size: 1rem; font-weight: 600; cursor: pointer; padding: 0.4em 0.9em; border-radius: 8px; }
+		.tab-btn.active { background: var(--badge-bg); color: var(--accent); border-color: var(--badge-border); }
+		.btn-group { display: flex; gap: 0.8rem; margin: 1.2rem 0; flex-wrap: wrap; }
+		textarea { width: 100%; height: 160px; padding: 1em; background: var(--code-bg) !important; border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-main); font-size: 0.95rem; font-family: monospace; box-sizing: border-box; outline: none; resize: vertical; line-height: 1.5; }
+	</style>
 
-			<div class="tool-box">
-				<div class="tab-group">
-					<button class="tab-btn active" id="modeBase64">Base64 Mode</button>
-					<button class="tab-btn" id="modeURL">URL Mode</button>
-				</div>
+	<div class="tool-box">
+		<div class="tab-group">
+			<button class="tab-btn active" id="modeBase64">Base64 Mode</button>
+			<button class="tab-btn" id="modeURL">URL Mode</button>
+		</div>
 
-				<div>
-					<label for="inputText">Input Text / Raw String:</label>
-					<textarea id="inputText" placeholder="Type or paste text here..."></textarea>
-				</div>
+		<div>
+			<label for="inputText">Input Text / Raw String:</label>
+			<textarea id="inputText" placeholder="Type or paste text here..."></textarea>
+		</div>
 
-				<div class="btn-group">
-					<button class="btn" id="btnEncode">Encode</button>
-					<button class="btn" id="btnDecode">Decode</button>
-					<button class="btn btn-secondary" id="btnClear">Clear</button>
-					<button class="btn btn-secondary" id="btnCopy" style="margin-left: auto;">Copy Result</button>
-				</div>
+		<div class="btn-group">
+			<button class="btn" id="btnEncode">Encode</button>
+			<button class="btn" id="btnDecode">Decode</button>
+			<button class="btn btn-secondary" id="btnClear">Clear</button>
+			<button class="btn btn-secondary" id="btnCopy" style="margin-left: auto;">Copy Result</button>
+		</div>
 
-				<div>
-					<label for="outputText">Output Result:</label>
-					<textarea id="outputText" readonly placeholder="Output will appear here..."></textarea>
-				</div>
-			</div>
-		</main>
-		<Footer />
+		<div>
+			<label for="outputText">Output Result:</label>
+			<textarea id="outputText" readonly placeholder="Output will appear here..."></textarea>
+		</div>
+	</div>
 
-		<script>
-			let currentMode = 'base64';
-			const modeBase64 = document.getElementById('modeBase64');
-			const modeURL = document.getElementById('modeURL');
-			const inputText = document.getElementById('inputText') as HTMLTextAreaElement;
-			const outputText = document.getElementById('outputText') as HTMLTextAreaElement;
+	<script slot="scripts">
+		let currentMode = 'base64';
+		const modeBase64 = document.getElementById('modeBase64');
+		const modeURL = document.getElementById('modeURL');
+		const inputText = document.getElementById('inputText');
+		const outputText = document.getElementById('outputText');
 
-			modeBase64?.addEventListener('click', () => {
-				currentMode = 'base64';
-				modeBase64.classList.add('active');
-				modeURL?.classList.remove('active');
-			});
+		modeBase64?.addEventListener('click', () => { currentMode = 'base64'; modeBase64.classList.add('active'); modeURL?.classList.remove('active'); });
+		modeURL?.addEventListener('click', () => { currentMode = 'url'; modeURL.classList.add('active'); modeBase64?.classList.remove('active'); });
 
-			modeURL?.addEventListener('click', () => {
-				currentMode = 'url';
-				modeURL.classList.add('active');
-				modeBase64?.classList.remove('active');
-			});
+		document.getElementById('btnEncode')?.addEventListener('click', () => {
+			const val = inputText.value;
+			try {
+				if (currentMode === 'base64') {
+					outputText.value = btoa(encodeURIComponent(val).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+				} else { outputText.value = encodeURIComponent(val); }
+			} catch (e) { outputText.value = 'Encoding error: ' + e.message; }
+		});
 
-			document.getElementById('btnEncode')?.addEventListener('click', () => {
-				const val = inputText.value;
-				try {
-					if (currentMode === 'base64') {
-						outputText.value = btoa(encodeURIComponent(val).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
-					} else {
-						outputText.value = encodeURIComponent(val);
-					}
-				} catch (e: any) {
-					outputText.value = 'Encoding error: ' + e.message;
-				}
-			});
+		document.getElementById('btnDecode')?.addEventListener('click', () => {
+			const val = inputText.value;
+			try {
+				if (currentMode === 'base64') {
+					outputText.value = decodeURIComponent(Array.prototype.map.call(atob(val.trim()), (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+				} else { outputText.value = decodeURIComponent(val); }
+			} catch (e) { outputText.value = 'Decoding error: Invalid input format.'; }
+		});
 
-			document.getElementById('btnDecode')?.addEventListener('click', () => {
-				const val = inputText.value;
-				try {
-					if (currentMode === 'base64') {
-						outputText.value = decodeURIComponent(Array.prototype.map.call(atob(val.trim()), (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-					} else {
-						outputText.value = decodeURIComponent(val);
-					}
-				} catch (e: any) {
-					outputText.value = 'Decoding error: Invalid input format.';
-				}
-			});
-
-			document.getElementById('btnClear')?.addEventListener('click', () => {
-				inputText.value = '';
-				outputText.value = '';
-			});
-
-			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-				if (!outputText.value) return;
-				navigator.clipboard.writeText(outputText.value);
-				const btn = e.target as HTMLButtonElement;
-				btn.textContent = 'Copied!';
-				setTimeout(() => { btn.textContent = 'Copy Result'; }, 2000);
-			});
-		</script>
-	</body>
-</html>
+		document.getElementById('btnClear')?.addEventListener('click', () => { inputText.value = ''; outputText.value = ''; });
+		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+			if (!outputText.value) return;
+			navigator.clipboard.writeText(outputText.value);
+			const btn = e.target;
+			btn.textContent = 'Copied!';
+			setTimeout(() => { btn.textContent = 'Copy Result'; }, 2000);
+		});
+	</script>
+</ToolLayout>
