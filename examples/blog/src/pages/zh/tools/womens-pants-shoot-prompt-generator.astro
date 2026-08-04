@@ -1,0 +1,635 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Pro AI 女装下装与裤装商拍提示词生成器",
+	description: "专为女装裤装与下装电商卖家设计的 AI 商拍工具！精准控制高腰阔腿裤、牛仔裤、西裤与鲨鱼裤版型、面料垂坠感、高跟鞋搭配与拉长腿部线条，适用于 Midjourney, Flux, SDXL 与豆包。",
+	icon: "👖",
+	tag: "女装商拍",
+	keywords: "AI 女裤换装 女装裤装商拍 阔腿裤提示词 牛仔裤商拍 模特姿态 提示词生成器 midjourney flux 豆包",
+	pinned: false,
+	priority: 92
+};
+
+const faqList = [
+	{
+		question: "如何生成显高、显腿长的女裤电商 Lookbook？",
+		answer: "建议在镜头与视角中选择“24mm 广角拉长腿部线条视角”或“仰视走动姿态”，并在上衣搭配中选择“短款露脐上衣 (Crop Top)”， Prompt 会自动加入高腰比例（High-Waisted Proportion）与延伸线条词汇。"
+	},
+	{
+		question: "如何实现女裤双图精准换装，同时保持模特原本的上衣或背景？",
+		answer: "选择“一、女裤换装模式”，将平铺/挂拍的裤装图片作为参考图一、模特图作为参考图二。生成 Prompt 会精准指导 AI 仅对下装区域（Womenswear Trousers & Pants Area）进行缝合与迁移。"
+	},
+	{
+		question: "自定义女裤拍摄背景支持中文输入吗？",
+		answer: "支持！你在自定义背景输入框中输入的中文描述（如“法式复古旋转楼梯”、“海边落日长廊”），系统会在 500ms 内自动翻译为英文 Prompt。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="zh">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		/* 模式选择选项卡 */
+		.mode-tabs {
+			display: flex;
+			justify-content: center;
+			gap: 0.8rem;
+			margin-bottom: 1.8rem;
+			flex-wrap: wrap;
+		}
+		.tab-btn {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			color: var(--text-muted);
+			padding: 0.6em 1.2em;
+			border-radius: 10px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+			border-color: var(--accent);
+			box-shadow: 0 4px 15px var(--accent-glow);
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			margin-bottom: 2rem;
+		}
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+		label .sub-tag {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			font-weight: normal;
+		}
+		.translate-status {
+			font-size: 0.75rem;
+			color: var(--accent);
+			font-weight: 600;
+			margin-left: auto;
+		}
+
+		input[type="text"], select, textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+		input[type="text"]:focus, select:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.output-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+		.output-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		.output-title {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+		.prompt-output {
+			width: 100%;
+			height: 140px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具卡片主体 -->
+	<div class="tool-box">
+		<!-- 核心模式选择 Tab -->
+		<div class="mode-tabs">
+			<button class="tab-btn active" data-mode="outfit">一、女裤换装模式 (双图参考)</button>
+			<button class="tab-btn" data-mode="scene">二、女裤换背景模式</button>
+			<button class="tab-btn" data-mode="detail">三、腿部与版型 Lookbook 特写</button>
+			<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
+		</div>
+
+		<div class="form-grid">
+			<!-- 女模身材与气场 -->
+			<div class="form-group" id="modelGroup">
+				<label for="modelSelect">女模身材与形象</label>
+				<select id="modelSelect">
+					<option value="slender 20s East Asian female model with long legs, elegant chic aesthetic">20代高挑瘦长腿东亚女模 (韩系/修长身材/优雅气场)</option>
+					<option value="sophisticated 30s East Asian female model with high waist proportion, cold fashion look">30代高级冷感女模 (御姐范/极简静奢/高腰线比例)</option>
+					<option value="tall Caucasian female model with slender long legs, high fashion editorial look">高挑欧美超模 (修长美腿/法式度假风)</option>
+					<option value="athletic fit Asian female model with toned waist, stylish athleisure look">健美修长东亚女模 (腹肌腰线/运动休闲风)</option>
+				</select>
+			</div>
+
+			<!-- 腿部视角与姿态 -->
+			<div class="form-group">
+				<label for="angleSelect">腿部姿态/视角 (Legs Pose & Angle)</label>
+				<select id="angleSelect">
+					<option value="full-body shot, model standing elegant, slightly angled to camera, highlighting leg length">全身站姿 (Full View / 突出腿长比例)</option>
+					<option value="walking motion towards camera, dynamic fluid pant fabric motion">走动动态视角 (Walking Motion / 裤摆随风飘逸)</option>
+					<option value="low-angle shot looking up, dynamic perspective emphasizing long legs">低角度仰拍 (Low Angle / 极致拉长身高腿长)</option>
+					<option value="side profile view, highlighting waistline and hip curve fit">侧身视角 (Side Profile / 展示腰臀曲线与平腹感)</option>
+					<option value="lower-body focus close-up from waist to heels, crisp fabric drape">腰部至鞋履特写 (Lower-Body Focus / 面料垂坠细节)</option>
+					<option value="model cross-legged sitting posture, relaxed elegant aesthetic">交叉腿坐姿 (Cross-Legged Sitting / 展示面料延展性)</option>
+				</select>
+			</div>
+
+			<!-- 裤装款式、版型与面料细节 -->
+			<div class="form-group full-width" id="pantsGroup">
+				<label for="pantsInput">
+					<span>裤装主款式、版型、面料与细节</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="pantsStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="pantsInput" placeholder="例如：香槟色高腰醋酸阔腿西裤流畅垂坠、复古复古复古蓝高腰微喇牛仔裤修饰腿型、提臀无缝鲨鱼裤..." />
+			</div>
+
+			<!-- 上衣搭配 (短款露脐/塞腰) -->
+			<div class="form-group full-width" id="topGroup">
+				<label for="topInput">
+					<span>搭配上衣 (凸显腰裤衔接)</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="topStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="topInput" placeholder="例如：法式白色短款露脐修身T恤 (Crop Top)、修身桑蚕丝衬衫塞入裤腰..." />
+			</div>
+
+			<!-- 鞋履组合 (高跟鞋/乐福鞋/运动鞋) -->
+			<div class="form-group full-width" id="shoesGroup">
+				<label for="shoesInput">
+					<span>搭配鞋履 (裤脚拉长关键)</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="shoesStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="shoesInput" placeholder="例如：黑色尖头细高跟鞋鞋尖隐约露出、法式厚底乐福鞋、白洁复古德训鞋..." />
+			</div>
+
+			<!-- 女裤生活拍摄场景（包含自定义背景） -->
+			<div class="form-group full-width">
+				<label for="sceneSelect">拍摄与生活场景</label>
+				<select id="sceneSelect">
+					<option value="preserve original background environment and scene lighting exactly as is">🔒 默认原图背景</option>
+					<option value="custom">✍️ 自定义背景 (Custom Environment)</option>
+					<option value="in a luxury sunlit Scandinavian minimalist interior with soft beige tones">北欧极简极奢室内 (米色柔和阳光/落脚线艺术)</option>
+					<option value="walking on a sunlit Parisian sidewalk cafe street with marble flooring">巴黎露天街角 (大理石地面/法式优雅)</option>
+					<option value="in a modern high-rise office with glass windows and marble floor">高端写字楼大堂 (大理石地砖反射/都市通勤)</option>
+					<option value="walking across an urban cobblestone alley with vintage boutiques">欧洲复古街区 (鹅卵石路面/时尚街拍)</option>
+					<option value="in a clean professional commercial photo studio, neutral backdrop">商业摄影棚纯色背景 (电商高清主图/突出版型)</option>
+				</select>
+			</div>
+
+			<!-- 自定义背景输入框（默认隐藏） -->
+			<div class="form-group full-width" id="customSceneGroup" style="display: none;">
+				<label for="customSceneInput">
+					<span>自定义背景描述</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="customSceneStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="customSceneInput" placeholder="例如：艺术画廊木地板、海边度假酒店阳台、落日余晖露台..." />
+			</div>
+
+			<!-- 相机与光线 -->
+			<div class="form-group">
+				<label for="cameraSelect">相机与视角</label>
+				<select id="cameraSelect">
+					<option value="shot on 24mm wide angle prime lens, flattering long leg perspective">24mm 广角 (拉长身材与腿部比例)</option>
+					<option value="shot on Sony Alpha A7R V, razor sharp fabric weave and drape">索尼 Sony A7R V (现代极锐/面料质感透亮)</option>
+					<option value="shot on Leica M11 with natural chic aesthetic">徕卡 Leica M11 (法式人文胶片色彩)</option>
+					<option value="shot on Hasselblad H6D-100c for high fashion lookbook">哈苏 Hasselblad (顶级画册气场)</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label for="lightingSelect">光线风格</label>
+				<select id="lightingSelect">
+					<option value="soft natural directional sunlight accentuating pant fabric drape and flow">自然漫射日光 (展现布料软糯与垂坠)</option>
+					<option value="golden hour sunset backlighting with soft glowing highlights">黄金小时逆光夕阳 (温暖高光与透亮感)</option>
+					<option value="clean studio softbox lighting highlighting fabric texture and tailoring">柔光箱摄影棚光线 (凸显剪影与面料)</option>
+				</select>
+			</div>
+
+			<!-- 画幅比例 -->
+			<div class="form-group full-width">
+				<label for="arSelect">画面宽高比 (--ar)</label>
+				<select id="arSelect">
+					<option value="--ar 3:4">--ar 3:4 (淘宝/天猫/Shopify 服装主图与详情页)</option>
+					<option value="--ar 4:5">--ar 4:5 (Instagram / 小红书 / TikTok)</option>
+					<option value="--ar 9:16">--ar 9:16 (手机全屏竖屏主图)</option>
+					<option value="--ar 1:1">--ar 1:1 (正方形商品卡片)</option>
+				</select>
+			</div>
+		</div>
+
+		<!-- 实时生成预览卡片 -->
+		<div class="output-card">
+			<div class="output-header">
+				<span class="output-title">✨ 生成的英文女裤商拍 Prompt</span>
+				<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+			</div>
+			<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+		</div>
+	</div>
+
+	<!-- FAQ 模块区 -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ 常见问题 (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端逻辑脚本 (添加 DOMContentLoaded 生命周期防护) -->
+	<script slot="scripts">
+		function initTool() {
+			let currentMode = 'outfit';
+
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const pantsInput = document.getElementById('pantsInput');
+			const pantsStatus = document.getElementById('pantsStatus');
+			const topInput = document.getElementById('topInput');
+			const topStatus = document.getElementById('topStatus');
+			const shoesInput = document.getElementById('shoesInput');
+			const shoesStatus = document.getElementById('shoesStatus');
+
+			const sceneSelect = document.getElementById('sceneSelect');
+			const customSceneGroup = document.getElementById('customSceneGroup');
+			const customSceneInput = document.getElementById('customSceneInput');
+			const customSceneStatus = document.getElementById('customSceneStatus');
+
+			const modelSelect = document.getElementById('modelSelect');
+			const angleSelect = document.getElementById('angleSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+
+			let translatedPants = 'champagne high-waisted acetate wide-leg trousers with elegant flowing drape';
+			let translatedTop = 'fitted white rib-knit crop top showing subtle waistline';
+			let translatedShoes = 'black pointed-toe stiletto pumps peeking from pant hem';
+			let translatedCustomScene = '';
+
+			let pantsTimer = null;
+			let topTimer = null;
+			let shoesTimer = null;
+			let customSceneTimer = null;
+
+			function containsChinese(text) {
+				return /[\u4e00-\u9fa5]/.test(text);
+			}
+
+			async function translateText(text) {
+				if (!text.trim()) return '';
+				if (!containsChinese(text)) return text;
+				try {
+					const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`);
+					const data = await res.json();
+					return data.responseData?.translatedText || text;
+				} catch (e) {
+					return text;
+				}
+			}
+
+			function getSceneValue() {
+				if (sceneSelect?.value === 'custom') {
+					return translatedCustomScene ? `in ${translatedCustomScene}` : 'in a luxury aesthetic setting';
+				}
+				return sceneSelect?.value || '';
+			}
+
+			function buildPrompt() {
+				if (!promptOutput) return;
+
+				const pants = translatedPants || 'high-waisted wide-leg trousers';
+				const topStr = translatedTop ? `styled with ${translatedTop}` : '';
+				const shoesStr = translatedShoes ? `paired with ${translatedShoes}` : '';
+				const sceneVal = getSceneValue();
+
+				let modePrefix = '';
+				let components = [];
+
+				if (currentMode === 'outfit') {
+					modePrefix = '[Inpainting Womenswear Pants Swap / Dual-Image Reference]';
+					components = [
+						`Commercial womenswear trousers photography, precisely transplanting lower-body garment design from Reference Image onto Target Model`,
+						`replacing trousers with ${pants}`,
+						topStr,
+						shoesStr,
+						`worn by ${modelSelect?.value || ''}`,
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'ultra-detailed fabric texture, elegant garment drapes, flattering leg proportions, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'scene') {
+					modePrefix = '[Womenswear Pants Background Swap Focus]';
+					components = [
+						`Commercial womenswear trousers photography, placing model wearing ${pants}`,
+						topStr,
+						shoesStr,
+						angleSelect?.value || '',
+						`into setting: ${sceneVal}`,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'realistic ground shadows, elegant lighting integration, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'detail') {
+					modePrefix = '[Lower-Body & Leg Length Lookbook Focus]';
+					components = [
+						`Lower-body commercial lookbook shot focusing on ${pants}`,
+						shoesStr,
+						`worn by ${modelSelect?.value || ''}`,
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'crisp waistline fit, beautiful fabric movement and drape, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				} else {
+					modePrefix = '[Full Custom Womenswear Pants Shoot]';
+					components = [
+						`Commercial womenswear trousers shot featuring ${modelSelect?.value || ''}`,
+						`wearing ${pants}`,
+						topStr,
+						shoesStr,
+						angleSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lightingSelect?.value || '',
+						'ultra-detailed fabric texture, 8k resolution, raw photo',
+						arSelect?.value || ''
+					];
+				}
+
+				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+			}
+
+			// Tab 按钮切换
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.getAttribute('data-mode') || 'outfit';
+					buildPrompt();
+				});
+			});
+
+			// 背景下拉框切换监听（支持自定义背景展开）
+			sceneSelect?.addEventListener('change', () => {
+				if (sceneSelect.value === 'custom') {
+					if (customSceneGroup) customSceneGroup.style.display = 'flex';
+				} else {
+					if (customSceneGroup) customSceneGroup.style.display = 'none';
+				}
+				buildPrompt();
+			});
+
+			// 防抖翻译：裤装描述
+			pantsInput?.addEventListener('input', () => {
+				clearTimeout(pantsTimer);
+				const raw = pantsInput.value.trim();
+				if (!raw) {
+					translatedPants = '';
+					if (pantsStatus) pantsStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedPants = raw;
+					if (pantsStatus) pantsStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (pantsStatus) pantsStatus.textContent = '翻译中...';
+				pantsTimer = setTimeout(async () => {
+					translatedPants = await translateText(raw);
+					if (pantsStatus) pantsStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：上衣搭配
+			topInput?.addEventListener('input', () => {
+				clearTimeout(topTimer);
+				const raw = topInput.value.trim();
+				if (!raw) {
+					translatedTop = '';
+					if (topStatus) topStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedTop = raw;
+					if (topStatus) topStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (topStatus) topStatus.textContent = '翻译中...';
+				topTimer = setTimeout(async () => {
+					translatedTop = await translateText(raw);
+					if (topStatus) topStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：鞋履组合
+			shoesInput?.addEventListener('input', () => {
+				clearTimeout(shoesTimer);
+				const raw = shoesInput.value.trim();
+				if (!raw) {
+					translatedShoes = '';
+					if (shoesStatus) shoesStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedShoes = raw;
+					if (shoesStatus) shoesStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (shoesStatus) shoesStatus.textContent = '翻译中...';
+				shoesTimer = setTimeout(async () => {
+					translatedShoes = await translateText(raw);
+					if (shoesStatus) shoesStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：自定义背景
+			customSceneInput?.addEventListener('input', () => {
+				clearTimeout(customSceneTimer);
+				const raw = customSceneInput.value.trim();
+				if (!raw) {
+					translatedCustomScene = '';
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedCustomScene = raw;
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (customSceneStatus) customSceneStatus.textContent = '翻译中...';
+				customSceneTimer = setTimeout(async () => {
+					translatedCustomScene = await translateText(raw);
+					if (customSceneStatus) customSceneStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 下拉框改变监听
+			[modelSelect, angleSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// 复制功能
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					if (btnCopy) {
+						const originalText = btnCopy.textContent;
+						btnCopy.textContent = 'Copied!';
+						setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+					}
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
+	</script>
+</ToolLayout>
