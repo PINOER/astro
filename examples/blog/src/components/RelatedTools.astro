@@ -1,0 +1,196 @@
+---
+// src/components/RelatedTools.astro
+
+interface Props {
+	currentPath: string; // 用于过滤当前工具自身
+	tag: string;         // 当前工具的分类标签 (如 "Developer", "E-commerce")
+	lang?: 'en' | 'zh';  // 当前语言维度
+	limit?: number;      // 展示数量 (默认 2 个)
+}
+
+const { currentPath, tag, lang = 'en', limit = 2 } = Astro.props;
+
+// 1. 自动抓取同语言路径下的所有 .astro 工具页面
+let toolModules: Record<string, any>;
+if (lang === 'zh') {
+	toolModules = import.meta.glob('../pages/zh/tools/*.astro', { eager: true });
+} else {
+	toolModules = import.meta.glob('../pages/tools/*.astro', { eager: true });
+}
+
+// 2. 解析每个工具页面的 frontmatter 与 URL
+const localTools = Object.entries(toolModules)
+	.map(([filePath, mod]) => {
+		const frontmatter = mod.frontmatter || {};
+		// 根据文件路径自动推导路由 URL
+		let url = filePath
+			.replace('../pages', '')
+			.replace('.astro', '/');
+
+		return {
+			url,
+			title: frontmatter.title || '',
+			description: frontmatter.description || '',
+			icon: frontmatter.icon || '🛠️',
+			tag: frontmatter.tag || 'General',
+			priority: frontmatter.priority || 0,
+			isExternal: false,
+		};
+	})
+	.filter(t => t.title !== ''); // 确保有标题
+
+// 3. (可选) 第三方付费广告/加盟推广工具池 (Monetization Slot)
+const sponsorTools = [
+	{
+		url: 'https://shopify.pxf.io/your-affiliate-link', // 你的推广链接
+		title: lang === 'zh' ? 'Shopify 独立站建站 (首月 $1)' : 'Shopify: Build Your Online Store',
+		description: lang === 'zh' ? '全球主流独立站平台，限时体验首月仅 $1。' : 'Start your e-commerce business for $1/month.',
+		icon: '🛍️',
+		tag: 'E-commerce',
+		priority: 999,
+		isExternal: true,
+		sponsorText: lang === 'zh' ? '赞助推荐' : 'Partner'
+	}
+];
+
+// 4. 过滤掉当前工具本身
+const normalize = (path: string) => path.endsWith('/') ? path : `${path}/`;
+const candidateTools = localTools.filter(t => normalize(t.url) !== normalize(currentPath));
+
+// 5. 查找是否有匹配当前 Tag 的第三方赞助工具
+const matchedSponsor = sponsorTools.find(s => s.tag === tag);
+
+// 6. 算法排序：同 Tag 优先 (+1000 分) > 按 priority 降序
+const sortedLocalTools = candidateTools.sort((a, b) => {
+	const aScore = (a.tag === tag ? 1000 : 0) + a.priority;
+	const bScore = (b.tag === tag ? 1000 : 0) + b.priority;
+	return bScore - aScore;
+});
+
+// 7. 组合最终展示列表：如果有相关广告位则占用第 1 个卡片，其余填补同类工具
+let finalRecommendations = [];
+if (matchedSponsor) {
+	finalRecommendations = [matchedSponsor, ...sortedLocalTools.slice(0, limit - 1)];
+} else {
+	finalRecommendations = sortedLocalTools.slice(0, limit);
+}
+---
+
+{finalRecommendations.length > 0 && (
+	<section class="content-section">
+		<h2>{lang === 'zh' ? '你可能也会用到' : 'You Might Also Like'}</h2>
+		<div class="related-grid">
+			{finalRecommendations.map((tool) => (
+				<a 
+					href={tool.url} 
+					class={`related-card ${tool.isExternal ? 'sponsor-card' : ''}`}
+					target={tool.isExternal ? "_blank" : "_self"}
+					rel={tool.isExternal ? "noopener sponsored" : ""}
+				>
+					<span class="card-icon">{tool.icon}</span>
+					<div class="card-body">
+						<div class="card-header-row">
+							<h4>{tool.title}</h4>
+							{tool.isExternal && (
+								<span class="sponsor-badge">{tool.sponsorText || 'Ad'}</span>
+							)}
+						</div>
+						<p>{tool.description}</p>
+					</div>
+				</a>
+			))}
+		</div>
+	</section>
+)}
+
+<style>
+	.content-section {
+		margin-top: 2.5rem;
+		background: var(--bg-card);
+		border: 1px solid var(--card-border);
+		border-radius: 16px;
+		padding: 2em;
+	}
+	.content-section h2 {
+		font-size: 1.3rem;
+		font-weight: 700;
+		color: var(--text-main);
+		margin-bottom: 1.2rem;
+	}
+	.related-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+	.related-card {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		padding: 0.9rem;
+		background: var(--code-bg);
+		border: 1px solid var(--card-border);
+		border-radius: 10px;
+		text-decoration: none !important;
+		transition: border-color 0.2s, transform 0.2s;
+	}
+	.related-card:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+	/* 第三方广告卡片高亮与样式 */
+	.related-card.sponsor-card {
+		border-color: rgba(245, 158, 11, 0.4);
+		background: linear-gradient(135deg, var(--code-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
+	}
+	.card-icon {
+		font-size: 1.6rem;
+		flex-shrink: 0;
+	}
+	.card-body {
+		flex: 1;
+		min-width: 0;
+	}
+	.card-header-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		margin-bottom: 0.2rem;
+	}
+	.related-card h4 {
+		margin: 0;
+		color: var(--text-main);
+		font-size: 0.92rem;
+		font-weight: 700;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.related-card p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.8rem;
+		line-height: 1.4;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.sponsor-badge {
+		font-size: 0.68rem;
+		padding: 0.15em 0.5em;
+		background: rgba(245, 158, 11, 0.15);
+		color: #f59e0b;
+		border: 1px solid rgba(245, 158, 11, 0.3);
+		border-radius: 4px;
+		font-weight: 700;
+		text-transform: uppercase;
+		flex-shrink: 0;
+	}
+
+	@media (max-width: 768px) {
+		.related-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
