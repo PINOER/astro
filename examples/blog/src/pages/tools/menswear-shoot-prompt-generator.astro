@@ -337,115 +337,125 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，支持 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		let currentMode = 'outfit';
+		function initTool() {
+			let currentMode = 'outfit';
 
-		const tabBtns = document.querySelectorAll('.tab-btn');
-		const outfitInput = document.getElementById('outfitInput');
-		const accessoryInput = document.getElementById('accessoryInput');
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const outfitInput = document.getElementById('outfitInput');
+			const accessoryInput = document.getElementById('accessoryInput');
 
-		const modelSelect = document.getElementById('modelSelect');
-		const sceneSelect = document.getElementById('sceneSelect');
-		const cameraSelect = document.getElementById('cameraSelect');
-		const lensSelect = document.getElementById('lensSelect');
-		const lightingSelect = document.getElementById('lightingSelect');
-		const arSelect = document.getElementById('arSelect');
+			const modelSelect = document.getElementById('modelSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
 
-		const promptOutput = document.getElementById('promptOutput');
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const outfit = outfitInput.value.trim() || 'heavyweight black cotton hoodie paired with washed straight jeans';
-			const accessoryVal = accessoryInput.value.trim();
-			const accessoryStr = accessoryVal ? `styled with ${accessoryVal}` : '';
+			function buildPrompt() {
+				const outfit = outfitInput?.value?.trim() || 'heavyweight black cotton hoodie paired with washed straight jeans';
+				const accessoryVal = accessoryInput?.value?.trim() || '';
+				const accessoryStr = accessoryVal ? `styled with ${accessoryVal}` : '';
 
-			let modePrefix = '';
-			let components = [];
+				let modePrefix = '';
+				let components = [];
 
-			if (currentMode === 'outfit') {
-				modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
-				components = [
-					`Commercial menswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
-					`replacing current outfit with ${outfit}`,
-					accessoryStr,
-					`worn by ${modelSelect.value}`,
-					sceneSelect.value,
-					cameraSelect.value,
-					lensSelect.value,
-					lightingSelect.value,
-					'ultra-detailed fabric texture, seamless clothing fit, natural drape wrinkles, 8k resolution, raw photo',
-					arSelect.value
-				];
-			} else if (currentMode === 'scene') {
-				modePrefix = '[Background Swap Focus]';
-				components = [
-					`Commercial menswear photography, placing model wearing ${outfit}`,
-					accessoryStr,
-					`into new setting: ${sceneSelect.value}`,
-					cameraSelect.value,
-					lensSelect.value,
-					lightingSelect.value,
-					'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
-					arSelect.value
-				];
-			} else if (currentMode === 'head') {
-				modePrefix = '[Model / Head Swap Focus]';
-				components = [
-					`Commercial menswear photography, replacing model face and body with ${modelSelect.value}`,
-					`wearing ${outfit}`,
-					accessoryStr,
-					sceneSelect.value,
-					cameraSelect.value,
-					lensSelect.value,
-					lightingSelect.value,
-					'natural skin texture, seamless face swap, preserve garment integrity, 8k resolution, raw photo',
-					arSelect.value
-				];
-			} else {
-				modePrefix = '[Full Custom Shoot]';
-				components = [
-					`Commercial menswear photography shot featuring ${modelSelect.value}`,
-					`wearing ${outfit}`,
-					accessoryStr,
-					sceneSelect.value,
-					cameraSelect.value,
-					lensSelect.value,
-					lightingSelect.value,
-					'ultra-detailed fabric texture, 8k resolution, raw photo',
-					arSelect.value
-				];
+				if (currentMode === 'outfit') {
+					modePrefix = '[Inpainting Outfit Swap / Dual-Image Reference]';
+					components = [
+						`Commercial menswear photography, precisely transplanting the exact garment design, fabric texture and style from Reference Garment Image onto the Target Model Image`,
+						`replacing current outfit with ${outfit}`,
+						accessoryStr,
+						`worn by ${modelSelect?.value}`,
+						sceneSelect?.value,
+						cameraSelect?.value,
+						lensSelect?.value,
+						lightingSelect?.value,
+						'ultra-detailed fabric texture, seamless clothing fit, natural drape wrinkles, 8k resolution, raw photo',
+						arSelect?.value
+					];
+				} else if (currentMode === 'scene') {
+					modePrefix = '[Background Swap Focus]';
+					components = [
+						`Commercial menswear photography, placing model wearing ${outfit}`,
+						accessoryStr,
+						`into new setting: ${sceneSelect?.value}`,
+						cameraSelect?.value,
+						lensSelect?.value,
+						lightingSelect?.value,
+						'perfect ground shadows, realistic light integration, shallow depth of field, 8k resolution, raw photo',
+						arSelect?.value
+					];
+				} else if (currentMode === 'head') {
+					modePrefix = '[Model / Head Swap Focus]';
+					components = [
+						`Commercial menswear photography, replacing model face and body with ${modelSelect?.value}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect?.value,
+						cameraSelect?.value,
+						lensSelect?.value,
+						lightingSelect?.value,
+						'natural skin texture, seamless face swap, preserve garment integrity, 8k resolution, raw photo',
+						arSelect?.value
+					];
+				} else {
+					modePrefix = '[Full Custom Shoot]';
+					components = [
+						`Commercial menswear photography shot featuring ${modelSelect?.value}`,
+						`wearing ${outfit}`,
+						accessoryStr,
+						sceneSelect?.value,
+						cameraSelect?.value,
+						lensSelect?.value,
+						lightingSelect?.value,
+						'ultra-detailed fabric texture, 8k resolution, raw photo',
+						arSelect?.value
+					];
+				}
+
+				if (promptOutput) {
+					promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+				}
 			}
 
-			promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.dataset.mode || 'outfit';
+					buildPrompt();
+				});
+			});
+
+			[outfitInput, accessoryInput].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+			});
+
+			[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		tabBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				tabBtns.forEach(b => b.classList.remove('active'));
-				btn.classList.add('active');
-				currentMode = btn.dataset.mode;
-				buildPrompt();
-			});
-		});
-
-		[outfitInput, accessoryInput].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-		});
-
-		[modelSelect, sceneSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
