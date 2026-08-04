@@ -282,59 +282,67 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端逻辑脚本 -->
+	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const cogsIn = document.getElementById('cogs') as HTMLInputElement;
-		const shippingIn = document.getElementById('shipping') as HTMLInputElement;
-		const adSpendIn = document.getElementById('adSpend') as HTMLInputElement;
-		const feeRateIn = document.getElementById('feeRate') as HTMLInputElement;
-		const flatFeeIn = document.getElementById('flatFee') as HTMLInputElement;
-		const sellingPriceIn = document.getElementById('sellingPrice') as HTMLInputElement;
+		function initTool() {
+			const cogsIn = document.getElementById('cogs');
+			const shippingIn = document.getElementById('shipping');
+			const adSpendIn = document.getElementById('adSpend');
+			const feeRateIn = document.getElementById('feeRate');
+			const flatFeeIn = document.getElementById('flatFee');
+			const sellingPriceIn = document.getElementById('sellingPrice');
 
-		const netProfitVal = document.getElementById('netProfitVal');
-		const marginVal = document.getElementById('marginVal');
-		const markupVal = document.getElementById('markupVal');
-		const breakevenVal = document.getElementById('breakevenVal');
-		const totalCostVal = document.getElementById('totalCostVal');
-		const totalFeesVal = document.getElementById('totalFeesVal');
-		const roiVal = document.getElementById('roiVal');
+			const netProfitVal = document.getElementById('netProfitVal');
+			const marginVal = document.getElementById('marginVal');
+			const markupVal = document.getElementById('markupVal');
+			const breakevenVal = document.getElementById('breakevenVal');
+			const totalCostVal = document.getElementById('totalCostVal');
+			const totalFeesVal = document.getElementById('totalFeesVal');
+			const roiVal = document.getElementById('roiVal');
 
-		function calculateProfit() {
-			const cogs = parseFloat(cogsIn.value) || 0;
-			const shipping = parseFloat(shippingIn.value) || 0;
-			const adSpend = parseFloat(adSpendIn.value) || 0;
-			const feeRate = (parseFloat(feeRateIn.value) || 0) / 100;
-			const flatFee = parseFloat(flatFeeIn.value) || 0;
-			const price = parseFloat(sellingPriceIn.value) || 0;
+			function calculateProfit() {
+				const cogs = parseFloat(cogsIn?.value) || 0;
+				const shipping = parseFloat(shippingIn?.value) || 0;
+				const adSpend = parseFloat(adSpendIn?.value) || 0;
+				const feeRate = (parseFloat(feeRateIn?.value) || 0) / 100;
+				const flatFee = parseFloat(flatFeeIn?.value) || 0;
+				const price = parseFloat(sellingPriceIn?.value) || 0;
 
-			const baseCost = cogs + shipping + adSpend;
-			const platformFee = (price * feeRate) + flatFee;
-			const totalCost = baseCost + platformFee;
-			const netProfit = price - totalCost;
+				const baseCost = cogs + shipping + adSpend;
+				const platformFee = (price * feeRate) + flatFee;
+				const totalCost = baseCost + platformFee;
+				const netProfit = price - totalCost;
 
-			const margin = price > 0 ? (netProfit / price) * 100 : 0;
-			const markup = baseCost > 0 ? (netProfit / baseCost) * 100 : 0;
-			const roi = baseCost > 0 ? (netProfit / baseCost) * 100 : 0;
+				const margin = price > 0 ? (netProfit / price) * 100 : 0;
+				const markup = baseCost > 0 ? (netProfit / baseCost) * 100 : 0;
+				const roi = baseCost > 0 ? (netProfit / baseCost) * 100 : 0;
 
-			const breakeven = (1 - feeRate) > 0 ? (baseCost + flatFee) / (1 - feeRate) : 0;
+				const breakeven = (1 - feeRate) > 0 ? (baseCost + flatFee) / (1 - feeRate) : 0;
 
-			if (netProfitVal) netProfitVal.textContent = `$${netProfit.toFixed(2)}`;
-			if (marginVal) marginVal.textContent = `${margin.toFixed(2)}%`;
-			if (markupVal) markupVal.textContent = `${markup.toFixed(2)}%`;
-			if (breakevenVal) breakevenVal.textContent = `$${breakeven.toFixed(2)}`;
-			if (totalCostVal) totalCostVal.textContent = `$${totalCost.toFixed(2)}`;
-			if (totalFeesVal) totalFeesVal.textContent = `$${platformFee.toFixed(2)}`;
-			if (roiVal) roiVal.textContent = `${roi.toFixed(2)}%`;
+				if (netProfitVal) netProfitVal.textContent = `$${netProfit.toFixed(2)}`;
+				if (marginVal) marginVal.textContent = `${margin.toFixed(2)}%`;
+				if (markupVal) markupVal.textContent = `${markup.toFixed(2)}%`;
+				if (breakevenVal) breakevenVal.textContent = `$${breakeven.toFixed(2)}`;
+				if (totalCostVal) totalCostVal.textContent = `$${totalCost.toFixed(2)}`;
+				if (totalFeesVal) totalFeesVal.textContent = `$${platformFee.toFixed(2)}`;
+				if (roiVal) roiVal.textContent = `${roi.toFixed(2)}%`;
 
-			if (netProfitVal) {
-				netProfitVal.style.color = netProfit < 0 ? '#ef4444' : 'var(--accent, #6366f1)';
+				if (netProfitVal) {
+					netProfitVal.style.color = netProfit < 0 ? '#ef4444' : 'var(--accent, #6366f1)';
+				}
 			}
+
+			[cogsIn, shippingIn, adSpendIn, feeRateIn, flatFeeIn, sellingPriceIn].forEach(input => {
+				input?.addEventListener('input', calculateProfit);
+			});
+
+			calculateProfit();
 		}
 
-		[cogsIn, shippingIn, adSpendIn, feeRateIn, flatFeeIn, sellingPriceIn].forEach(input => {
-			input?.addEventListener('input', calculateProfit);
-		});
-
-		calculateProfit();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
