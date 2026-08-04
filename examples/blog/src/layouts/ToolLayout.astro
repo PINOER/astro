@@ -39,10 +39,13 @@ const currentPath = Astro.url.pathname;
 				<p>{frontmatter.description}</p>
 			</div>
 
-			<!-- 页面主工具内容注入区 -->
+			<!-- 1. 页面主工具内容注入区 -->
 			<slot />
 
-			<!-- 自动识别同类工具 + 商业化推荐模块（全自动化） -->
+			<!-- 2. FAQ 专属插槽挂载点 -->
+			<slot name="faq" />
+
+			<!-- 3. 自动识别同类工具 + 商业化推荐模块（全自动化） -->
 			<RelatedTools 
 				currentPath={currentPath} 
 				tag={frontmatter.tag || 'General'} 
