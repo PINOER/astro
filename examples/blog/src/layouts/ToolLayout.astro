@@ -46,10 +46,10 @@ const currentPath = Astro.url.pathname;
 			<slot name="faq" />
 
 			<!-- 3. 自动识别同类工具 + 商业化推荐模块（全自动化） -->
-			<RelatedTools 
-				currentPath={currentPath} 
-				tag={frontmatter.tag || 'General'} 
-				lang={lang} 
+			<RelatedTools 
+				currentPath={currentPath} 
+				tag={frontmatter.tag || 'General'} 
+				lang={lang} 
 			/>
 		</main>
 		<Footer />
@@ -59,7 +59,43 @@ const currentPath = Astro.url.pathname;
 	</body>
 </html>
 
-<style>
+<style is:global>
+	/* 1. 主页面容器基础样式 (修复 PC 端变窄) */
+	main {
+		width: 900px;
+		max-width: calc(100% - 2em);
+		margin: auto;
+		padding: 3em 1em 5em;
+		box-sizing: border-box;
+	}
+	.tool-header {
+		text-align: center;
+		margin-bottom: 2em;
+	}
+	.tool-header h1 {
+		font-size: 2.2rem;
+		font-weight: 800;
+		margin-bottom: 0.3em;
+		background: var(--hero-title-gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	.tool-header p {
+		color: var(--text-muted);
+		font-size: 1.05rem;
+	}
+	.tool-box {
+		background: var(--bg-card);
+		backdrop-filter: blur(12px);
+		border: 1px solid var(--card-border);
+		border-radius: 16px;
+		padding: 2em;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		box-sizing: border-box;
+		width: 100%;
+	}
+
+	/* 2. 推荐与赞助工具模块全局样式 (支持穿透至 RelatedTools 组件) */
 	.content-section {
 		margin-top: 2.5rem;
 		background: var(--bg-card);
@@ -95,7 +131,7 @@ const currentPath = Astro.url.pathname;
 		box-sizing: border-box;
 		width: 100%;
 		min-width: 0;
-		height: auto; /* PC 端自适应高度 */
+		height: auto;
 	}
 	.related-card:hover {
 		border-color: var(--accent);
@@ -158,36 +194,52 @@ const currentPath = Astro.url.pathname;
 		flex-shrink: 0;
 	}
 
-	/* 📱 移动端自适应优化 */
+	/* 3. 📱 移动端自适应适配 */
 	@media (max-width: 768px) {
+		main {
+			width: 100%;
+			max-width: calc(100% - 1.2em);
+			padding: 1.5em 0.6em 3em;
+		}
+		.tool-box {
+			padding: 1.25em 1rem;
+		}
+		.tool-header h1 {
+			font-size: 1.65rem;
+		}
+		.tool-header p {
+			font-size: 0.92rem;
+		}
+
+		/* 移动端卡片自适应高度与排版 */
 		.content-section {
 			padding: 1.25em 1rem;
 		}
 		.related-grid {
-			grid-template-columns: 1fr; /* 单列全宽显示 */
+			grid-template-columns: 1fr;
 			gap: 0.8rem;
 		}
 		.related-card {
 			padding: 0.9rem 1rem;
-			height: auto; /* 移动端完全自适应高度 */
-			align-items: flex-start; /* 顶部对齐，适合多行文本排版 */
+			height: auto;
+			align-items: flex-start;
 		}
 		.card-icon {
 			font-size: 1.5rem;
-			margin-top: 0.1rem; /* 顶部微调对齐标题 */
+			margin-top: 0.1rem;
 		}
 		.card-header-row {
-			flex-wrap: wrap; /* 小屏上标题与赞助 Tag 允许换行 */
+			flex-wrap: wrap;
 			align-items: flex-start;
 			margin-bottom: 0.35rem;
 		}
 		.related-card h4 {
-			white-space: normal; /* 取消单行限制，允许自然换行完整显示标题 */
+			white-space: normal;
 			font-size: 0.95rem;
 			line-height: 1.35;
 		}
 		.related-card p {
-			-webkit-line-clamp: unset; /* 取消两行截断限制，随内容自然撑开 */
+			-webkit-line-clamp: unset;
 			font-size: 0.82rem;
 			line-height: 1.45;
 		}
