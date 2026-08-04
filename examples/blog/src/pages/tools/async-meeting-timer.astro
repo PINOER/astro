@@ -1,0 +1,489 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Asynchronous Meeting Agenda & Presentation Countdown Timer",
+	description: "Full-screen presentation countdown timer with structured meeting agenda tracks. 100% free, client-side, and distraction-free for remote teams.",
+	icon: "⏱️",
+	tag: "Remote Work",
+	keywords: "meeting timer presentation countdown async meeting agenda timer remote team pitch timer lightning talk timer",
+	pinned: false,
+	priority: 91
+};
+
+const faqList = [
+	{
+		question: "How does the Asynchronous Meeting Agenda Timer help remote teams?",
+		answer: "It keeps asynchronous video recordings (Loom/Descript) or live sync presentations concise by enforcing strict time limits for each agenda item, avoiding meeting overruns."
+	},
+	{
+		question: "Can I customize agenda topics and individual time limits?",
+		answer: "Yes! You can add, reorder, or edit agenda items with dedicated time allocations. The timer automatically progresses or allows manual switching to the next topic."
+	},
+	{
+		question: "Is any meeting agenda or timing data saved on a server?",
+		answer: "No, 100% private. All timer calculations and agenda lists are stored locally in your browser session using LocalStorage. Zero data leaves your computer."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		.timer-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1.5rem;
+		}
+
+		.tool-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			margin-bottom: 2rem;
+		}
+
+		/* Live Timer Display Screen */
+		.timer-screen {
+			background: var(--code-bg);
+			border: 2px solid var(--card-border);
+			border-radius: 16px;
+			padding: 2.5rem 1.5rem;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.current-topic {
+			font-size: 1.2rem;
+			font-weight: 700;
+			color: var(--accent);
+			margin-bottom: 0.5rem;
+		}
+
+		.timer-display {
+			font-size: 4.5rem;
+			font-weight: 900;
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			color: var(--text-main);
+			line-height: 1;
+			margin: 1rem 0;
+			letter-spacing: -1px;
+		}
+
+		.timer-display.warning {
+			color: #eab308;
+		}
+
+		.timer-display.danger {
+			color: #ef4444;
+			animation: pulse 1s infinite;
+		}
+
+		@keyframes pulse {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0.6; }
+		}
+
+		.progress-bar-bg {
+			width: 100%;
+			height: 8px;
+			background: var(--card-border);
+			border-radius: 4px;
+			overflow: hidden;
+			margin-top: 1.5rem;
+		}
+
+		.progress-bar-fill {
+			height: 100%;
+			width: 100%;
+			background: var(--accent);
+			transition: width 0.3s linear;
+		}
+
+		/* Agenda Setup List */
+		.agenda-list {
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+			margin-bottom: 1.2rem;
+		}
+
+		.agenda-item {
+			display: flex;
+			align-items: center;
+			gap: 0.8rem;
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			padding: 0.6rem 0.8rem;
+			border-radius: 10px;
+		}
+
+		.agenda-item.active {
+			border-color: var(--accent);
+			background: rgba(99, 102, 241, 0.08);
+		}
+
+		.agenda-item input[type="text"] {
+			flex: 1;
+			padding: 0.5em 0.8em;
+			background: var(--bg-card) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 6px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			outline: none;
+		}
+
+		.agenda-item input[type="number"] {
+			width: 70px;
+			padding: 0.5em;
+			background: var(--bg-card) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 6px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			text-align: center;
+			outline: none;
+		}
+
+		.btn-del {
+			background: rgba(239, 68, 68, 0.15);
+			color: #ef4444;
+			border: none;
+			padding: 0.4em 0.7em;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: 700;
+		}
+
+		.control-btns {
+			display: flex;
+			gap: 0.8rem;
+			justify-content: center;
+			margin-top: 1.5rem;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.7em 1.4em;
+			border-radius: 8px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.btn-secondary {
+			background: var(--gray-light);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+
+		@media (max-width: 768px) {
+			.timer-grid {
+				grid-template-columns: 1fr;
+			}
+			.timer-display {
+				font-size: 3.2rem;
+			}
+		}
+	</style>
+
+	<div class="tool-card">
+		<div class="timer-grid">
+			<!-- Countdown Stage -->
+			<div class="timer-screen">
+				<div class="current-topic" id="currentTopicDisplay">1. Welcome & Meeting Context</div>
+				<div class="timer-display" id="timeDisplay">03:00</div>
+				<div style="font-size: 0.85rem; color: var(--text-muted);" id="statusSub">Ready to begin presentation</div>
+
+				<div class="progress-bar-bg">
+					<div class="progress-bar-fill" id="progressBar"></div>
+				</div>
+
+				<div class="control-btns">
+					<button class="btn" id="btnStartPause">▶️ Start Timer</button>
+					<button class="btn btn-secondary" id="btnNext">⏭️ Next Topic</button>
+					<button class="btn btn-secondary" id="btnReset">🔄 Reset</button>
+				</div>
+			</div>
+
+			<!-- Agenda Form Editor -->
+			<div>
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+					<strong style="color: var(--text-main); font-size: 1.05rem;">📋 Meeting Agenda Tracks</strong>
+					<button class="btn btn-secondary" id="btnAddAgenda" style="padding: 0.4em 0.8em; font-size: 0.82rem;">+ Add Item</button>
+				</div>
+
+				<div class="agenda-list" id="agendaContainer"></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ 面板区 -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
+	<script slot="scripts">
+		function initTool() {
+			let agendaItems = [
+				{ title: "Welcome & Context", mins: 3 },
+				{ title: "Project Status & Metrics", mins: 5 },
+				{ title: "Blockers & Discussion", mins: 10 },
+				{ title: "Next Action Items", mins: 2 }
+			];
+
+			let currentIdx = 0;
+			let totalSeconds = 180;
+			let remainingSeconds = 180;
+			let timerInterval = null;
+			let isRunning = false;
+
+			const currentTopicDisplay = document.getElementById('currentTopicDisplay');
+			const timeDisplay = document.getElementById('timeDisplay');
+			const statusSub = document.getElementById('statusSub');
+			const progressBar = document.getElementById('progressBar');
+			const agendaContainer = document.getElementById('agendaContainer');
+
+			const btnStartPause = document.getElementById('btnStartPause');
+			const btnNext = document.getElementById('btnNext');
+			const btnReset = document.getElementById('btnReset');
+			const btnAddAgenda = document.getElementById('btnAddAgenda');
+
+			function renderAgendaList() {
+				if (!agendaContainer) return;
+				agendaContainer.innerHTML = '';
+
+				agendaItems.forEach((item, index) => {
+					const div = document.createElement('div');
+					div.className = `agenda-item ${index === currentIdx ? 'active' : ''}`;
+					div.innerHTML = `
+						<span style="font-weight:700; font-size:0.85rem; color:var(--text-muted);">${index + 1}.</span>
+						<input type="text" class="input-title" data-idx="${index}" value="${item.title}" placeholder="Topic title..." />
+						<input type="number" class="input-mins" data-idx="${index}" value="${item.mins}" min="1" max="120" />
+						<span style="font-size:0.8rem; color:var(--text-muted);">min</span>
+						${agendaItems.length > 1 ? `<button class="btn-del" data-idx="${index}">×</button>` : ''}
+					`;
+					agendaContainer.appendChild(div);
+				});
+
+				bindAgendaEvents();
+			}
+
+			function bindAgendaEvents() {
+				agendaContainer?.querySelectorAll('.input-title').forEach(input => {
+					input.addEventListener('input', (e) => {
+						const idx = parseInt(e.target.getAttribute('data-idx') || '0');
+						agendaItems[idx].title = e.target.value;
+						if (idx === currentIdx) updateTopicDisplay();
+					});
+				});
+
+				agendaContainer?.querySelectorAll('.input-mins').forEach(input => {
+					input.addEventListener('change', (e) => {
+						const idx = parseInt(e.target.getAttribute('data-idx') || '0');
+						const newMins = Math.max(1, parseInt(e.target.value) || 1);
+						agendaItems[idx].mins = newMins;
+						if (idx === currentIdx && !isRunning) {
+							totalSeconds = newMins * 60;
+							remainingSeconds = totalSeconds;
+							updateTimerDisplay();
+						}
+					});
+				});
+
+				agendaContainer?.querySelectorAll('.btn-del').forEach(btn => {
+					btn.addEventListener('click', (e) => {
+						const idx = parseInt(e.target.getAttribute('data-idx') || '0');
+						agendaItems.splice(idx, 1);
+						if (currentIdx >= agendaItems.length) currentIdx = Math.max(0, agendaItems.length - 1);
+						renderAgendaList();
+						resetCurrentTopic();
+					});
+				});
+			}
+
+			btnAddAgenda?.addEventListener('click', () => {
+				agendaItems.push({ title: "New Discussion Topic", mins: 5 });
+				renderAgendaList();
+			});
+
+			function formatTime(secs) {
+				const m = Math.floor(secs / 60);
+				const s = secs % 60;
+				return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+			}
+
+			function updateTopicDisplay() {
+				if (currentTopicDisplay) {
+					const item = agendaItems[currentIdx];
+					currentTopicDisplay.textContent = `${currentIdx + 1}. ${item ? item.title : 'End of Agenda'}`;
+				}
+			}
+
+			function updateTimerDisplay() {
+				if (timeDisplay) {
+					timeDisplay.textContent = formatTime(remainingSeconds);
+
+					timeDisplay.classList.remove('warning', 'danger');
+					if (remainingSeconds <= 10) {
+						timeDisplay.classList.add('danger');
+					} else if (remainingSeconds <= 30) {
+						timeDisplay.classList.add('warning');
+					}
+				}
+
+				if (progressBar) {
+					const pct = totalSeconds > 0 ? (remainingSeconds / totalSeconds) * 100 : 0;
+					progressBar.style.width = `${pct}%`;
+				}
+			}
+
+			function resetCurrentTopic() {
+				clearInterval(timerInterval);
+				isRunning = false;
+				if (btnStartPause) btnStartPause.textContent = '▶️ Start Timer';
+
+				const item = agendaItems[currentIdx];
+				totalSeconds = (item ? item.mins : 3) * 60;
+				remainingSeconds = totalSeconds;
+
+				updateTopicDisplay();
+				updateTimerDisplay();
+				if (statusSub) statusSub.textContent = `Ready for Topic ${currentIdx + 1}`;
+				renderAgendaList();
+			}
+
+			btnStartPause?.addEventListener('click', () => {
+				if (isRunning) {
+					clearInterval(timerInterval);
+					isRunning = false;
+					btnStartPause.textContent = '▶️ Resume Timer';
+					if (statusSub) statusSub.textContent = 'Timer paused';
+				} else {
+					isRunning = true;
+					btnStartPause.textContent = '⏸️ Pause Timer';
+					if (statusSub) statusSub.textContent = 'Counting down...';
+
+					timerInterval = setInterval(() => {
+						if (remainingSeconds > 0) {
+							remainingSeconds--;
+							updateTimerDisplay();
+						} else {
+							clearInterval(timerInterval);
+							isRunning = false;
+							btnStartPause.textContent = '▶️ Start Timer';
+							if (statusSub) statusSub.textContent = 'Time expired for this topic!';
+							
+							// Auto move to next or alert
+							if (currentIdx < agendaItems.length - 1) {
+								setTimeout(() => {
+									currentIdx++;
+									resetCurrentTopic();
+								}, 1000);
+							}
+						}
+					}, 1000);
+				}
+			});
+
+			btnNext?.addEventListener('click', () => {
+				if (currentIdx < agendaItems.length - 1) {
+					currentIdx++;
+				} else {
+					currentIdx = 0;
+				}
+				resetCurrentTopic();
+			});
+
+			btnReset?.addEventListener('click', () => {
+				resetCurrentTopic();
+			});
+
+			renderAgendaList();
+			resetCurrentTopic();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
+	</script>
+</ToolLayout>
