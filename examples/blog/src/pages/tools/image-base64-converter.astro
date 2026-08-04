@@ -306,134 +306,143 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const dropZone = document.getElementById('dropZone');
-		const fileInput = document.getElementById('fileInput');
-		const resultWrapper = document.getElementById('resultWrapper');
-		const previewImg = document.getElementById('previewImg');
-		const previewName = document.getElementById('previewName');
-		const metaDim = document.getElementById('metaDim');
-		const metaSize = document.getElementById('metaSize');
-		const metaBase64Size = document.getElementById('metaBase64Size');
-		const outputCode = document.getElementById('outputCode');
-		const btnCopy = document.getElementById('btnCopy');
-		const btnClear = document.getElementById('btnClear');
-		const tabBtns = document.querySelectorAll('.tab-btn');
+		function initTool() {
+			const dropZone = document.getElementById('dropZone');
+			const fileInput = document.getElementById('fileInput');
+			const resultWrapper = document.getElementById('resultWrapper');
+			const previewImg = document.getElementById('previewImg');
+			const previewName = document.getElementById('previewName');
+			const metaDim = document.getElementById('metaDim');
+			const metaSize = document.getElementById('metaSize');
+			const metaBase64Size = document.getElementById('metaBase64Size');
+			const outputCode = document.getElementById('outputCode');
+			const btnCopy = document.getElementById('btnCopy');
+			const btnClear = document.getElementById('btnClear');
+			const tabBtns = document.querySelectorAll('.tab-btn');
 
-		let rawDataURI = '';
-		let currentFormat = 'datauri';
-		let currentFileName = '';
+			let rawDataURI = '';
+			let currentFormat = 'datauri';
+			let currentFileName = '';
 
-		function formatBytes(bytes) {
-			if (bytes === 0) return '0 B';
-			const k = 1024;
-			const sizes = ['B', 'KB', 'MB'];
-			const i = Math.floor(Math.log(bytes) / Math.log(k));
-			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-		}
-
-		function updateOutputFormat() {
-			if (!rawDataURI) return;
-
-			let result = '';
-			const rawBase64 = rawDataURI.split(',')[1] || '';
-
-			switch (currentFormat) {
-				case 'raw':
-					result = rawBase64;
-					break;
-				case 'html':
-					result = `<img src="${rawDataURI}" alt="${currentFileName}" />`;
-					break;
-				case 'css':
-					result = `background-image: url("${rawDataURI}");`;
-					break;
-				case 'datauri':
-				default:
-					result = rawDataURI;
-					break;
+			function formatBytes(bytes) {
+				if (bytes === 0) return '0 B';
+				const k = 1024;
+				const sizes = ['B', 'KB', 'MB'];
+				const i = Math.floor(Math.log(bytes) / Math.log(k));
+				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 			}
 
-			outputCode.value = result;
-		}
+			function updateOutputFormat() {
+				if (!rawDataURI || !outputCode) return;
 
-		function processFile(file) {
-			if (!file || !file.type.startsWith('image/')) return;
+				let result = '';
+				const rawBase64 = rawDataURI.split(',')[1] || '';
 
-			currentFileName = file.name;
-			previewName.textContent = file.name;
-			metaSize.textContent = `Original Size: ${formatBytes(file.size)}`;
+				switch (currentFormat) {
+					case 'raw':
+						result = rawBase64;
+						break;
+					case 'html':
+						result = `<img src="${rawDataURI}" alt="${currentFileName}" />`;
+						break;
+					case 'css':
+						result = `background-image: url("${rawDataURI}");`;
+						break;
+					case 'datauri':
+					default:
+						result = rawDataURI;
+						break;
+				}
 
-			const reader = new FileReader();
-			reader.onload = (e) => {
-				rawDataURI = e.target.result;
+				outputCode.value = result;
+			}
 
-				const img = new Image();
-				img.onload = () => {
-					metaDim.textContent = `Dimensions: ${img.width} × ${img.height} px`;
+			function processFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+
+				currentFileName = file.name;
+				if (previewName) previewName.textContent = file.name;
+				if (metaSize) metaSize.textContent = `Original Size: ${formatBytes(file.size)}`;
+
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					rawDataURI = e.target?.result;
+
+					const img = new Image();
+					img.onload = () => {
+						if (metaDim) metaDim.textContent = `Dimensions: ${img.width} × ${img.height} px`;
+					};
+					img.src = rawDataURI;
+
+					if (previewImg) previewImg.src = rawDataURI;
+					if (metaBase64Size) metaBase64Size.textContent = `Base64 Size: ${formatBytes(rawDataURI.length)}`;
+
+					updateOutputFormat();
+					if (resultWrapper) resultWrapper.style.display = 'flex';
 				};
-				img.src = rawDataURI;
+				reader.readAsDataURL(file);
+			}
 
-				previewImg.src = rawDataURI;
-				metaBase64Size.textContent = `Base64 Size: ${formatBytes(rawDataURI.length)}`;
+			fileInput?.addEventListener('change', (e) => {
+				const target = e.target;
+				if (target && target.files && target.files[0]) {
+					processFile(target.files[0]);
+				}
+			});
 
-				updateOutputFormat();
-				resultWrapper.style.display = 'flex';
-			};
-			reader.readAsDataURL(file);
+			['dragenter', 'dragover'].forEach(eventName => {
+				dropZone?.addEventListener(eventName, (e) => {
+					e.preventDefault();
+					dropZone.classList.add('dragover');
+				});
+			});
+
+			['dragleave', 'drop'].forEach(eventName => {
+				dropZone?.addEventListener(eventName, (e) => {
+					e.preventDefault();
+					dropZone.classList.remove('dragover');
+				});
+			});
+
+			dropZone?.addEventListener('drop', (e) => {
+				const dt = e.dataTransfer;
+				if (dt && dt.files && dt.files[0]) {
+					processFile(dt.files[0]);
+				}
+			});
+
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentFormat = btn.getAttribute('data-format') || 'datauri';
+					updateOutputFormat();
+				});
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!outputCode || !outputCode.value) return;
+				navigator.clipboard.writeText(outputCode.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
+
+			btnClear?.addEventListener('click', () => {
+				if (fileInput) fileInput.value = '';
+				rawDataURI = '';
+				if (outputCode) outputCode.value = '';
+				if (resultWrapper) resultWrapper.style.display = 'none';
+			});
 		}
 
-		fileInput?.addEventListener('change', (e) => {
-			if (e.target.files && e.target.files[0]) {
-				processFile(e.target.files[0]);
-			}
-		});
-
-		['dragenter', 'dragover'].forEach(eventName => {
-			dropZone?.addEventListener(eventName, (e) => {
-				e.preventDefault();
-				dropZone.classList.add('dragover');
-			});
-		});
-
-		['dragleave', 'drop'].forEach(eventName => {
-			dropZone?.addEventListener(eventName, (e) => {
-				e.preventDefault();
-				dropZone.classList.remove('dragover');
-			});
-		});
-
-		dropZone?.addEventListener('drop', (e) => {
-			const dt = e.dataTransfer;
-			if (dt && dt.files && dt.files[0]) {
-				processFile(dt.files[0]);
-			}
-		});
-
-		tabBtns.forEach(btn => {
-			btn.addEventListener('click', () => {
-				tabBtns.forEach(b => b.classList.remove('active'));
-				btn.classList.add('active');
-				currentFormat = btn.getAttribute('data-format') || 'datauri';
-				updateOutputFormat();
-			});
-		});
-
-		btnCopy?.addEventListener('click', () => {
-			if (!outputCode.value) return;
-			navigator.clipboard.writeText(outputCode.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
-
-		btnClear?.addEventListener('click', () => {
-			fileInput.value = '';
-			rawDataURI = '';
-			outputCode.value = '';
-			resultWrapper.style.display = 'none';
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
