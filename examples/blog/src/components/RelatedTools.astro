@@ -8,10 +8,10 @@ interface Props {
 	limit?: number;      // 展示数量 (默认 2 个)
 }
 
-const { currentPath, tag, lang = 'en', limit = 2 } = Astro.props;
+const { currentPath = '', tag = 'General', lang = 'en', limit = 2 } = Astro.props;
 
 // 1. 自动抓取同语言路径下的所有 .astro 工具页面
-let toolModules: Record<string, any>;
+let toolModules: Record<string, any> = {};
 if (lang === 'zh') {
 	toolModules = import.meta.glob('../pages/zh/tools/*.astro', { eager: true });
 } else {
@@ -21,28 +21,34 @@ if (lang === 'zh') {
 // 2. 解析每个工具页面的 frontmatter 与 URL
 const localTools = Object.entries(toolModules)
 	.map(([filePath, mod]) => {
-		const frontmatter = mod.frontmatter || {};
-		// 根据文件路径自动推导路由 URL
-		let url = filePath
-			.replace('../pages', '')
-			.replace('.astro', '/');
+		// 兼容各种导出情况：mod.frontmatter 或 mod 自身
+		const fm = mod.frontmatter || mod.default?.frontmatter || {};
+		
+		// 严谨推导 URL：从 ../pages 后面开始截取
+		const pagesIndex = filePath.indexOf('/pages');
+		let url = '';
+		if (pagesIndex !== -1) {
+			url = filePath.substring(pagesIndex + 6).replace('.astro', '/');
+		} else {
+			url = filePath.replace('../pages', '').replace('.astro', '/');
+		}
 
 		return {
 			url,
-			title: frontmatter.title || '',
-			description: frontmatter.description || '',
-			icon: frontmatter.icon || '🛠️',
-			tag: frontmatter.tag || 'General',
-			priority: frontmatter.priority || 0,
+			title: fm.title || '',
+			description: fm.description || '',
+			icon: fm.icon || '🛠️',
+			tag: fm.tag || 'General',
+			priority: fm.priority || 0,
 			isExternal: false,
 		};
 	})
-	.filter(t => t.title !== ''); // 确保有标题
+	.filter(t => t.title !== ''); // 过滤掉没有标题的文件
 
-// 3. (可选) 第三方付费广告/加盟推广工具池 (Monetization Slot)
+// 3. 第三方付费广告/加盟推广工具池
 const sponsorTools = [
 	{
-		url: 'https://shopify.pxf.io/your-affiliate-link', // 你的推广链接
+		url: 'https://shopify.pxf.io/your-affiliate-link',
 		title: lang === 'zh' ? 'Shopify 独立站建站 (首月 $1)' : 'Shopify: Build Your Online Store',
 		description: lang === 'zh' ? '全球主流独立站平台，限时体验首月仅 $1。' : 'Start your e-commerce business for $1/month.',
 		icon: '🛍️',
@@ -53,21 +59,25 @@ const sponsorTools = [
 	}
 ];
 
-// 4. 过滤掉当前工具本身
-const normalize = (path: string) => path.endsWith('/') ? path : `${path}/`;
-const candidateTools = localTools.filter(t => normalize(t.url) !== normalize(currentPath));
+// 4. 标准化路径对比 (统一转小写、去掉末尾斜杠)
+const cleanPath = (p: string) => p.toLowerCase().replace(/\/+$|^\/+/g, '');
+const normalizedCurrent = cleanPath(currentPath);
+
+const candidateTools = localTools.filter(t => cleanPath(t.url) !== normalizedCurrent);
 
 // 5. 查找是否有匹配当前 Tag 的第三方赞助工具
-const matchedSponsor = sponsorTools.find(s => s.tag === tag);
+const matchedSponsor = sponsorTools.find(s => s.tag.toLowerCase() === tag.toLowerCase());
 
 // 6. 算法排序：同 Tag 优先 (+1000 分) > 按 priority 降序
 const sortedLocalTools = candidateTools.sort((a, b) => {
-	const aScore = (a.tag === tag ? 1000 : 0) + a.priority;
-	const bScore = (b.tag === tag ? 1000 : 0) + b.priority;
+	const aMatch = a.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
+	const bMatch = b.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
+	const aScore = aMatch + a.priority;
+	const bScore = bMatch + b.priority;
 	return bScore - aScore;
 });
 
-// 7. 组合最终展示列表：如果有相关广告位则占用第 1 个卡片，其余填补同类工具
+// 7. 组合最终展示列表
 let finalRecommendations = [];
 if (matchedSponsor) {
 	finalRecommendations = [matchedSponsor, ...sortedLocalTools.slice(0, limit - 1)];
@@ -137,7 +147,6 @@ if (matchedSponsor) {
 		border-color: var(--accent);
 		transform: translateY(-2px);
 	}
-	/* 第三方广告卡片高亮与样式 */
 	.related-card.sponsor-card {
 		border-color: rgba(245, 158, 11, 0.4);
 		background: linear-gradient(135deg, var(--code-bg) 0%, rgba(245, 158, 11, 0.05) 100%);
