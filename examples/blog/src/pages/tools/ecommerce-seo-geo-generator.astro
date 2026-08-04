@@ -301,66 +301,69 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const titleInput = document.getElementById('titleInput');
-		const brandInput = document.getElementById('brandInput');
-		const skuInput = document.getElementById('skuInput');
-		const priceInput = document.getElementById('priceInput');
-		const currencySelect = document.getElementById('currencySelect');
-		const stockSelect = document.getElementById('stockSelect');
-		const ratingInput = document.getElementById('ratingInput');
-		const reviewCountInput = document.getElementById('reviewCountInput');
-		const imageInput = document.getElementById('imageInput');
-		const highlightsInput = document.getElementById('highlightsInput');
+		function initTool() {
+			const titleInput = document.getElementById('titleInput');
+			const brandInput = document.getElementById('brandInput');
+			const skuInput = document.getElementById('skuInput');
+			const priceInput = document.getElementById('priceInput');
+			const currencySelect = document.getElementById('currencySelect');
+			const stockSelect = document.getElementById('stockSelect');
+			const ratingInput = document.getElementById('ratingInput');
+			const reviewCountInput = document.getElementById('reviewCountInput');
+			const imageInput = document.getElementById('imageInput');
+			const highlightsInput = document.getElementById('highlightsInput');
 
-		const schemaOutput = document.getElementById('schemaOutput');
-		const metaOutput = document.getElementById('metaOutput');
-		const geoOutput = document.getElementById('geoOutput');
+			const schemaOutput = document.getElementById('schemaOutput');
+			const metaOutput = document.getElementById('metaOutput');
+			const geoOutput = document.getElementById('geoOutput');
 
-		function generateSEOData() {
-			const title = titleInput.value.trim() || 'Ergonomic Office Chair High Back Support';
-			const brand = brandInput.value.trim() || 'HelpMini Store';
-			const sku = skuInput.value.trim() || 'HM-PRODUCT-001';
-			const price = priceInput.value.trim() || '99.99';
-			const currency = currencySelect.value || 'USD';
-			const stock = stockSelect.value || 'InStock';
-			const rating = ratingInput.value.trim() || '4.9';
-			const reviewCount = reviewCountInput.value.trim() || '86';
-			const image = imageInput.value.trim() || 'https://example.com/product-image.jpg';
-			const highlights = highlightsInput.value.trim() || 'Ergonomic support; Premium breathable material; Easy 10-minute assembly';
+			function generateSEOData() {
+				const title = titleInput?.value?.trim() || 'Ergonomic Office Chair High Back Support';
+				const brand = brandInput?.value?.trim() || 'HelpMini Store';
+				const sku = skuInput?.value?.trim() || 'HM-PRODUCT-001';
+				const price = priceInput?.value?.trim() || '99.99';
+				const currency = currencySelect?.value || 'USD';
+				const stock = stockSelect?.value || 'InStock';
+				const rating = ratingInput?.value?.trim() || '4.9';
+				const reviewCount = reviewCountInput?.value?.trim() || '86';
+				const image = imageInput?.value?.trim() || 'https://example.com/product-image.jpg';
+				const highlights = highlightsInput?.value?.trim() || 'Ergonomic support; Premium breathable material; Easy 10-minute assembly';
 
-			// 1. JSON-LD Schema
-			const jsonLd = {
-				"@context": "https://schema.org/",
-				"@type": "Product",
-				"name": title,
-				"image": [image],
-				"description": highlights.replace(/\n/g, ' '),
-				"sku": sku,
-				"brand": {
-					"@type": "Brand",
-					"name": brand
-				},
-				"offers": {
-					"@type": "Offer",
-					"url": window.location.href,
-					"priceCurrency": currency,
-					"price": price,
-					"availability": `https://schema.org/${stock}`,
-					"itemCondition": "https://schema.org/NewCondition"
-				},
-				"aggregateRating": {
-					"@type": "AggregateRating",
-					"ratingValue": rating,
-					"reviewCount": reviewCount
+				// 1. JSON-LD Schema
+				const jsonLd = {
+					"@context": "https://schema.org/",
+					"@type": "Product",
+					"name": title,
+					"image": [image],
+					"description": highlights.replace(/\n/g, ' '),
+					"sku": sku,
+					"brand": {
+						"@type": "Brand",
+						"name": brand
+					},
+					"offers": {
+						"@type": "Offer",
+						"url": window.location.href,
+						"priceCurrency": currency,
+						"price": price,
+						"availability": `https://schema.org/${stock}`,
+						"itemCondition": "https://schema.org/NewCondition"
+					},
+					"aggregateRating": {
+						"@type": "AggregateRating",
+						"ratingValue": rating,
+						"reviewCount": reviewCount
+					}
+				};
+
+				if (schemaOutput) {
+					schemaOutput.value = `<script type="application/ld+json">\n${JSON.stringify(jsonLd, null, 2)}\n<\/script>`;
 				}
-			};
 
-			schemaOutput.value = `<script type="application/ld+json">\n${JSON.stringify(jsonLd, null, 2)}\n<\/script>`;
-
-			// 2. HTML Meta Tags
-			const metaTags = `<!-- Primary Meta Tags -->
+				// 2. HTML Meta Tags
+				const metaTags = `<!-- Primary Meta Tags -->
 <title>${title} - ${brand}</title>
 <meta name="title" content="${title} - ${brand}">
 <meta name="description" content="Shop ${title} by ${brand}. Features: ${highlights.slice(0, 120)}... Priced at $${price} ${currency}. Buy now!">
@@ -373,11 +376,13 @@ const faqSchema = {
 <meta property="product:price:amount" content="${price}">
 <meta property="product:price:currency" content="${currency}">`;
 
-			metaOutput.value = metaTags;
+				if (metaOutput) {
+					metaOutput.value = metaTags;
+				}
 
-			// 3. GEO Framework (AI Search Friendly)
-			const highlightList = highlights.split(/;\s*|\n/).filter(Boolean).map(item => `- ${item}`).join('\n');
-			const geoText = `[Product Executive Summary for AI Search Engines / SearchGPT]
+				// 3. GEO Framework (AI Search Friendly)
+				const highlightList = highlights.split(/;\s*|\n/).filter(Boolean).map(item => `- ${item}`).join('\n');
+				const geoText = `[Product Executive Summary for AI Search Engines / SearchGPT]
 Product Name: ${title}
 Brand: ${brand}
 Price: ${currency} $${price}
@@ -394,33 +399,42 @@ A: It offers ${highlights.slice(0, 150)}. It is highly rated with ${rating}/5.0 
 Q: What is the price and shipping availability for ${title}?
 A: The current price is ${price} ${currency}, and it is ${stock === 'InStock' ? 'currently in stock with fast shipping options' : 'available for order'}.`;
 
-			geoOutput.value = geoText;
+				if (geoOutput) {
+					geoOutput.value = geoText;
+				}
+			}
+
+			// Add Listeners
+			[
+				titleInput, brandInput, skuInput, priceInput, currencySelect,
+				stockSelect, ratingInput, reviewCountInput, imageInput, highlightsInput
+			].forEach(el => {
+				el?.addEventListener('input', generateSEOData);
+				el?.addEventListener('change', generateSEOData);
+			});
+
+			generateSEOData();
+
+			// Copy Logic
+			document.querySelectorAll('.btn-copy').forEach(btn => {
+				btn.addEventListener('click', () => {
+					const targetId = btn.getAttribute('data-target');
+					const targetTextarea = document.getElementById(targetId);
+					if (targetTextarea && targetTextarea.value) {
+						navigator.clipboard.writeText(targetTextarea.value).then(() => {
+							const originalText = btn.textContent;
+							btn.textContent = 'Copied!';
+							setTimeout(() => { btn.textContent = originalText; }, 2000);
+						});
+					}
+				});
+			});
 		}
 
-		// Add Listeners
-		[
-			titleInput, brandInput, skuInput, priceInput, currencySelect,
-			stockSelect, ratingInput, reviewCountInput, imageInput, highlightsInput
-		].forEach(el => {
-			el?.addEventListener('input', generateSEOData);
-			el?.addEventListener('change', generateSEOData);
-		});
-
-		generateSEOData();
-
-		// Copy Logic
-		document.querySelectorAll('.btn-copy').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const targetId = btn.dataset.target;
-				const targetTextarea = document.getElementById(targetId);
-				if (targetTextarea && targetTextarea.value) {
-					navigator.clipboard.writeText(targetTextarea.value).then(() => {
-						const originalText = btn.textContent;
-						btn.textContent = 'Copied!';
-						setTimeout(() => { btn.textContent = originalText; }, 2000);
-					});
-				}
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
