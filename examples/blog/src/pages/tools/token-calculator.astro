@@ -248,48 +248,59 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const inputText = document.getElementById('inputText') as HTMLTextAreaElement;
-		const tokenCountEl = document.getElementById('tokenCount') as HTMLDivElement;
-		const charCountEl = document.getElementById('charCount') as HTMLDivElement;
-		const wordCountEl = document.getElementById('wordCount') as HTMLDivElement;
+		function initTool() {
+			const inputText = document.getElementById('inputText');
+			const tokenCountEl = document.getElementById('tokenCount');
+			const charCountEl = document.getElementById('charCount');
+			const wordCountEl = document.getElementById('wordCount');
 
-		const models = {
-			gpt4o: { limit: 128000, bar: document.getElementById('bar-gpt4o'), text: document.getElementById('text-gpt4o') },
-			claude: { limit: 200000, bar: document.getElementById('bar-claude'), text: document.getElementById('text-claude') },
-			deepseek: { limit: 64000, bar: document.getElementById('bar-deepseek'), text: document.getElementById('text-deepseek') },
-			gemini: { limit: 2000000, bar: document.getElementById('bar-gemini'), text: document.getElementById('text-gemini') }
-		};
+			const models = {
+				gpt4o: { limit: 128000, bar: document.getElementById('bar-gpt4o'), text: document.getElementById('text-gpt4o') },
+				claude: { limit: 200000, bar: document.getElementById('bar-claude'), text: document.getElementById('text-claude') },
+				deepseek: { limit: 64000, bar: document.getElementById('bar-deepseek'), text: document.getElementById('text-deepseek') },
+				gemini: { limit: 2000000, bar: document.getElementById('bar-gemini'), text: document.getElementById('text-gemini') }
+			};
 
-		inputText?.addEventListener('input', () => {
-			const text = inputText.value;
-			const charCount = text.length;
-			
-			const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-			
-			let tokens = 0;
-			for (let i = 0; i < text.length; i++) {
-				const code = text.charCodeAt(i);
-				if (code > 255) {
-					tokens += 0.65; // CJK 字符
-				} else {
-					tokens += 0.25; // 英文字符/数字/标点
+			function updateCounts() {
+				const text = inputText?.value || '';
+				const charCount = text.length;
+				
+				const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+				
+				let tokens = 0;
+				for (let i = 0; i < text.length; i++) {
+					const code = text.charCodeAt(i);
+					if (code > 255) {
+						tokens += 0.65; // CJK 字符
+					} else {
+						tokens += 0.25; // 英文字符/数字/标点
+					}
 				}
+				const finalTokens = Math.ceil(tokens);
+
+				if (tokenCountEl) tokenCountEl.textContent = finalTokens.toLocaleString();
+				if (charCountEl) charCountEl.textContent = charCount.toLocaleString();
+				if (wordCountEl) wordCountEl.textContent = words.toLocaleString();
+
+				Object.values(models).forEach(m => {
+					if (m.bar && m.text) {
+						const percentage = Math.min(((finalTokens / m.limit) * 100), 100);
+						m.bar.style.width = `${percentage}%`;
+						m.text.textContent = percentage < 0.01 && finalTokens > 0 ? '<0.01%' : `${percentage.toFixed(2)}%`;
+					}
+				});
 			}
-			const finalTokens = Math.ceil(tokens);
 
-			if (tokenCountEl) tokenCountEl.textContent = finalTokens.toLocaleString();
-			if (charCountEl) charCountEl.textContent = charCount.toLocaleString();
-			if (wordCountEl) wordCountEl.textContent = words.toLocaleString();
+			inputText?.addEventListener('input', updateCounts);
+			updateCounts();
+		}
 
-			Object.values(models).forEach(m => {
-				if (m.bar && m.text) {
-					const percentage = Math.min(((finalTokens / m.limit) * 100), 100);
-					m.bar.style.width = `${percentage}%`;
-					m.text.textContent = percentage < 0.01 && finalTokens > 0 ? '<0.01%' : `${percentage.toFixed(2)}%`;
-				}
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
