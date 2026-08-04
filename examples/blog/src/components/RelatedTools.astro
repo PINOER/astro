@@ -53,7 +53,7 @@ const sponsorTools = rawSponsors.map(item => ({
 	description: item.desc,
 	icon: item.icon || '💎',
 	tag: item.tag || (lang === 'zh' ? '赞助推广' : 'Sponsored'),
-	priority: item.priority ?? 999,
+	priority: item.priority ?? 0, // 真实读取 tools.ts 中的优先级配置
 	isExternal: true,
 	sponsorText: lang === 'zh' ? '赞助推荐' : 'Sponsored'
 }));
@@ -64,25 +64,23 @@ const normalizedCurrent = cleanPath(currentPath);
 
 const candidateTools = localTools.filter(t => cleanPath(t.url) !== normalizedCurrent);
 
-// 5. 寻找匹配的赞助项：优先标签匹配，若无标签完全匹配则默认显示全局第一个赞助广告
-const matchedSponsor = sponsorTools.find(s => s.tag.toLowerCase() === tag.toLowerCase()) || sponsorTools[0];
+// 5. 🎯 核心权重混合竞价算法：将本地工具与赞助广告合并到统一竞价池
+const allCandidates = [...candidateTools, ...sponsorTools];
 
-// 6. 本地工具算法排序：同 Tag 优先 (+1000 分) > 按 priority 降序
-const sortedLocalTools = candidateTools.sort((a, b) => {
-	const aMatch = a.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
-	const bMatch = b.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
-	const aScore = aMatch + a.priority;
-	const bScore = bMatch + b.priority;
+const sortedRecommendations = allCandidates.sort((a, b) => {
+	// 判断 Tag 是否匹配当前页面
+	const aTagMatch = a.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
+	const bTagMatch = b.tag.toLowerCase() === tag.toLowerCase() ? 1000 : 0;
+	
+	// 计算综合得分 = Tag匹配分 + 自定义 Priority
+	const aScore = aTagMatch + a.priority;
+	const bScore = bTagMatch + b.priority;
+	
 	return bScore - aScore;
 });
 
-// 7. 组合最终展示列表 (含 1 个赞助项 + N-1 个相关本地工具)
-let finalRecommendations = [];
-if (matchedSponsor) {
-	finalRecommendations = [matchedSponsor, ...sortedLocalTools.slice(0, limit - 1)];
-} else {
-	finalRecommendations = sortedLocalTools.slice(0, limit);
-}
+// 6. 截取综合权重最高的前 limit (如 2) 个展示
+const finalRecommendations = sortedRecommendations.slice(0, limit);
 ---
 
 {finalRecommendations.length > 0 && (
@@ -222,25 +220,25 @@ if (matchedSponsor) {
 		}
 		.related-card {
 			padding: 0.9rem 1rem;
-			height: auto;               /* 自适应高度 */
-			align-items: flex-start;    /* 顶部对齐 */
+			height: auto;
+			align-items: flex-start;
 		}
 		.card-icon {
 			font-size: 1.5rem;
 			margin-top: 0.1rem;
 		}
 		.card-header-row {
-			flex-wrap: wrap;            /* 允许换行 */
+			flex-wrap: wrap;
 			align-items: flex-start;
 			margin-bottom: 0.35rem;
 		}
 		.related-card h4 {
-			white-space: normal;        /* 彻底解除单行限制，允许自然换行 */
+			white-space: normal;
 			font-size: 0.95rem;
 			line-height: 1.35;
 		}
 		.related-card p {
-			-webkit-line-clamp: unset;  /* 取消两行截断限制 */
+			-webkit-line-clamp: unset;
 			font-size: 0.82rem;
 			line-height: 1.45;
 		}
