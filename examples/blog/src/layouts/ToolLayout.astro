@@ -1,0 +1,91 @@
+---
+// src/layouts/ToolLayout.astro
+import BaseHead from 'src/components/BaseHead.astro';
+import Header from 'src/components/Header.astro';
+import Footer from 'src/components/Footer.astro';
+import RelatedTools from 'src/components/RelatedTools.astro';
+import { SITE_TITLE } from 'src/consts';
+
+interface Props {
+	frontmatter: {
+		title: string;
+		description: string;
+		icon?: string;
+		tag?: string;
+		keywords?: string;
+		pinned?: boolean;
+		priority?: number;
+	};
+	lang?: 'en' | 'zh';
+}
+
+const { frontmatter, lang = 'en' } = Astro.props;
+const pageTitle = `${frontmatter.title} — ${SITE_TITLE}`;
+const pageDescription = frontmatter.description;
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang={lang}>
+	<head>
+		<BaseHead title={pageTitle} description={pageDescription} />
+		<slot name="head" /> <!-- 预留内联 <style> 挂载点 -->
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="tool-header">
+				<h1>{frontmatter.icon || '🛠️'} {frontmatter.title}</h1>
+				<p>{frontmatter.description}</p>
+			</div>
+
+			<!-- 页面主工具内容注入区 -->
+			<slot />
+
+			<!-- 自动识别同类工具 + 商业化推荐模块（全自动化） -->
+			<RelatedTools 
+				currentPath={currentPath} 
+				tag={frontmatter.tag || 'General'} 
+				lang={lang} 
+			/>
+		</main>
+		<Footer />
+
+		<!-- 页面脚本注入区 -->
+		<slot name="scripts" />
+	</body>
+</html>
+
+<style is:global>
+	/* 所有工具共用的标准居中样式 */
+	main {
+		width: 900px;
+		max-width: calc(100% - 2em);
+		margin: auto;
+		padding: 3em 1em 5em;
+	}
+	.tool-header {
+		text-align: center;
+		margin-bottom: 2em;
+	}
+	.tool-header h1 {
+		font-size: 2.2rem;
+		font-weight: 800;
+		margin-bottom: 0.3em;
+		background: var(--hero-title-gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	.tool-header p {
+		color: var(--text-muted);
+		font-size: 1.05rem;
+	}
+	.tool-box {
+		background: var(--bg-card);
+		backdrop-filter: blur(12px);
+		border: 1px solid var(--card-border);
+		border-radius: 16px;
+		padding: 2em;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+	}
+</style>
