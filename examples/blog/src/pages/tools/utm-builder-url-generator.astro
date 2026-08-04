@@ -254,82 +254,90 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const targetUrlIn = document.getElementById('targetUrl') as HTMLInputElement;
-		const utmSourceIn = document.getElementById('utmSource') as HTMLInputElement;
-		const utmMediumIn = document.getElementById('utmMedium') as HTMLInputElement;
-		const utmCampaignIn = document.getElementById('utmCampaign') as HTMLInputElement;
-		const utmTermIn = document.getElementById('utmTerm') as HTMLInputElement;
-		const utmContentIn = document.getElementById('utmContent') as HTMLInputElement;
-		const generatedUrlOut = document.getElementById('generatedUrl') as HTMLTextAreaElement;
-		const presetBtns = document.querySelectorAll('.preset-btn');
+		function initTool() {
+			const targetUrlIn = document.getElementById('targetUrl');
+			const utmSourceIn = document.getElementById('utmSource');
+			const utmMediumIn = document.getElementById('utmMedium');
+			const utmCampaignIn = document.getElementById('utmCampaign');
+			const utmTermIn = document.getElementById('utmTerm');
+			const utmContentIn = document.getElementById('utmContent');
+			const generatedUrlOut = document.getElementById('generatedUrl');
+			const presetBtns = document.querySelectorAll('.preset-btn');
 
-		function buildUtmUrl() {
-			let rawUrl = targetUrlIn?.value.trim() || '';
-			if (!rawUrl) {
+			function buildUtmUrl() {
+				let rawUrl = targetUrlIn?.value?.trim() || '';
+				if (!rawUrl) {
+					if (generatedUrlOut) generatedUrlOut.value = '';
+					return;
+				}
+
+				if (!/^https?:\/\//i.test(rawUrl)) {
+					rawUrl = 'https://' + rawUrl;
+				}
+
+				try {
+					const urlObj = new URL(rawUrl);
+					const source = utmSourceIn?.value?.trim().toLowerCase() || '';
+					const medium = utmMediumIn?.value?.trim().toLowerCase() || '';
+					const campaign = utmCampaignIn?.value?.trim() || '';
+					const term = utmTermIn?.value?.trim() || '';
+					const content = utmContentIn?.value?.trim() || '';
+
+					if (source) urlObj.searchParams.set('utm_source', source);
+					if (medium) urlObj.searchParams.set('utm_medium', medium);
+					if (campaign) urlObj.searchParams.set('utm_campaign', campaign);
+					if (term) urlObj.searchParams.set('utm_term', term);
+					if (content) urlObj.searchParams.set('utm_content', content);
+
+					if (generatedUrlOut) generatedUrlOut.value = urlObj.toString();
+				} catch (e) {
+					if (generatedUrlOut) generatedUrlOut.value = 'Invalid URL format';
+				}
+			}
+
+			[targetUrlIn, utmSourceIn, utmMediumIn, utmCampaignIn, utmTermIn, utmContentIn].forEach(input => {
+				input?.addEventListener('input', buildUtmUrl);
+			});
+
+			presetBtns.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const target = e.currentTarget;
+					const src = target?.getAttribute('data-source');
+					const med = target?.getAttribute('data-medium');
+					if (src && utmSourceIn) utmSourceIn.value = src;
+					if (med && utmMediumIn) utmMediumIn.value = med;
+					buildUtmUrl();
+				});
+			});
+
+			document.getElementById('btnClear')?.addEventListener('click', () => {
+				if (targetUrlIn) targetUrlIn.value = '';
+				if (utmSourceIn) utmSourceIn.value = '';
+				if (utmMediumIn) utmMediumIn.value = '';
+				if (utmCampaignIn) utmCampaignIn.value = '';
+				if (utmTermIn) utmTermIn.value = '';
+				if (utmContentIn) utmContentIn.value = '';
 				if (generatedUrlOut) generatedUrlOut.value = '';
-				return;
-			}
+			});
 
-			if (!/^https?:\/\//i.test(rawUrl)) {
-				rawUrl = 'https://' + rawUrl;
-			}
+			document.getElementById('btnCopy')?.addEventListener('click', (e) => {
+				if (!generatedUrlOut || !generatedUrlOut.value) return;
+				navigator.clipboard.writeText(generatedUrlOut.value);
+				const btn = e.target;
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = originalText; }, 2000);
+			});
 
-			try {
-				const urlObj = new URL(rawUrl);
-				const source = utmSourceIn?.value.trim().toLowerCase() || '';
-				const medium = utmMediumIn?.value.trim().toLowerCase() || '';
-				const campaign = utmCampaignIn?.value.trim() || '';
-				const term = utmTermIn?.value.trim() || '';
-				const content = utmContentIn?.value.trim() || '';
-
-				if (source) urlObj.searchParams.set('utm_source', source);
-				if (medium) urlObj.searchParams.set('utm_medium', medium);
-				if (campaign) urlObj.searchParams.set('utm_campaign', campaign);
-				if (term) urlObj.searchParams.set('utm_term', term);
-				if (content) urlObj.searchParams.set('utm_content', content);
-
-				if (generatedUrlOut) generatedUrlOut.value = urlObj.toString();
-			} catch (e) {
-				if (generatedUrlOut) generatedUrlOut.value = 'Invalid URL format';
-			}
+			buildUtmUrl();
 		}
 
-		[targetUrlIn, utmSourceIn, utmMediumIn, utmCampaignIn, utmTermIn, utmContentIn].forEach(input => {
-			input?.addEventListener('input', buildUtmUrl);
-		});
-
-		presetBtns.forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const target = e.currentTarget as HTMLButtonElement;
-				const src = target.getAttribute('data-source');
-				const med = target.getAttribute('data-medium');
-				if (src && utmSourceIn) utmSourceIn.value = src;
-				if (med && utmMediumIn) utmMediumIn.value = med;
-				buildUtmUrl();
-			});
-		});
-
-		document.getElementById('btnClear')?.addEventListener('click', () => {
-			if (targetUrlIn) targetUrlIn.value = '';
-			if (utmSourceIn) utmSourceIn.value = '';
-			if (utmMediumIn) utmMediumIn.value = '';
-			if (utmCampaignIn) utmCampaignIn.value = '';
-			if (utmTermIn) utmTermIn.value = '';
-			if (utmContentIn) utmContentIn.value = '';
-			if (generatedUrlOut) generatedUrlOut.value = '';
-		});
-
-		document.getElementById('btnCopy')?.addEventListener('click', (e) => {
-			if (!generatedUrlOut || !generatedUrlOut.value) return;
-			navigator.clipboard.writeText(generatedUrlOut.value);
-			const btn = e.target as HTMLButtonElement;
-			const originalText = btn.textContent;
-			btn.textContent = 'Copied!';
-			setTimeout(() => { btn.textContent = originalText; }, 2000);
-		});
-
-		buildUtmUrl();
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
