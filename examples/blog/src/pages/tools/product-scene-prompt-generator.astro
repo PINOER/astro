@@ -278,51 +278,61 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽) -->
+	<!-- 工具专属客户端脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
 	<script slot="scripts">
-		const productInput = document.getElementById('productInput') as HTMLInputElement;
-		const surfaceSelect = document.getElementById('surfaceSelect') as HTMLSelectElement;
-		const sceneSelect = document.getElementById('sceneSelect') as HTMLSelectElement;
-		const propSelect = document.getElementById('propSelect') as HTMLSelectElement;
-		const lightingSelect = document.getElementById('lightingSelect') as HTMLSelectElement;
-		const arSelect = document.getElementById('arSelect') as HTMLSelectElement;
+		function initTool() {
+			const productInput = document.getElementById('productInput');
+			const surfaceSelect = document.getElementById('surfaceSelect');
+			const sceneSelect = document.getElementById('sceneSelect');
+			const propSelect = document.getElementById('propSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
 
-		const promptOutput = document.getElementById('promptOutput') as HTMLTextAreaElement;
-		const btnCopy = document.getElementById('btnCopy');
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
 
-		function buildPrompt() {
-			const product = productInput?.value.trim() || 'A sleek minimalist product';
+			function buildPrompt() {
+				const product = productInput?.value?.trim() || 'A sleek minimalist product';
 
-			const components = [
-				`Commercial product photography shot of ${product}`,
-				surfaceSelect?.value,
-				sceneSelect?.value,
-				propSelect?.value,
-				lightingSelect?.value,
-				'realistic ground shadow, shallow depth of field, sharp focus on product, ultra-detailed, 8k resolution, raw photo',
-				arSelect?.value
-			].filter(Boolean);
+				const components = [
+					`Commercial product photography shot of ${product}`,
+					surfaceSelect?.value,
+					sceneSelect?.value,
+					propSelect?.value,
+					lightingSelect?.value,
+					'realistic ground shadow, shallow depth of field, sharp focus on product, ultra-detailed, 8k resolution, raw photo',
+					arSelect?.value
+				].filter(Boolean);
 
-			if (promptOutput) promptOutput.value = components.join(', ');
+				if (promptOutput) {
+					promptOutput.value = components.join(', ');
+				}
+			}
+
+			[
+				productInput, surfaceSelect, sceneSelect, propSelect,
+				lightingSelect, arSelect
+			].forEach(el => {
+				el?.addEventListener('input', buildPrompt);
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					const originalText = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+				});
+			});
 		}
 
-		[
-			productInput, surfaceSelect, sceneSelect, propSelect,
-			lightingSelect, arSelect
-		].forEach(el => {
-			el?.addEventListener('input', buildPrompt);
-			el?.addEventListener('change', buildPrompt);
-		});
-
-		buildPrompt();
-
-		btnCopy?.addEventListener('click', () => {
-			if (!promptOutput || !promptOutput.value) return;
-			navigator.clipboard.writeText(promptOutput.value).then(() => {
-				const originalText = btnCopy.textContent;
-				btnCopy.textContent = 'Copied!';
-				setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
-			});
-		});
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
 	</script>
 </ToolLayout>
