@@ -237,16 +237,18 @@ const faqSchema = {
 				</select>
 			</div>
 
-			<!-- 裤装拍摄视角与动态姿态 -->
+			<!-- 裤装拍摄视角与动态姿态（修改后的精简格式） -->
 			<div class="form-group">
 				<label for="angleSelect">腿部姿态/视角 (Legs Pose & Angle)</label>
 				<select id="angleSelect">
-					<option value="full-body shot, model standing straight facing camera, showing full leg drape">全身正面站姿 (Full Front View & Drape)</option>
-					<option value="three-quarter side view, model walking forward dynamically, natural pant crease">3/4 侧身走动姿态 (Walking Motion / 动态折皱)</option>
-					<option value="exact side profile view, highlighting side leg line and pocket details">正侧面视角 (Side Profile / 突显侧缝与口袋)</option>
-					<option value="back view, full rear shot highlighting back pockets and hip tailoring">背面视角 (Back View / 展示后袋与臀部剪裁)</option>
-					<option value="lower-body focus close-up shot from waist to shoes, crisp pant details">腰部至鞋靴特写 (Lower-Body Focus / 裤装细节特写)</option>
-					<option value="model sitting casually on a stool, showing knee flex and ankle break">休闲坐姿 (Sitting Pose / 展示膝部延展与裤脚)</option>
+					<option value="">不指定 (Default / Random)</option>
+					<option value="front view, standing facing directly forward towards camera, showing full leg drape">正面 (Front View)</option>
+					<option value="three-quarter left side view, model turned 45 degrees to the left">左侧45° (Left 3/4 View)</option>
+					<option value="exact left side profile view, model facing 90 degrees left, showing side leg seams and pockets">左侧 (Left Side Profile)</option>
+					<option value="three-quarter right side view, model turned 45 degrees to the right">右侧45° (Right 3/4 View)</option>
+					<option value="exact right side profile view, model facing 90 degrees right, showing side leg seams and pockets">右侧 (Right Side Profile)</option>
+					<option value="back view, full rear shot highlighting back pockets and hip tailoring">背面 (Back View)</option>
+					<option value="casual sitting posture on a stool, showing knee flexibility and ankle hem break">休闲坐姿 (Casual Sitting Pose)</option>
 				</select>
 			</div>
 
@@ -375,7 +377,7 @@ const faqSchema = {
 		</div>
 	</section>
 
-	<!-- 工具专属客户端逻辑脚本 (挂载至 scripts 插槽，添加 DOMContentLoaded 机制) -->
+	<!-- 工具专属客户端逻辑脚本 -->
 	<script slot="scripts">
 		function initTool() {
 			let currentMode = 'outfit';
