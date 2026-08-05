@@ -3,7 +3,7 @@ import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "AI 男装下装与裤装商拍提示词生成器",
-	description: "专为男装裤装电商卖家设计的 AI 商拍工具！精准控制牛仔裤、工装裤、西裤与休裤版型、水洗面料细节、鞋靴搭配、镜头焦段、打光与垂坠感，适用于 Midjourney, Flux, SDXL 与豆包。",
+	description: "专为男装裤装电商卖家设计的 AI 商拍工具！精准控制牛仔裤、工装裤、西裤与休裤版型、水洗面料细节、鞋靴搭配、姿态控制、镜头焦段与打光，适用于 Midjourney, Flux, SDXL 与豆包。",
 	icon: "👖",
 	tag: "男装商拍",
 	keywords: "AI 男装裤装换装 男裤电商商拍 牛仔裤提示词 工装裤商拍 模特姿态 提示词生成器 midjourney flux 豆包",
@@ -13,12 +13,12 @@ export const frontmatter = {
 
 const faqList = [
 	{
-		question: "如何生成突出男裤版型与面料纹理的商拍图？",
-		answer: "建议在镜头焦段中选择“50mm 标准人眼视角”或“85mm 腿部与裤装细节特写”，并在 Prompt 中保留重磅面料（Heavyweight Fabric）、水洗纹理（Washed Texture）与裤脚堆叠感（Break & Drape）描述。"
+		question: "如何实现保留模特和裤子不变，仅更换模特姿态与动作？",
+		answer: "选择“三、换动作模式 (保留裤子+模特)”。生成 Prompt 会自动加入模特人脸特征锁与裤装款式保持指令（Keep Model & Pants Consistent），并把核心权重放在“腿部姿态/视角”选择框上，适合批量出同款模特的不同姿态图。"
 	},
 	{
-		question: "如何实现男裤双图精准换装，同时保留原本的上衣或鞋靴？",
-		answer: "在模式中选择“一、男裤换装模式”，将平铺/挂拍裤子图作为参考图一、模特图作为参考图二。生成 Prompt 会精准指导 AI 仅针对下装区域（Pants & Trousers Area）进行缝合与迁移。"
+		question: "如何生成突出男裤版型与面料纹理的商拍图？",
+		answer: "建议在镜头焦段中选择“50mm 标准人眼视角”或“85mm 腿部与裤装细节特写”，并在 Prompt 中保留重磅面料（Heavyweight Fabric）、水洗纹理（Washed Texture）与裤脚堆叠感（Break & Drape）描述。"
 	},
 	{
 		question: "自定义裤装拍摄背景支持中文输入吗？",
@@ -221,7 +221,7 @@ const faqSchema = {
 		<div class="mode-tabs">
 			<button class="tab-btn active" data-mode="outfit">一、男裤换装模式 (双图参考)</button>
 			<button class="tab-btn" data-mode="scene">二、男裤换背景模式</button>
-			<button class="tab-btn" data-mode="detail">三、裤装特写 Lookbook 模式</button>
+			<button class="tab-btn" data-mode="detail">三、换动作姿态模式 (保留裤子+模特)</button>
 			<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
 		</div>
 
@@ -237,7 +237,7 @@ const faqSchema = {
 				</select>
 			</div>
 
-			<!-- 裤装拍摄视角与动态姿态（修改后的精简格式） -->
+			<!-- 裤装拍摄视角与动态姿态 -->
 			<div class="form-group">
 				<label for="angleSelect">腿部姿态/视角 (Legs Pose & Angle)</label>
 				<select id="angleSelect">
@@ -445,6 +445,7 @@ const faqSchema = {
 				const topStr = translatedTop ? `paired with ${translatedTop}` : '';
 				const shoesStr = translatedShoes ? `completed with ${translatedShoes}` : '';
 				const sceneVal = getSceneValue();
+				const poseVal = angleSelect?.value ? `changing pose to ${angleSelect.value}` : 'displaying dynamic posture';
 
 				let modePrefix = '';
 				let components = [];
@@ -468,7 +469,7 @@ const faqSchema = {
 				} else if (currentMode === 'scene') {
 					modePrefix = '[Pants Background Swap Focus]';
 					components = [
-						`Commercial menswear trousers photography, featuring model wearing ${pants}`,
+						`Commercial menswear trousers photography, placing model wearing ${pants}`,
 						topStr,
 						shoesStr,
 						angleSelect?.value || '',
@@ -480,17 +481,18 @@ const faqSchema = {
 						arSelect?.value || ''
 					];
 				} else if (currentMode === 'detail') {
-					modePrefix = '[Lower-Body & Pant Detail Lookbook]';
+					// 模式三：仅改变模特动作姿态（锁定模特与裤装）
+					modePrefix = '[Pose & Angle Swap Focus - Keep Model & Pants Consistent]';
 					components = [
-						`Lower-body commercial lookbook shot focusing on ${pants}`,
+						`Commercial menswear trousers photography, strictly keeping same model (${modelSelect?.value || ''}) and exact same trousers (${pants})`,
+						poseVal,
+						topStr,
 						shoesStr,
-						`worn by ${modelSelect?.value || ''}`,
-						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
 						lensSelect?.value || '',
 						lightingSelect?.value || '',
-						'crisp pocket and stitching details, natural hem break over shoes, 8k resolution, raw photo',
+						'consistent facial features, natural leg posture transition, sharp fabric weave, 8k resolution, raw photo',
 						arSelect?.value || ''
 					];
 				} else {
