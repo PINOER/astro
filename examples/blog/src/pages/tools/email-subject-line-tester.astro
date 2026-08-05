@@ -1,0 +1,479 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Email Subject Line A/B Tester & Spam Trigger Checker",
+	description: "Test and optimize your email subject lines before sending. Detect spam trigger words, preview mobile truncation, compare A/B variants, and improve open rates with 100% client-side privacy.",
+	icon: "📧",
+	tag: "Marketing & Email",
+	keywords: "email subject line tester, spam trigger word checker, email marketing tool, subject line A/B test, open rate optimizer, spam filter checker",
+	pinned: false,
+	priority: 97
+};
+
+const faqList = [
+	{
+		question: "Why is email subject line length important?",
+		answer: "Most mobile email clients (like iPhone Mail and Gmail app) truncate subject lines after 40-50 characters. Keeping your subject line concise ensures the main value proposition is visible without being cut off."
+	},
+	{
+		question: "What are spam trigger words?",
+		answer: "Spam trigger words are words or phrases that email service providers (ISPs) like Gmail, Outlook, and Yahoo flag as suspicious (e.g., '100% free', 'make money fast', 'act now'). Using them increases the risk of your email landing in the Spam folder."
+	},
+	{
+		question: "Is my email marketing content kept private?",
+		answer: "Yes! All analysis, spam word checking, and length calculations are processed entirely within your web browser. No data is sent or stored on any server."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.tester-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.ab-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding-bottom: 0.6rem;
+			border-bottom: 1px solid var(--card-border);
+		}
+
+		.panel-title {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.badge {
+			font-size: 0.75rem;
+			padding: 0.2em 0.6em;
+			border-radius: 6px;
+			font-weight: 700;
+		}
+
+		.badge-a { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+		.badge-b { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+
+		.subject-input {
+			width: 100%;
+			padding: 0.8em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			color: var(--text-main);
+			font-size: 0.95rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		.subject-input:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.stats-row {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 0.6rem;
+			background: var(--code-bg);
+			padding: 0.8rem;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+			text-align: center;
+		}
+
+		.stat-item {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.stat-val {
+			font-size: 1.1rem;
+			font-weight: 800;
+			color: var(--text-main);
+		}
+
+		.stat-lbl {
+			font-size: 0.72rem;
+			color: var(--text-muted);
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		/* Mobile Inbox Preview */
+		.inbox-preview {
+			background: #ffffff;
+			color: #1a1a1a;
+			border-radius: 12px;
+			padding: 1rem;
+			border: 1px solid #e5e7eb;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+		}
+
+		.preview-sender {
+			font-size: 0.85rem;
+			font-weight: 700;
+			color: #111827;
+			margin-bottom: 0.2rem;
+		}
+
+		.preview-subject {
+			font-size: 0.88rem;
+			font-weight: 600;
+			color: #1f2937;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.preview-snippet {
+			font-size: 0.8rem;
+			color: #6b7280;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		/* Spam Word Alert List */
+		.alert-box {
+			background: rgba(239, 68, 68, 0.1);
+			border: 1px solid rgba(239, 68, 68, 0.3);
+			border-radius: 10px;
+			padding: 0.8rem 1rem;
+			color: #ef4444;
+			font-size: 0.85rem;
+			display: none;
+		}
+
+		.alert-box.active {
+			display: block;
+		}
+
+		.spam-tag {
+			display: inline-block;
+			background: rgba(239, 68, 68, 0.2);
+			color: #ef4444;
+			padding: 0.15em 0.5em;
+			border-radius: 4px;
+			font-weight: 700;
+			margin: 0.2em;
+		}
+
+		.score-bar-bg {
+			height: 8px;
+			background: var(--card-border);
+			border-radius: 4px;
+			overflow: hidden;
+		}
+
+		.score-bar-fill {
+			height: 100%;
+			width: 0%;
+			background: #22c55e;
+			transition: width 0.3s ease, background-color 0.3s ease;
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="tester-container">
+			<div class="ab-grid">
+				<!-- Variant A Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title"><span class="badge badge-a">Variant A</span> Original Line</span>
+						<span class="stat-lbl" id="scoreA">Score: 0/100</span>
+					</div>
+
+					<div class="score-bar-bg">
+						<div id="barA" class="score-bar-fill"></div>
+					</div>
+
+					<input type="text" id="inputA" class="subject-input" placeholder="e.g. Get 50% off your order today only!" value="Get 50% off your order today only!" />
+
+					<div class="stats-row">
+						<div class="stat-item">
+							<span class="stat-val" id="charA">0</span>
+							<span class="stat-lbl">Chars</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-val" id="wordsA">0</span>
+							<span class="stat-lbl">Words</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-val" id="emojiA">0</span>
+							<span class="stat-lbl">Emojis</span>
+						</div>
+					</div>
+
+					<!-- Spam Words Detector Alert -->
+					<div id="alertA" class="alert-box">
+						<strong>⚠️ Spam Triggers Found:</strong>
+						<div id="spamTagsA" style="margin-top: 0.4rem;"></div>
+					</div>
+
+					<!-- Mobile Inbox Preview -->
+					<div>
+						<span class="stat-lbl" style="display: block; margin-bottom: 0.4rem;">📱 Mobile Inbox Preview</span>
+						<div class="inbox-preview">
+							<div class="preview-sender">Your Brand Name</div>
+							<div class="preview-subject" id="prevSubA">Get 50% off your order today only!</div>
+							<div class="preview-snippet">Discover our new exclusive deals and saved items in your cart...</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Variant B Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title"><span class="badge badge-b">Variant B</span> Alternative Line</span>
+						<span class="stat-lbl" id="scoreB">Score: 0/100</span>
+					</div>
+
+					<div class="score-bar-bg">
+						<div id="barB" class="score-bar-fill"></div>
+					</div>
+
+					<input type="text" id="inputB" class="subject-input" placeholder="e.g. Quick question about your workspace layout" value="Quick question about your workspace layout" />
+
+					<div class="stats-row">
+						<div class="stat-item">
+							<span class="stat-val" id="charB">0</span>
+							<span class="stat-lbl">Chars</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-val" id="wordsB">0</span>
+							<span class="stat-lbl">Words</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-val" id="emojiB">0</span>
+							<span class="stat-lbl">Emojis</span>
+						</div>
+					</div>
+
+					<!-- Spam Words Detector Alert -->
+					<div id="alertB" class="alert-box">
+						<strong>⚠️ Spam Triggers Found:</strong>
+						<div id="spamTagsB" style="margin-top: 0.4rem;"></div>
+					</div>
+
+					<!-- Mobile Inbox Preview -->
+					<div>
+						<span class="stat-lbl" style="display: block; margin-bottom: 0.4rem;">📱 Mobile Inbox Preview</span>
+						<div class="inbox-preview">
+							<div class="preview-sender">Your Brand Name</div>
+							<div class="preview-subject" id="prevSubB">Quick question about your workspace layout</div>
+							<div class="preview-snippet">Discover our new exclusive deals and saved items in your cart...</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		// List of common high-risk spam trigger words
+		const SPAM_TRIGGER_WORDS = [
+			"100% free", "act now", "apply now", "as seen on", "buy now", "buy direct",
+			"call now", "cash bonus", "claim now", "clearance", "click here", "congratulations",
+			"credit card", "double your income", "earn extra cash", "earn money", "exclusive deal",
+			"fast cash", "free gift", "free trial", "guaranteed", "increase sales", "instant",
+			"limited time", "make money", "no cost", "no hidden fees", "no obligation",
+			"no risk", "order now", "passwords", "promise", "risk free", "special promotion",
+			"urgency", "winner", "you have been selected"
+		];
+
+		function initTester() {
+			const inputA = document.getElementById('inputA');
+			const inputB = document.getElementById('inputB');
+
+			const charA = document.getElementById('charA');
+			const wordsA = document.getElementById('wordsA');
+			const emojiA = document.getElementById('emojiA');
+			const scoreA = document.getElementById('scoreA');
+			const barA = document.getElementById('barA');
+			const alertA = document.getElementById('alertA');
+			const spamTagsA = document.getElementById('spamTagsA');
+			const prevSubA = document.getElementById('prevSubA');
+
+			const charB = document.getElementById('charB');
+			const wordsB = document.getElementById('wordsB');
+			const emojiB = document.getElementById('emojiB');
+			const scoreB = document.getElementById('scoreB');
+			const barB = document.getElementById('barB');
+			const alertB = document.getElementById('alertB');
+			const spamTagsB = document.getElementById('spamTagsB');
+			const prevSubB = document.getElementById('prevSubB');
+
+			function countEmojis(str) {
+				const match = str.match(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]/gu);
+				return match ? match.length : 0;
+			}
+
+			function detectSpamWords(str) {
+				const lower = str.toLowerCase();
+				return SPAM_TRIGGER_WORDS.filter(word => lower.includes(word));
+			}
+
+			function calculateScore(str, spamCount) {
+				if (!str.trim()) return 0;
+				let score = 100;
+				const len = str.length;
+
+				// Length deduction (ideal length: 30 - 50 chars)
+				if (len < 20) score -= 15;
+				else if (len > 60) score -= 20;
+
+				// Spam words deduction
+				score -= (spamCount * 25);
+
+				// ALL CAPS deduction
+				if (str === str.toUpperCase() && len > 5) score -= 30;
+
+				// Multiple exclamation marks
+				if ((str.match(/!/g) || []).length > 1) score -= 15;
+
+				return Math.max(0, Math.min(100, score));
+			}
+
+			function analyze(inputEl, charEl, wordsEl, emojiEl, scoreEl, barEl, alertEl, tagsEl, prevEl) {
+				const text = inputEl?.value || '';
+				const chars = text.length;
+				const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+				const emojis = countEmojis(text);
+				const spamFound = detectSpamWords(text);
+				const score = calculateScore(text, spamFound.length);
+
+				if (charEl) charEl.textContent = chars;
+				if (wordsEl) wordsEl.textContent = words;
+				if (emojiEl) emojiEl.textContent = emojis;
+				if (scoreEl) scoreEl.textContent = `Score: ${score}/100`;
+
+				if (barEl) {
+					barEl.style.width = `${score}%`;
+					if (score >= 80) barEl.style.backgroundColor = '#22c55e';
+					else if (score >= 50) barEl.style.backgroundColor = '#eab308';
+					else barEl.style.backgroundColor = '#ef4444';
+				}
+
+				if (prevEl) prevEl.textContent = text || 'Your subject line preview';
+
+				if (spamFound.length > 0) {
+					if (alertEl) alertEl.classList.add('active');
+					if (tagsEl) {
+						tagsEl.innerHTML = spamFound.map(w => `<span class="spam-tag">${w}</span>`).join('');
+					}
+				} else {
+					if (alertEl) alertEl.classList.remove('active');
+				}
+			}
+
+			function updateAll() {
+				analyze(inputA, charA, wordsA, emojiA, scoreA, barA, alertA, spamTagsA, prevSubA);
+				analyze(inputB, charB, wordsB, emojiB, scoreB, barB, alertB, spamTagsB, prevSubB);
+			}
+
+			inputA?.addEventListener('input', updateAll);
+			inputB?.addEventListener('input', updateAll);
+
+			updateAll();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTester);
+		} else {
+			initTester();
+		}
+	</script>
+</ToolLayout>
