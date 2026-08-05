@@ -14,7 +14,7 @@ export const frontmatter = {
 const faqList = [
 	{
 		question: "如何实现保留模特和裤子不变，仅更换模特姿态与动作？",
-		answer: "选择“三、换动作模式 (保留裤子+模特)”。生成 Prompt 会自动加入模特人脸特征锁与裤装款式保持指令（Keep Model & Pants Consistent），并把核心权重放在“腿部姿态/视角”选择框上，适合批量出同款模特的不同姿态图。"
+		answer: "选择“三、换动作模式”。生成 Prompt 会自动加入模特人脸特征锁与裤装款式保持指令（Keep Model & Pants Consistent），并把核心权重放在“腿部姿态/视角”选择框上，适合批量出同款模特的不同姿态图。"
 	},
 	{
 		question: "如何生成突出男裤版型与面料纹理的商拍图？",
@@ -220,9 +220,9 @@ const faqSchema = {
 		<!-- 核心模式选择 Tab -->
 		<div class="mode-tabs">
 			<button class="tab-btn active" data-mode="outfit">一、男裤换装模式 (双图参考)</button>
-			<button class="tab-btn" data-mode="scene">二、男裤换背景模式</button>
-			<button class="tab-btn" data-mode="detail">三、换动作姿态模式 (保留裤子+模特)</button>
-			<button class="tab-btn" data-mode="full">四、全自由定制商拍</button>
+			<button class="tab-btn" data-mode="scene">二、换背景模式</button>
+			<button class="tab-btn" data-mode="detail">三、换动作模式</button>
+			<button class="tab-btn" data-mode="full">四、自由定制</button>
 		</div>
 
 		<div class="form-grid">
