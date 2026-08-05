@@ -1,0 +1,713 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "AI 电商情侣装/双人合拍与精准穿搭提示词生成器",
+	description: "专为情侣装、男女双人模特电商卖家设计的 AI 商拍工具！涵盖男女模特形象搭配、情侣互动姿态控制、男女服装精准穿搭、拍摄场景与光线控制，适用于 Midjourney, Flux, SDXL 与豆包。",
+	icon: "👩‍❤️‍👨",
+	tag: "情侣装商拍",
+	keywords: "AI 情侣装商拍 双人模特换装 模特互动姿态 男女穿搭情侣款 提示词生成器 midjourney flux 豆包",
+	pinned: true,
+	priority: 94
+};
+
+const faqList = [
+	{
+		question: "如何利用 AI 生成画面和谐的情侣装双人合拍？",
+		answer: "在 AI 绘图中，双人控制的关键在于明确区分‘男模特’与‘女模特’的服装细节与互动姿态。工具生成的 Prompt 会采用标准的角色分隔提示词（如：male model wearing... while female model wearing...），使 Midjourney、Flux 等模型能准确将不同的服装分配给对应模特。"
+	},
+	{
+		question: "如何控制情侣模特的肢体互动与自然眼神？",
+		answer: "在“情侣互动与姿态视角”下拉菜单中，提供了如“牵手漫步”、“并肩依偎”、“对视欢笑”、“背靠背站立”等电商最常用的商业拍摄姿势，系统会自动注入具体的肢体与眼神描写（如 eye contact, holding hands），让画面充满感染力。"
+	},
+	{
+		question: "支持男女服装分别用中文自定义输入吗？",
+		answer: "完全支持！你可以分别在“男士服饰”与“女士服饰”输入框中填写中文描述（如“男款卡其色重磅风衣”与“女款同色系米白羊绒连衣裙”），系统会在 500ms 内自动将两者的描述分别翻译并无缝拼接到 Prompt 中。"
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="zh">
+	<!-- 注入 Schema.org FAQ 结构化数据 -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<!-- 工具专属自定义样式 -->
+	<style slot="head">
+		/* 模式选择选项卡 */
+		.mode-tabs {
+			display: flex;
+			justify-content: center;
+			gap: 0.8rem;
+			margin-bottom: 1.8rem;
+			flex-wrap: wrap;
+		}
+		.tab-btn {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			color: var(--text-muted);
+			padding: 0.6em 1.2em;
+			border-radius: 10px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+			border-color: var(--accent);
+			box-shadow: 0 4px 15px var(--accent-glow);
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			margin-bottom: 2rem;
+		}
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+		label .sub-tag {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			font-weight: normal;
+		}
+		.translate-status {
+			font-size: 0.75rem;
+			color: var(--accent);
+			font-weight: 600;
+			margin-left: auto;
+		}
+
+		input[type="text"], select, textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+		input[type="text"]:focus, select:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.output-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+		.output-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		.output-title {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+		.prompt-output {
+			width: 100%;
+			height: 140px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		/* FAQ Section Styles */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<!-- 工具卡片主体 -->
+	<div class="tool-box">
+		<!-- 核心模式选择 Tab -->
+		<div class="mode-tabs">
+			<button class="tab-btn active" data-mode="matching">一、同款/同色系情侣套装模式</button>
+			<button class="tab-btn" data-mode="lifestyle">二、情侣街头与生活场景街拍</button>
+			<button class="tab-btn" data-mode="holiday">三、度假/浪漫主题合拍模式</button>
+			<button class="tab-btn" data-mode="full">四、全自由情侣商拍定制</button>
+		</div>
+
+		<div class="form-grid">
+			<!-- 情侣模特组合特征选择 -->
+			<div class="form-group" id="coupleGroup">
+				<label for="coupleSelect">情侣模特形象组合</label>
+				<select id="coupleSelect">
+					<option value="a stylish young couple, handsome 20s East Asian male and attractive 20s East Asian female model">东亚年轻高颜情侣 (韩系/日系潮牌首选)</option>
+					<option value="a stylish Caucasian couple, handsome male and stunning female model in their mid-20s">欧美高挑魅力情侣 (时尚大牌/街头高街)</option>
+					<option value="an attractive mixed-ethnicity couple, handsome Asian male and beautiful Caucasian female">跨国风尚情侣 (国际化商业画册风格)</option>
+					<option value="a trendy young Gen-Z couple with urban modern aesthetic">年轻 Gen-Z 潮流情侣 (复古街头/运动风)</option>
+					<option value="custom">✨ 自定义男女模特描述 (Custom Couple)...</option>
+				</select>
+			</div>
+
+			<!-- 自定义情侣模特输入框（默认隐藏） -->
+			<div class="form-group full-width" id="customCoupleGroup" style="display: none;">
+				<label for="customCoupleInput">
+					<span>自定义情侣模特描述</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="customCoupleStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="customCoupleInput" placeholder="例如：20多岁中法混血情侣，男生短发阳光健美，女生长卷发甜美温柔..." />
+			</div>
+
+			<!-- 情侣姿态与互动描写 -->
+			<div class="form-group">
+				<label for="poseSelect">情侣互动与姿态 (Pose & Interaction)</label>
+				<select id="poseSelect">
+					<option value="walking side by side holding hands towards camera, natural happy smiles, romantic connection">牵手漫步 (向镜头走来/自然欢笑)</option>
+					<option value="standing side by side with relaxed fashionable posture, subtle shoulder contact">并肩站立 (自然触碰/时尚 Lookbook 站姿)</option>
+					<option value="standing back-to-back with confident stylish expressions, facing camera">背靠背站立 (气场十足/高街造型)</option>
+					<option value="gentle embrace from behind, intimate romantic posture, soft affectionate eye contact">温柔依偎/背抱 (甜蜜温馨感/情侣节日主推)</option>
+					<option value="sitting together on stairs or bench, laughing and looking at each other naturally">坐姿互动 (台阶/长椅闲坐对视)</option>
+					<option value="playful interactive pose, model whispering or laughing together, dynamic candid shot">抓拍互动 (悄悄话/打闹嬉笑自然抓拍)</option>
+				</select>
+			</div>
+
+			<!-- 男士服饰描述 -->
+			<div class="form-group full-width" id="maleOutfitGroup">
+				<label for="maleOutfitInput">
+					<span>男士服饰、材质与细节</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="maleOutfitStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="maleOutfitInput" placeholder="例如：米白色重磅连帽卫衣、卡其色宽松工装裤..." />
+			</div>
+
+			<!-- 女士服饰描述 -->
+			<div class="form-group full-width" id="femaleOutfitGroup">
+				<label for="femaleOutfitInput">
+					<span>女士服饰、材质与细节</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="femaleOutfitStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="femaleOutfitInput" placeholder="例如：同色系米白色短款连帽卫衣、浅蓝色高腰直筒牛仔裤..." />
+			</div>
+
+			<!-- 情侣搭配鞋靴与配饰 -->
+			<div class="form-group full-width" id="accessoryGroup">
+				<label for="accessoryInput">
+					<span>情侣搭配鞋靴与配饰</span>
+					<span class="sub-tag">可选：复古板鞋、情侣手表、墨镜、同款斜挎包等</span>
+					<span id="accessoryStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="accessoryInput" placeholder="例如：匹配的白色复古德训鞋，佩戴简约银质情侣项链..." />
+			</div>
+
+			<!-- 拍摄场景选择（包含自定义背景） -->
+			<div class="form-group full-width">
+				<label for="sceneSelect">拍摄与生活场景</label>
+				<select id="sceneSelect">
+					<option value="in a modern sunlit minimalist cafe outdoor seating area">阳光咖啡馆户外露台 (都市休闲浪漫)</option>
+					<option value="walking on a clean modern city street with contemporary architecture">现代都市街头 (时尚街拍氛围)</option>
+					<option value="in a cozy warm sunlit indoor living room, Scandinavian design">北欧风温馨家居客厅 (居家舒适感)</option>
+					<option value="on a scenic seaside beach during golden hour sunset">海边沙滩夕阳 (浪漫度假风)</option>
+					<option value="in a autumn park surrounded by golden fallen leaves and maple trees">秋日枫树公园 (温暖季节感)</option>
+					<option value="in a clean professional commercial photo studio, neutral backdrop">商业摄影棚纯色背景 (电商 Lookbook 干净质感)</option>
+					<option value="custom">✍️ 自定义背景 (Custom Environment)</option>
+				</select>
+			</div>
+
+			<!-- 自定义背景输入框（默认隐藏） -->
+			<div class="form-group full-width" id="customSceneGroup" style="display: none;">
+				<label for="customSceneInput">
+					<span>自定义背景描述</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="customSceneStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="customSceneInput" placeholder="例如：东京涩谷十字路口夜景、巴黎塞纳河畔、林荫大道露营地..." />
+			</div>
+
+			<!-- 相机设备 -->
+			<div class="form-group">
+				<label for="cameraSelect">相机设备 (Camera Body)</label>
+				<select id="cameraSelect">
+					<option value="shot on Canon EOS R5">佳能 Canon EOS R5 (细腻肤色与温馨氛围感)</option>
+					<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (极锐高细节商业大片)</option>
+					<option value="shot on Leica M11">徕卡 Leica M11 (经典人文高级胶片色彩)</option>
+					<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad (顶级商业画册画质)</option>
+					<option value="shot on Fujifilm GFX 100 II">富士 GFX 100 II (极佳电影感与色彩表现)</option>
+				</select>
+			</div>
+
+			<!-- 镜头与视角 -->
+			<div class="form-group">
+				<label for="lensSelect">镜头焦段与视角 (Lens & Framing)</label>
+				<select id="lensSelect">
+					<option value="50mm f/1.4 prime lens, natural eye-level perspective, crisp couple lookbook framing">50mm 焦段 (标准眼高视角 / 情侣 Lookbook 首选)</option>
+					<option value="85mm f/1.2 portrait lens, beautiful bokeh, soft background blur highlighting couple">85mm 焦段 (特写/奶油虚化/突出人物服饰情感)</option>
+					<option value="35mm f/1.4 lens, candid lifestyle street framing with environment context">35mm 焦段 (街头抓拍 / 丰富环境气氛感)</option>
+				</select>
+			</div>
+
+			<!-- 光线风格 -->
+			<div class="form-group">
+				<label for="lightingSelect">光线风格 (Lighting Setup)</label>
+				<select id="lightingSelect">
+					<option value="golden hour warm romantic sunset backlighting, glowing soft edge highlights">黄金小时浪漫夕阳逆光 (温馨唯美)</option>
+					<option value="soft natural daylight filtering through canopy, gentle shadows">柔和自然漫射日光 (清爽高质感)</option>
+					<option value="clean studio softbox lighting, perfectly balanced bright exposure">专业柔光箱影棚光 (电商主图明亮无瑕)</option>
+					<option value="cinematic warm ambient lighting with gentle contrast">电影感温暖环境光 (高级画册氛围)</option>
+				</select>
+			</div>
+
+			<!-- 画幅比例 -->
+			<div class="form-group full-width">
+				<label for="arSelect">画面宽高比 (--ar)</label>
+				<select id="arSelect">
+					<option value="--ar 3:4">--ar 3:4 (服装电商主图与详情页首选)</option>
+					<option value="--ar 4:5">--ar 4:5 (小红书 / Instagram / TikTok 社媒发帖)</option>
+					<option value="--ar 9:16">--ar 9:16 (手机端全屏海报 / 故事壁纸)</option>
+					<option value="--ar 1:1">--ar 1:1 (正方形方图卡片)</option>
+				</select>
+			</div>
+		</div>
+
+		<!-- 实时生成预览卡片 -->
+		<div class="output-card">
+			<div class="output-header">
+				<span class="output-title">✨ 生成的英文情侣装商拍 Prompt</span>
+				<button class="btn-copy" id="btnCopy">📋 一键复制 Prompt</button>
+			</div>
+			<textarea id="promptOutput" class="prompt-output" readonly></textarea>
+		</div>
+	</div>
+
+	<!-- FAQ 模块区 -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ 常见问题 (FAQ)</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<!-- 工具专属客户端逻辑脚本 -->
+	<script slot="scripts">
+		function initTool() {
+			let currentMode = 'matching';
+
+			const tabBtns = document.querySelectorAll('.tab-btn');
+			const maleOutfitInput = document.getElementById('maleOutfitInput');
+			const maleOutfitStatus = document.getElementById('maleOutfitStatus');
+			const femaleOutfitInput = document.getElementById('femaleOutfitInput');
+			const femaleOutfitStatus = document.getElementById('femaleOutfitStatus');
+			const accessoryInput = document.getElementById('accessoryInput');
+			const accessoryStatus = document.getElementById('accessoryStatus');
+
+			const sceneSelect = document.getElementById('sceneSelect');
+			const customSceneGroup = document.getElementById('customSceneGroup');
+			const customSceneInput = document.getElementById('customSceneInput');
+			const customSceneStatus = document.getElementById('customSceneStatus');
+
+			const coupleSelect = document.getElementById('coupleSelect');
+			const customCoupleGroup = document.getElementById('customCoupleGroup');
+			const customCoupleInput = document.getElementById('customCoupleInput');
+			const customCoupleStatus = document.getElementById('customCoupleStatus');
+
+			const poseSelect = document.getElementById('poseSelect');
+			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
+			const lightingSelect = document.getElementById('lightingSelect');
+			const arSelect = document.getElementById('arSelect');
+
+			const promptOutput = document.getElementById('promptOutput');
+			const btnCopy = document.getElementById('btnCopy');
+
+			let translatedMaleOutfit = 'cream-white heavyweight hoodie';
+			let translatedFemaleOutfit = 'matching cream-white cropped hoodie and light blue straight jeans';
+			let translatedAccessory = '';
+			let translatedCustomScene = '';
+			let translatedCustomCouple = '';
+
+			let maleTimer = null;
+			let femaleTimer = null;
+			let accessoryTimer = null;
+			let customSceneTimer = null;
+			let customCoupleTimer = null;
+
+			function containsChinese(text) {
+				return /[\u4e00-\u9fa5]/.test(text);
+			}
+
+			async function translateText(text) {
+				if (!text.trim()) return '';
+				if (!containsChinese(text)) return text;
+				try {
+					const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh|en`);
+					const data = await res.json();
+					return data.responseData?.translatedText || text;
+				} catch (e) {
+					return text;
+				}
+			}
+
+			function getCoupleValue() {
+				if (coupleSelect?.value === 'custom') {
+					return translatedCustomCouple ? translatedCustomCouple : 'a handsome male model and a stylish female model';
+				}
+				return coupleSelect?.value || 'a stylish young couple';
+			}
+
+			function getSceneValue() {
+				if (sceneSelect?.value === 'custom') {
+					return translatedCustomScene ? `in ${translatedCustomScene}` : 'in a modern urban environment';
+				}
+				return sceneSelect?.value || '';
+			}
+
+			function buildPrompt() {
+				if (!promptOutput) return;
+
+				const maleOutfit = translatedMaleOutfit || 'stylish menswear outfit';
+				const femaleOutfit = translatedFemaleOutfit || 'matching womenswear outfit';
+				const accessoryStr = translatedAccessory ? `accented with ${translatedAccessory}` : '';
+				const sceneVal = getSceneValue();
+				const coupleVal = getCoupleValue();
+
+				let modePrefix = '';
+				let components = [];
+
+				if (currentMode === 'matching') {
+					modePrefix = '[Matching Couple Outfit Shoot]';
+					components = [
+						`Commercial e-commerce photography featuring ${coupleVal} showcasing matching couple outfits`,
+						`male model wearing ${maleOutfit}`,
+						`while female model wearing ${femaleOutfit}`,
+						accessoryStr,
+						poseSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'impeccable clothing texture, harmonious color palette, 8k resolution, photorealistic',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'lifestyle') {
+					modePrefix = '[Couple Lifestyle Street Photography]';
+					components = [
+						`Authentic candid commercial street shot featuring ${coupleVal}`,
+						`male model dressed in ${maleOutfit}`,
+						`female model dressed in ${femaleOutfit}`,
+						accessoryStr,
+						poseSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'natural expressions, lifestyle aesthetic, ultra-detailed fabric, 8k raw photo',
+						arSelect?.value || ''
+					];
+				} else if (currentMode === 'holiday') {
+					modePrefix = '[Romantic Holiday Couple Campaign]';
+					components = [
+						`High-fashion romantic commercial campaign featuring ${coupleVal}`,
+						`male model wearing ${maleOutfit}`,
+						`female model wearing ${femaleOutfit}`,
+						accessoryStr,
+						poseSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'romantic emotional connection, luxury editorial aesthetic, 8k resolution',
+						arSelect?.value || ''
+					];
+				} else {
+					modePrefix = '[Full Custom Couple Shoot]';
+					components = [
+						`Commercial fashion photography featuring ${coupleVal}`,
+						`male model in ${maleOutfit}`,
+						`female model in ${femaleOutfit}`,
+						accessoryStr,
+						poseSelect?.value || '',
+						sceneVal,
+						cameraSelect?.value || '',
+						lensSelect?.value || '',
+						lightingSelect?.value || '',
+						'ultra-detailed clothing texture, master photography, 8k resolution',
+						arSelect?.value || ''
+					];
+				}
+
+				promptOutput.value = `${modePrefix} ${components.filter(Boolean).join(', ')}`;
+			}
+
+			// Tab 切换
+			tabBtns.forEach(btn => {
+				btn.addEventListener('click', () => {
+					tabBtns.forEach(b => b.classList.remove('active'));
+					btn.classList.add('active');
+					currentMode = btn.getAttribute('data-mode') || 'matching';
+					buildPrompt();
+				});
+			});
+
+			// 模特组下拉切换
+			coupleSelect?.addEventListener('change', () => {
+				if (coupleSelect.value === 'custom') {
+					if (customCoupleGroup) customCoupleGroup.style.display = 'flex';
+				} else {
+					if (customCoupleGroup) customCoupleGroup.style.display = 'none';
+				}
+				buildPrompt();
+			});
+
+			// 背景下拉切换
+			sceneSelect?.addEventListener('change', () => {
+				if (sceneSelect.value === 'custom') {
+					if (customSceneGroup) customSceneGroup.style.display = 'flex';
+				} else {
+					if (customSceneGroup) customSceneGroup.style.display = 'none';
+				}
+				buildPrompt();
+			});
+
+			// 防抖翻译：自定义情侣模特
+			customCoupleInput?.addEventListener('input', () => {
+				clearTimeout(customCoupleTimer);
+				const raw = customCoupleInput.value.trim();
+				if (!raw) {
+					translatedCustomCouple = '';
+					if (customCoupleStatus) customCoupleStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedCustomCouple = raw;
+					if (customCoupleStatus) customCoupleStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (customCoupleStatus) customCoupleStatus.textContent = '翻译中...';
+				customCoupleTimer = setTimeout(async () => {
+					translatedCustomCouple = await translateText(raw);
+					if (customCoupleStatus) customCoupleStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：男士服饰
+			maleOutfitInput?.addEventListener('input', () => {
+				clearTimeout(maleTimer);
+				const raw = maleOutfitInput.value.trim();
+				if (!raw) {
+					translatedMaleOutfit = '';
+					if (maleOutfitStatus) maleOutfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedMaleOutfit = raw;
+					if (maleOutfitStatus) maleOutfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (maleOutfitStatus) maleOutfitStatus.textContent = '翻译中...';
+				maleTimer = setTimeout(async () => {
+					translatedMaleOutfit = await translateText(raw);
+					if (maleOutfitStatus) maleOutfitStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：女士服饰
+			femaleOutfitInput?.addEventListener('input', () => {
+				clearTimeout(femaleTimer);
+				const raw = femaleOutfitInput.value.trim();
+				if (!raw) {
+					translatedFemaleOutfit = '';
+					if (femaleOutfitStatus) femaleOutfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedFemaleOutfit = raw;
+					if (femaleOutfitStatus) femaleOutfitStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (femaleOutfitStatus) femaleOutfitStatus.textContent = '翻译中...';
+				femaleTimer = setTimeout(async () => {
+					translatedFemaleOutfit = await translateText(raw);
+					if (femaleOutfitStatus) femaleOutfitStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：配饰鞋靴
+			accessoryInput?.addEventListener('input', () => {
+				clearTimeout(accessoryTimer);
+				const raw = accessoryInput.value.trim();
+				if (!raw) {
+					translatedAccessory = '';
+					if (accessoryStatus) accessoryStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedAccessory = raw;
+					if (accessoryStatus) accessoryStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (accessoryStatus) accessoryStatus.textContent = '翻译中...';
+				accessoryTimer = setTimeout(async () => {
+					translatedAccessory = await translateText(raw);
+					if (accessoryStatus) accessoryStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 防抖翻译：自定义背景
+			customSceneInput?.addEventListener('input', () => {
+				clearTimeout(customSceneTimer);
+				const raw = customSceneInput.value.trim();
+				if (!raw) {
+					translatedCustomScene = '';
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedCustomScene = raw;
+					if (customSceneStatus) customSceneStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (customSceneStatus) customSceneStatus.textContent = '翻译中...';
+				customSceneTimer = setTimeout(async () => {
+					translatedCustomScene = await translateText(raw);
+					if (customSceneStatus) customSceneStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
+			});
+
+			// 下拉框改变监听
+			[coupleSelect, poseSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
+				el?.addEventListener('change', buildPrompt);
+			});
+
+			buildPrompt();
+
+			// 一键复制
+			btnCopy?.addEventListener('click', () => {
+				if (!promptOutput || !promptOutput.value) return;
+				navigator.clipboard.writeText(promptOutput.value).then(() => {
+					if (btnCopy) {
+						const originalText = btnCopy.textContent;
+						btnCopy.textContent = 'Copied!';
+						setTimeout(() => { btnCopy.textContent = originalText; }, 2000);
+					}
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTool);
+		} else {
+			initTool();
+		}
+	</script>
+</ToolLayout>
