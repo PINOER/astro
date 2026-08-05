@@ -1,0 +1,461 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Slack & Discord Formatting Previewer",
+	description: "Convert standard Markdown to Slack mrkdwn & Discord markdown instantly. Live preview your messages with Slack and Discord styling, custom emoji support, and zero backend tracking.",
+	icon: "💬",
+	tag: "Remote Work",
+	keywords: "Slack markdown converter, Discord message previewer, mrkdwn syntax, Slack formatting, Discord codeblock formatting, remote team tools",
+	pinned: false,
+	priority: 98
+};
+
+const faqList = [
+	{
+		question: "Why does standard Markdown look broken in Slack?",
+		answer: "Slack uses a custom flavor called 'mrkdwn'. For example, bold text in standard Markdown uses double asterisks (**bold**), whereas Slack uses single asterisks (*bold*). It also handles links as <URL|text> rather than [text](URL)."
+	},
+	{
+		question: "Is my message content private when using this tool?",
+		answer: "Yes, 100%. All Markdown conversions and rendering happen locally in your web browser. No text or data is sent to any external server."
+	},
+	{
+		question: "Does this previewer support Discord markdown?",
+		answer: "Yes! Discord supports standard Markdown for bold, italics, and code blocks, but adds unique features like spoiler tags (||spoiler||) and blockquotes. You can toggle between Slack and Discord preview modes seamlessly."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.previewer-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.editor-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.2rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding-bottom: 0.5rem;
+			border-bottom: 1px solid var(--card-border);
+		}
+
+		.panel-title {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.platform-tabs {
+			display: flex;
+			gap: 0.4rem;
+			background: var(--code-bg);
+			padding: 0.25rem;
+			border-radius: 8px;
+			border: 1px solid var(--card-border);
+		}
+
+		.tab-btn {
+			background: transparent;
+			border: none;
+			color: var(--text-muted);
+			padding: 0.35em 0.8em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+		}
+
+		.editor-textarea {
+			width: 100%;
+			height: 280px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		.editor-textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		/* Mock Client Preview Windows */
+		.slack-preview-box {
+			background: #1a1d21;
+			border: 1px solid #383b40;
+			border-radius: 10px;
+			padding: 1.2rem;
+			height: 280px;
+			overflow-y: auto;
+			color: #d1d2d3;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+			font-size: 0.93rem;
+			line-height: 1.5;
+			box-sizing: border-box;
+		}
+
+		.discord-preview-box {
+			background: #313338;
+			border: 1px solid #2b2d31;
+			border-radius: 10px;
+			padding: 1.2rem;
+			height: 280px;
+			overflow-y: auto;
+			color: #dbdee1;
+			font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+			font-size: 0.93rem;
+			line-height: 1.4;
+			box-sizing: border-box;
+		}
+
+		/* Preview Content Typography */
+		.slack-preview-box strong, .discord-preview-box strong { font-weight: 700; color: #fff; }
+		.slack-preview-box em, .discord-preview-box em { font-style: italic; }
+		.slack-preview-box strike, .discord-preview-box strike { text-decoration: line-through; }
+		.slack-preview-box code, .discord-preview-box code {
+			background: #222529;
+			border: 1px solid #383b40;
+			padding: 0.15em 0.3em;
+			border-radius: 3px;
+			font-family: ui-monospace, monospace;
+			font-size: 0.85em;
+			color: #e01e5a;
+		}
+		.discord-preview-box code {
+			background: #2b2d31;
+			border: none;
+			color: #dbdee1;
+		}
+		.slack-preview-box blockquote {
+			border-left: 4px solid #4a4d52;
+			margin: 0.4em 0;
+			padding-left: 0.8em;
+			color: #abacae;
+		}
+		.discord-preview-box blockquote {
+			border-left: 4px solid #4e5058;
+			margin: 0.4em 0;
+			padding-left: 0.8em;
+			color: #949ba4;
+		}
+
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.5em 1em;
+			border-radius: 8px;
+			font-size: 0.82rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.toolbar-btns {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+		}
+
+		.tool-btn {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.3em 0.6em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			cursor: pointer;
+		}
+		.tool-btn:hover {
+			border-color: var(--accent);
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="previewer-container">
+			<div class="editor-grid">
+				<!-- Input Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">📝 Standard Markdown Input</span>
+						<div class="toolbar-btns">
+							<button class="tool-btn" id="btnBold"><b>B</b></button>
+							<button class="tool-btn" id="btnItalic"><i>I</i></button>
+							<button class="tool-btn" id="btnCode"><code>&lt;&gt;</code></button>
+							<button class="tool-btn" id="btnLink">🔗</button>
+						</div>
+					</div>
+					<textarea id="markdownInput" class="editor-textarea" placeholder="Type or paste standard Markdown here...&#10;&#10;**Bold text**&#10;*Italic text*&#10;~Strikethrough~&#10;[Click here](https://example.com)&#10;`Inline code`&#10;> Blockquote text"></textarea>
+				</div>
+
+				<!-- Output & Preview Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<div class="platform-tabs">
+							<button class="tab-btn active" id="tabSlack">Slack (mrkdwn)</button>
+							<button class="tab-btn" id="tabDiscord">Discord</button>
+						</div>
+						<button class="btn-copy" id="btnCopyFormatted">📋 Copy Converted Text</button>
+					</div>
+					
+					<!-- Live Preview Box -->
+					<div id="previewBox" class="slack-preview-box"></div>
+				</div>
+			</div>
+
+			<!-- Output Syntax Box -->
+			<div class="panel-card">
+				<div class="panel-header">
+					<span class="panel-title">⚡ Raw Converted Syntax Output</span>
+				</div>
+				<textarea id="convertedOutput" class="editor-textarea" style="height: 100px;" readonly></textarea>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initPreviewer() {
+			const markdownInput = document.getElementById('markdownInput');
+			const convertedOutput = document.getElementById('convertedOutput');
+			const previewBox = document.getElementById('previewBox');
+			const tabSlack = document.getElementById('tabSlack');
+			const tabDiscord = document.getElementById('tabDiscord');
+			const btnCopyFormatted = document.getElementById('btnCopyFormatted');
+
+			const btnBold = document.getElementById('btnBold');
+			const btnItalic = document.getElementById('btnItalic');
+			const btnCode = document.getElementById('btnCode');
+			const btnLink = document.getElementById('btnLink');
+
+			let activeTarget = 'slack'; // 'slack' or 'discord'
+
+			// Convert Standard Markdown -> Slack mrkdwn
+			function convertToSlack(text) {
+				if (!text) return '';
+				let res = text;
+				// Bold **text** -> *text*
+				res = res.replace(/\*\*(.*?)\*\*/g, '*$1*');
+				// Links [Text](URL) -> <URL|Text>
+				res = res.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<$2|$1>');
+				return res;
+			}
+
+			// Convert Standard Markdown -> Discord Markdown
+			function convertToDiscord(text) {
+				if (!text) return '';
+				// Discord natively uses **bold**, *italic*, ~strikethrough~, [text](url)
+				return text;
+			}
+
+			// Render HTML for visual preview
+			function renderPreviewHtml(rawText, mode) {
+				if (!rawText.trim()) return '<span style="color:#666;">Preview will appear here...</span>';
+
+				let html = rawText
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;');
+
+				if (mode === 'slack') {
+					// Slack formatting rendering
+					html = html.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+					html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+					html = html.replace(/~(.*?)~/g, '<strike>$1</strike>');
+					html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+					html = html.replace(/^&gt;\s?(.*)$/gm, '<blockquote>$1</blockquote>');
+					html = html.replace(/&lt;(.*?)\|(.*?)&gt;/g, '<a href="$1" style="color:#1d9bd1;text-decoration:none;" target="_blank">$2</a>');
+				} else {
+					// Discord formatting rendering
+					html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+					html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+					html = html.replace(/~~(.*?)~~/g, '<strike>$1</strike>');
+					html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+					html = html.replace(/^&gt;\s?(.*)$/gm, '<blockquote>$1</blockquote>');
+					html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" style="color:#00a8fc;text-decoration:none;" target="_blank">$1</a>');
+				}
+
+				return html.replace(/\n/g, '<br>');
+			}
+
+			function updateViews() {
+				const inputVal = markdownInput?.value || '';
+				if (activeTarget === 'slack') {
+					const converted = convertToSlack(inputVal);
+					if (convertedOutput) convertedOutput.value = converted;
+					if (previewBox) {
+						previewBox.className = 'slack-preview-box';
+						previewBox.innerHTML = renderPreviewHtml(converted, 'slack');
+					}
+				} else {
+					const converted = convertToDiscord(inputVal);
+					if (convertedOutput) convertedOutput.value = converted;
+					if (previewBox) {
+						previewBox.className = 'discord-preview-box';
+						previewBox.innerHTML = renderPreviewHtml(converted, 'discord');
+					}
+				}
+			}
+
+			// Insert helper syntax at cursor position
+			function insertSyntax(before, after) {
+				if (!markdownInput) return;
+				const start = markdownInput.selectionStart;
+				const end = markdownInput.selectionEnd;
+				const val = markdownInput.value;
+				const selected = val.substring(start, end) || 'text';
+				markdownInput.value = val.substring(0, start) + before + selected + after + val.substring(end);
+				markdownInput.focus();
+				markdownInput.setSelectionRange(start + before.length, start + before.length + selected.length);
+				updateViews();
+			}
+
+			// Event listeners
+			markdownInput?.addEventListener('input', updateViews);
+
+			tabSlack?.addEventListener('click', () => {
+				tabSlack.classList.add('active');
+				tabDiscord.classList.remove('active');
+				activeTarget = 'slack';
+				updateViews();
+			});
+
+			tabDiscord?.addEventListener('click', () => {
+				tabDiscord.classList.add('active');
+				tabSlack.classList.remove('active');
+				activeTarget = 'discord';
+				updateViews();
+			});
+
+			btnBold?.addEventListener('click', () => insertSyntax('**', '**'));
+			btnItalic?.addEventListener('click', () => insertSyntax('*', '*'));
+			btnCode?.addEventListener('click', () => insertSyntax('`', '`'));
+			btnLink?.addEventListener('click', () => insertSyntax('[', '](https://example.com)'));
+
+			btnCopyFormatted?.addEventListener('click', () => {
+				if (!convertedOutput || !convertedOutput.value) return;
+				navigator.clipboard.writeText(convertedOutput.value).then(() => {
+					const orig = btnCopyFormatted.textContent;
+					btnCopyFormatted.textContent = 'Copied!';
+					setTimeout(() => { btnCopyFormatted.textContent = orig; }, 2000);
+				});
+			});
+
+			// Initial render
+			updateViews();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initPreviewer);
+		} else {
+			initPreviewer();
+		}
+	</script>
+</ToolLayout>
