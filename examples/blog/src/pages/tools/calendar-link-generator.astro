@@ -1,0 +1,401 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Calendar Event Link Generator",
+	description: "Generate instant 'Add to Calendar' links for Google Calendar, Outlook, Office 365, Yahoo, and downloadable .ics files for Apple Calendar. 100% client-side and free.",
+	icon: "📅",
+	tag: "Remote Work & Productivity",
+	keywords: "calendar link generator, add to calendar link, google calendar event link, ics file generator, outlook event link, webinar calendar link",
+	pinned: false,
+	priority: 93
+};
+
+const faqList = [
+	{
+		question: "How do 'Add to Calendar' links work in marketing emails?",
+		answer: "By placing direct calendar URL links in your emails or landing pages, recipients can click one button to automatically open their preferred calendar (Google, Outlook, etc.) with the event details pre-filled."
+	},
+	{
+		question: "What is an .ics file and which calendars use it?",
+		answer: "An .ics file (iCalendar format) is the universal calendar event standard. It is used by Apple Calendar (iOS/Mac), Microsoft Outlook desktop, Thunderbird, and almost all mobile device calendar apps."
+	},
+	{
+		question: "How are time zones handled for global participants?",
+		answer: "The tool converts your local event date and time into universal UTC format. When attendees click the link or import the .ics file, their calendar app automatically translates the event into their local time zone."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.calendar-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		input[type="text"], input[type="datetime-local"], textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		input:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.results-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.results-header {
+			font-size: 1.1rem;
+			font-weight: 700;
+			color: var(--text-main);
+			padding-bottom: 0.5rem;
+			border-bottom: 1px solid var(--card-border);
+		}
+
+		.link-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 1rem;
+		}
+
+		.link-box {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.8rem;
+		}
+
+		.link-title {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.btn-copy-link {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.5em 0.8em;
+			border-radius: 6px;
+			font-size: 0.82rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			text-align: center;
+			text-decoration: none;
+		}
+
+		.btn-copy-link:hover {
+			background: var(--accent-hover);
+		}
+
+		.btn-download {
+			background: #10b981;
+		}
+
+		.btn-download:hover {
+			background: #059669;
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="calendar-container">
+			<!-- Form Inputs -->
+			<div class="form-grid">
+				<div class="form-group full-width">
+					<label for="eventTitle">Event Title *</label>
+					<input type="text" id="eventTitle" placeholder="e.g. Weekly Remote Team Standup" value="Weekly Remote Team Standup" />
+				</div>
+
+				<div class="form-group">
+					<label for="eventStart">Start Time *</label>
+					<input type="datetime-local" id="eventStart" />
+				</div>
+
+				<div class="form-group">
+					<label for="eventEnd">End Time *</label>
+					<input type="datetime-local" id="eventEnd" />
+				</div>
+
+				<div class="form-group full-width">
+					<label for="eventLocation">Location or Meeting Link</label>
+					<input type="text" id="eventLocation" placeholder="e.g. https://meet.google.com/abc-defg-hij or Room 302" value="https://meet.google.com/abc-defg-hij" />
+				</div>
+
+				<div class="form-group full-width">
+					<label for="eventDetails">Event Description / Agenda</label>
+					<textarea id="eventDetails" style="height: 90px;" placeholder="e.g. Discuss weekly blockers, roadmap review, and Q3 deliverables.">Discuss weekly blockers, roadmap review, and Q3 deliverables.</textarea>
+				</div>
+			</div>
+
+			<!-- Generated Links Grid -->
+			<div class="results-card">
+				<div class="results-header">✨ Generated "Add to Calendar" Links</div>
+
+				<div class="link-grid">
+					<!-- Google Calendar -->
+					<div class="link-box">
+						<span class="link-title">🌐 Google Calendar</span>
+						<button class="btn-copy-link" id="btnGoogle">Copy Google Link</button>
+					</div>
+
+					<!-- Outlook Web -->
+					<div class="link-box">
+						<span class="link-title">✉️ Outlook Web</span>
+						<button class="btn-copy-link" id="btnOutlook">Copy Outlook Link</button>
+					</div>
+
+					<!-- Office 365 -->
+					<div class="link-box">
+						<span class="link-title">💼 Office 365</span>
+						<button class="btn-copy-link" id="btnOffice">Copy Office 365 Link</button>
+					</div>
+
+					<!-- Apple & Universal .ics file -->
+					<div class="link-box">
+						<span class="link-title">🍏 Apple / .ics File</span>
+						<button class="btn-copy-link btn-download" id="btnDownloadIcs">Download .ics File</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initCalendarGenerator() {
+			const eventTitle = document.getElementById('eventTitle');
+			const eventStart = document.getElementById('eventStart');
+			const eventEnd = document.getElementById('eventEnd');
+			const eventLocation = document.getElementById('eventLocation');
+			const eventDetails = document.getElementById('eventDetails');
+
+			const btnGoogle = document.getElementById('btnGoogle');
+			const btnOutlook = document.getElementById('btnOutlook');
+			const btnOffice = document.getElementById('btnOffice');
+			const btnDownloadIcs = document.getElementById('btnDownloadIcs');
+
+			// Set default start (tomorrow at 10:00) and end (tomorrow at 11:00)
+			const now = new Date();
+			const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 10, 0);
+			const tomorrowEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 11, 0);
+
+			function toLocalISO(d) {
+				const off = d.getTimezoneOffset();
+				const a = new Date(d.getTime() - (off * 60 * 1000));
+				return a.toISOString().slice(0, 16);
+			}
+
+			if (eventStart && !eventStart.value) eventStart.value = toLocalISO(tomorrow);
+			if (eventEnd && !eventEnd.value) eventEnd.value = toLocalISO(tomorrowEnd);
+
+			// Helper to format date to UTC ISO YYYYMMDDTHHMMSSZ for links
+			function formatUtc(dateStr) {
+				if (!dateStr) return '';
+				const d = new Date(dateStr);
+				return d.toISOString().replace(/-|:|\.\d\d\d/g, '');
+			}
+
+			function buildLinks() {
+				const title = eventTitle?.value || 'Event';
+				const startUtc = formatUtc(eventStart?.value);
+				const endUtc = formatUtc(eventEnd?.value);
+				const location = eventLocation?.value || '';
+				const details = eventDetails?.value || '';
+
+				// 1. Google Calendar Link
+				const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startUtc}/${endUtc}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+
+				// 2. Outlook Web Link
+				const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${eventStart?.value ? new Date(eventStart.value).toISOString() : ''}&enddt=${eventEnd?.value ? new Date(eventEnd.value).toISOString() : ''}&body=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+
+				// 3. Office 365 Link
+				const officeUrl = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${eventStart?.value ? new Date(eventStart.value).toISOString() : ''}&enddt=${eventEnd?.value ? new Date(eventEnd.value).toISOString() : ''}&body=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+
+				return { googleUrl, outlookUrl, officeUrl };
+			}
+
+			function generateIcsContent() {
+				const title = eventTitle?.value || 'Event';
+				const startUtc = formatUtc(eventStart?.value);
+				const endUtc = formatUtc(eventEnd?.value);
+				const location = eventLocation?.value || '';
+				const details = eventDetails?.value || '';
+
+				return [
+					'BEGIN:VCALENDAR',
+					'VERSION:2.0',
+					'PRODID:-//Calendar Link Generator//EN',
+					'BEGIN:VEVENT',
+					`SUMMARY:${title}`,
+					`DTSTART:${startUtc}`,
+					`DTEND:${endUtc}`,
+					`LOCATION:${location}`,
+					`DESCRIPTION:${details}`,
+					'STATUS:CONFIRMED',
+					'END:VEVENT',
+					'END:VCALENDAR'
+				].join('\n');
+			}
+
+			function copyToClipboard(text, buttonEl) {
+				navigator.clipboard.writeText(text).then(() => {
+					const orig = buttonEl.textContent;
+					buttonEl.textContent = 'Copied!';
+					setTimeout(() => { buttonEl.textContent = orig; }, 2000);
+				});
+			}
+
+			// Event Listeners
+			btnGoogle?.addEventListener('click', () => {
+				const { googleUrl } = buildLinks();
+				copyToClipboard(googleUrl, btnGoogle);
+			});
+
+			btnOutlook?.addEventListener('click', () => {
+				const { outlookUrl } = buildLinks();
+				copyToClipboard(outlookUrl, btnOutlook);
+			});
+
+			btnOffice?.addEventListener('click', () => {
+				const { officeUrl } = buildLinks();
+				copyToClipboard(officeUrl, btnOffice);
+			});
+
+			btnDownloadIcs?.addEventListener('click', () => {
+				const csContent = generateIcsContent();
+				const blob = new Blob([csContent], { type: 'text/calendar;charset=utf-8' });
+				const link = document.createElement('a');
+				link.href = window.URL.createObjectURL(blob);
+				link.setAttribute('download', `${(eventTitle?.value || 'event').replace(/\s+/g, '_')}.ics`);
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initCalendarGenerator);
+		} else {
+			initCalendarGenerator();
+		}
+	</script>
+</ToolLayout>
