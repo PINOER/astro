@@ -1,0 +1,377 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Product Photo Background Color Changer",
+	description: "Instantly change or remove product photo backgrounds for Amazon, Etsy, and Shopify stores. Generate clean pure white background or brand color WebP/PNG images with 100% client-side privacy.",
+	icon: "🎨",
+	tag: "E-commerce & Product Shoot",
+	keywords: "product photo background changer, amazon pure white background, etsy product photo editor, background color remover, e-commerce image background changer, webp png editor",
+	pinned: false,
+	priority: 89
+};
+
+const faqList = [
+	{
+		question: "Why does Amazon require a pure white background for primary product images?",
+		answer: "Amazon requires primary product images to have a pure white background (#FFFFFF) to ensure a unified, clutter-free shopping experience across mobile and desktop search results."
+	},
+	{
+		question: "Is my product photo uploaded to any external server?",
+		answer: "No. All image canvas operations, background replacements, and file exports happen 100% locally inside your web browser. Your unreleased product images remain fully private."
+	},
+	{
+		question: "Does this tool support transparent PNG and WebP files?",
+		answer: "Yes! If you upload a transparent PNG or WebP, you can instantly apply any custom solid background color behind your product with zero image quality loss."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+
+const colorPresets = [
+	{ name: "Amazon Pure White (#FFFFFF)", color: "#ffffff" },
+	{ name: "Etsy Soft Gray (#F3F4F6)", color: "#f3f4f6" },
+	{ name: "Minimalist Cream (#FDFBF7)", color: "#fdfbf7" },
+	{ name: "Pastel Pink (#FCE7F3)", color: "#fce7f3" },
+	{ name: "Sky Blue (#E0F2FE)", color: "#e0f2fe" },
+	{ name: "Soft Sage Green (#E6F4EA)", color: "#e6f4ea" },
+	{ name: "Dark Onyx (#18181B)", color: "#18181b" }
+];
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.changer-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.control-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		select, input[type="file"], input[type="color"] {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		input[type="color"] {
+			height: 48px;
+			padding: 0.2em;
+			cursor: pointer;
+		}
+
+		.editor-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.2rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.canvas-preview-box {
+			position: relative;
+			width: 100%;
+			max-width: 550px;
+			min-height: 350px;
+			background-color: #ffffff;
+			background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+			background-size: 20px 20px;
+			background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+			border-radius: 12px;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: 1px solid var(--card-border);
+		}
+
+		canvas {
+			max-width: 100%;
+			max-height: 450px;
+			display: block;
+		}
+
+		.btn-download {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.8em 2em;
+			border-radius: 10px;
+			font-size: 1rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-download:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.upload-dropzone {
+			border: 2px dashed var(--card-border);
+			border-radius: 12px;
+			padding: 2rem;
+			text-align: center;
+			background: var(--code-bg);
+			cursor: pointer;
+			transition: border-color 0.2s;
+		}
+
+		.upload-dropzone:hover {
+			border-color: var(--accent);
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="changer-container">
+			<!-- Upload & Options -->
+			<div class="control-grid">
+				<div class="form-group" style="grid-column: 1 / -1;">
+					<label>1. Select Transparent or Product Photo</label>
+					<div class="upload-dropzone" id="dropzone">
+						<span id="uploadPrompt">📁 Click or Drag & Drop Product Image (PNG / WebP / JPEG)</span>
+						<input type="file" id="imageInput" accept="image/*" style="display: none;" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="presetSelect">2. E-commerce Preset Color</label>
+					<select id="presetSelect">
+						{colorPresets.map(p => (
+							<option value={p.color}>{p.name}</option>
+						))}
+						<option value="custom">Custom Color Picker...</option>
+					</select>
+				</div>
+
+				<div class="form-group" id="customColorGroup" style="display: none;">
+					<label for="colorPicker">Custom Background Color</label>
+					<input type="color" id="colorPicker" value="#ffffff" />
+				</div>
+
+				<div class="form-group">
+					<label for="formatSelect">3. Output Format</label>
+					<select id="formatSelect">
+						<option value="image/webp">WebP (Best Quality & Size)</option>
+						<option value="image/png">PNG (Lossless)</option>
+						<option value="image/jpeg">JPEG (Standard)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- Preview Canvas -->
+			<div class="editor-card">
+				<div class="canvas-preview-box">
+					<canvas id="previewCanvas"></canvas>
+				</div>
+				<button class="btn-download" id="btnDownload" disabled>⬇️ Download E-commerce Image</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initChanger() {
+			const dropzone = document.getElementById('dropzone');
+			const imageInput = document.getElementById('imageInput');
+			const presetSelect = document.getElementById('presetSelect');
+			const customColorGroup = document.getElementById('customColorGroup');
+			const colorPicker = document.getElementById('colorPicker');
+			const formatSelect = document.getElementById('formatSelect');
+			const previewCanvas = document.getElementById('previewCanvas');
+			const btnDownload = document.getElementById('btnDownload');
+			const uploadPrompt = document.getElementById('uploadPrompt');
+
+			const ctx = previewCanvas?.getContext('2d');
+			let loadedImg = null;
+
+			function getSelectedColor() {
+				if (presetSelect.value === 'custom') {
+					return colorPicker?.value || '#ffffff';
+				}
+				return presetSelect.value;
+			}
+
+			function renderImage() {
+				if (!loadedImg || !ctx || !previewCanvas) return;
+
+				previewCanvas.width = loadedImg.width;
+				previewCanvas.height = loadedImg.height;
+
+				const bgColor = getSelectedColor();
+
+				// Fill background color first
+				ctx.fillStyle = bgColor;
+				ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+				// Draw the product image on top
+				ctx.drawImage(loadedImg, 0, 0);
+			}
+
+			function handleImageFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					const img = new Image();
+					img.onload = () => {
+						loadedImg = img;
+						if (btnDownload) btnDownload.disabled = false;
+						if (uploadPrompt) uploadPrompt.textContent = `✅ Loaded: ${file.name}`;
+						renderImage();
+					};
+					img.src = e.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+
+			// Event listeners
+			dropzone?.addEventListener('click', () => imageInput?.click());
+
+			dropzone?.addEventListener('dragover', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--accent)';
+			});
+
+			dropzone?.addEventListener('dragleave', () => {
+				dropzone.style.borderColor = 'var(--card-border)';
+			});
+
+			dropzone?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--card-border)';
+				if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+					handleImageFile(e.dataTransfer.files[0]);
+				}
+			});
+
+			imageInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) {
+					handleImageFile(e.target.files[0]);
+				}
+			});
+
+			presetSelect?.addEventListener('change', () => {
+				if (presetSelect.value === 'custom') {
+					if (customColorGroup) customColorGroup.style.display = 'flex';
+				} else {
+					if (customColorGroup) customColorGroup.style.display = 'none';
+				}
+				renderImage();
+			});
+
+			colorPicker?.addEventListener('input', renderImage);
+
+			btnDownload?.addEventListener('click', () => {
+				if (!previewCanvas || !loadedImg) return;
+				const mime = formatSelect?.value || 'image/webp';
+				const ext = mime.split('/')[1];
+				const link = document.createElement('a');
+				link.download = `product-photo-background.${ext}`;
+				link.href = previewCanvas.toDataURL(mime, 0.95);
+				link.click();
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initChanger);
+		} else {
+			initChanger();
+		}
+	</script>
+</ToolLayout>
