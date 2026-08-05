@@ -1,0 +1,450 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Voice/Audio Transcriber & Note Cleaner",
+	description: "Transcribe voice memos and speech into text in real-time using your browser's native Speech Recognition API. Clean up transcriptions, remove filler words, and format notes with 100% privacy.",
+	icon: "🎙️",
+	tag: "Remote Work & Productivity",
+	keywords: "voice to text, speech recognition, audio transcriber, note cleaner, transcript cleaner, browser voice memo",
+	pinned: false,
+	priority: 94
+};
+
+const faqList = [
+	{
+		question: "Is my audio recording uploaded to any external server?",
+		answer: "No. Speech processing is handled directly by your web browser's native Web Speech API. No audio files or transcribed texts are stored or transmitted to our servers."
+	},
+	{
+		question: "Which browsers are supported?",
+		answer: "Google Chrome, Microsoft Edge, and Safari have built-in support for the Web Speech API. For the best transcription accuracy, Google Chrome is recommended."
+	},
+	{
+		question: "How does the Note Cleaner feature work?",
+		answer: "The Note Cleaner automatically strips common filler words (like 'um', 'uh', 'like'), removes duplicate spaces/newlines, and capitalizes sentences to give you clean, readable notes."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+
+const languages = [
+	{ code: "en-US", name: "English (US)" },
+	{ code: "en-GB", name: "English (UK)" },
+	{ code: "zh-CN", name: "Chinese (Mandarin / 普通话)" },
+	{ code: "es-ES", name: "Spanish (Spain)" },
+	{ code: "fr-FR", name: "French" },
+	{ code: "de-DE", name: "German" },
+	{ code: "ja-JP", name: "Japanese" },
+	{ code: "pt-BR", name: "Portuguese (Brazil)" }
+];
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.transcriber-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.control-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+		}
+
+		.controls-left {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+			flex-wrap: wrap;
+		}
+
+		.btn-record {
+			background: #ef4444;
+			color: #ffffff !important;
+			border: none;
+			padding: 0.8em 1.6em;
+			border-radius: 10px;
+			font-size: 1rem;
+			font-weight: 700;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			transition: all 0.2s ease;
+		}
+
+		.btn-record:hover {
+			opacity: 0.9;
+			transform: translateY(-1px);
+		}
+
+		.btn-record.recording {
+			background: #10b981;
+			animation: pulse 1.5s infinite;
+		}
+
+		@keyframes pulse {
+			0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+			70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+			100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+		}
+
+		.lang-select {
+			padding: 0.75em 1em;
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			outline: none;
+		}
+
+		.grid-panels {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.panel-title {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		.text-area {
+			width: 100%;
+			height: 260px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			font-size: 0.95rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		.text-area:focus {
+			border-color: var(--accent);
+		}
+
+		.action-btns {
+			display: flex;
+			gap: 0.6rem;
+			flex-wrap: wrap;
+		}
+
+		.btn-action {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			padding: 0.5em 0.9em;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-action:hover {
+			border-color: var(--accent);
+			color: var(--accent);
+		}
+
+		.btn-accent {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+		}
+
+		.btn-accent:hover {
+			background: var(--accent-hover);
+			color: #ffffff !important;
+		}
+
+		.status-bar {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			display: flex;
+			align-items: center;
+			gap: 0.4rem;
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="transcriber-container">
+			<!-- Top Control Bar -->
+			<div class="control-card">
+				<div class="controls-left">
+					<button class="btn-record" id="btnRecord">
+						<span id="recordIcon">🎙️</span>
+						<span id="recordText">Start Transcribing</span>
+					</button>
+					<select id="langSelect" class="lang-select">
+						{languages.map(lang => (
+							<option value={lang.code}>{lang.name}</option>
+						))}
+					</select>
+				</div>
+				<div class="status-bar" id="statusBar">
+					<span>Status: Ready</span>
+				</div>
+			</div>
+
+			<!-- Main Panels -->
+			<div class="grid-panels">
+				<!-- Raw Transcription Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">📝 Raw Transcript</span>
+						<div class="action-btns">
+							<button class="btn-action" id="btnClear">Clear</button>
+						</div>
+					</div>
+					<textarea id="rawTranscript" class="text-area" placeholder="Click 'Start Transcribing' and speak into your microphone, or paste your text here..."></textarea>
+				</div>
+
+				<!-- Cleaned Output Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">✨ Cleaned Notes</span>
+						<div class="action-btns">
+							<button class="btn-action btn-accent" id="btnClean">Clean Text</button>
+							<button class="btn-action" id="btnCopy">📋 Copy</button>
+						</div>
+					</div>
+					<textarea id="cleanedTranscript" class="text-area" placeholder="Cleaned text without filler words will appear here..."></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initTranscriber() {
+			const btnRecord = document.getElementById('btnRecord');
+			const recordIcon = document.getElementById('recordIcon');
+			const recordText = document.getElementById('recordText');
+			const langSelect = document.getElementById('langSelect');
+			const statusBar = document.getElementById('statusBar');
+
+			const rawTranscript = document.getElementById('rawTranscript');
+			const cleanedTranscript = document.getElementById('cleanedTranscript');
+
+			const btnClear = document.getElementById('btnClear');
+			const btnClean = document.getElementById('btnClean');
+			const btnCopy = document.getElementById('btnCopy');
+
+			let isRecording = false;
+			let recognition = null;
+
+			// Check Web Speech API Support
+			const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+			if (!SpeechRecognition) {
+				if (statusBar) statusBar.innerHTML = '<span style="color:#ef4444;">Speech API not supported in this browser. Please use Chrome/Edge.</span>';
+				if (btnRecord) btnRecord.disabled = true;
+				return;
+			}
+
+			recognition = new SpeechRecognition();
+			recognition.continuous = true;
+			recognition.interimResults = true;
+
+			recognition.onstart = () => {
+				isRecording = true;
+				if (btnRecord) btnRecord.classList.add('recording');
+				if (recordIcon) recordIcon.textContent = '⏹️';
+				if (recordText) recordText.textContent = 'Stop Transcribing';
+				if (statusBar) statusBar.innerHTML = '<span style="color:#10b981;">🔴 Listening... Speak now</span>';
+			};
+
+			recognition.onerror = (event) => {
+				if (statusBar) statusBar.innerHTML = `<span style="color:#ef4444;">Error: ${event.error}</span>`;
+				stopRecording();
+			};
+
+			recognition.onend = () => {
+				stopRecording();
+			};
+
+			recognition.onresult = (event) => {
+				let finalTranscript = '';
+				for (let i = event.resultIndex; i < event.results.length; ++i) {
+					if (event.results[i].isFinal) {
+						finalTranscript += event.results[i][0].transcript + ' ';
+					}
+				}
+				if (finalTranscript && rawTranscript) {
+					rawTranscript.value += finalTranscript;
+					cleanAndFormat();
+				}
+			};
+
+			function startRecording() {
+				if (!recognition) return;
+				recognition.lang = langSelect?.value || 'en-US';
+				recognition.start();
+			}
+
+			function stopRecording() {
+				isRecording = false;
+				if (recognition) recognition.stop();
+				if (btnRecord) btnRecord.classList.remove('recording');
+				if (recordIcon) recordIcon.textContent = '🎙️';
+				if (recordText) recordText.textContent = 'Start Transcribing';
+				if (statusBar) statusBar.innerHTML = '<span>Status: Ready</span>';
+			}
+
+			function cleanAndFormat() {
+				if (!rawTranscript || !cleanedTranscript) return;
+				let text = rawTranscript.value;
+
+				if (!text.trim()) {
+					cleanedTranscript.value = '';
+					return;
+				}
+
+				// Common English & General filler words
+				const fillers = [
+					/\b(um|uh|hmm|like|you know|i mean|so yeah|basically|actually|literally)\b/gi,
+					/\b(额|嗯|那个|就是|然后呢)\b/g
+				];
+
+				fillers.forEach(regex => {
+					text = text.replace(regex, '');
+				});
+
+				// Clean up redundant spaces and line breaks
+				text = text.replace(/[ \t]+/g, ' ');
+				text = text.replace(/\n\s*\n/g, '\n\n');
+
+				// Capitalize first letter of sentences
+				text = text.replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+
+				cleanedTranscript.value = text.trim();
+			}
+
+			// Event Listeners
+			btnRecord?.addEventListener('click', () => {
+				if (isRecording) stopRecording();
+				else startRecording();
+			});
+
+			btnClear?.addEventListener('click', () => {
+				if (rawTranscript) rawTranscript.value = '';
+				if (cleanedTranscript) cleanedTranscript.value = '';
+			});
+
+			btnClean?.addEventListener('click', cleanAndFormat);
+
+			btnCopy?.addEventListener('click', () => {
+				if (!cleanedTranscript || !cleanedTranscript.value) return;
+				navigator.clipboard.writeText(cleanedTranscript.value).then(() => {
+					const orig = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = orig; }, 2000);
+				});
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initTranscriber);
+		} else {
+			initTranscriber();
+		}
+	</script>
+</ToolLayout>
