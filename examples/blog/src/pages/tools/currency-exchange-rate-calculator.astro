@@ -1,0 +1,423 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Currency Exchange Rate Calculator",
+	description: "Instantly convert currencies with real-time exchange rates. Features a built-in offline cache so you can calculate conversions even without an internet connection. 100% privacy-friendly.",
+	icon: "💱",
+	tag: "Freelance & Finance",
+	keywords: "currency converter, exchange rate calculator, real time exchange rates, offline currency converter, digital nomad tools, freelance finance",
+	pinned: false,
+	priority: 95
+};
+
+const faqList = [
+	{
+		question: "How does the offline cache work?",
+		answer: "Whenever you have an active internet connection, this tool fetches the latest exchange rates and saves them locally in your browser's storage. If you lose connection (e.g., while on a flight), it will seamlessly use the last saved rates to perform calculations."
+	},
+	{
+		question: "Are the exchange rates accurate?",
+		answer: "Yes, the tool fetches reference exchange rates published by the European Central Bank (ECB) via an open-source API. Rates are typically updated daily on working days."
+	},
+	{
+		question: "Is my financial data tracked?",
+		answer: "No. All calculations are performed directly on your device. We do not track the amounts you calculate or the currencies you select."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+
+// Common top-tier currencies for digital nomads and e-commerce
+const currencies = [
+	{ code: "USD", name: "US Dollar ($)" },
+	{ code: "EUR", name: "Euro (€)" },
+	{ code: "GBP", name: "British Pound (£)" },
+	{ code: "JPY", name: "Japanese Yen (¥)" },
+	{ code: "CAD", name: "Canadian Dollar (C$)" },
+	{ code: "AUD", name: "Australian Dollar (A$)" },
+	{ code: "CHF", name: "Swiss Franc (CHF)" },
+	{ code: "CNY", name: "Chinese Yuan (¥)" },
+	{ code: "HKD", name: "Hong Kong Dollar (HK$)" },
+	{ code: "NZD", name: "New Zealand Dollar (NZ$)" },
+	{ code: "SGD", name: "Singapore Dollar (S$)" },
+	{ code: "INR", name: "Indian Rupee (₹)" },
+	{ code: "MXN", name: "Mexican Peso ($)" },
+	{ code: "BRL", name: "Brazilian Real (R$)" }
+];
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.converter-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-bottom: 2rem;
+		}
+
+		.converter-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 2rem;
+			width: 100%;
+			max-width: 600px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+		}
+
+		.input-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.input-row {
+			display: flex;
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.amount-input {
+			flex: 2;
+			padding: 1em;
+			font-size: 1.5rem;
+			font-weight: 700;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			color: var(--text-main);
+			outline: none;
+			transition: all 0.2s;
+		}
+
+		.amount-input:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 12px var(--accent-glow);
+		}
+
+		.currency-select {
+			flex: 1;
+			padding: 1em;
+			font-size: 1.1rem;
+			font-weight: 600;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			color: var(--text-main);
+			outline: none;
+			cursor: pointer;
+		}
+
+		.currency-select:focus {
+			border-color: var(--accent);
+		}
+
+		.swap-btn-container {
+			display: flex;
+			justify-content: center;
+			margin: -0.5rem 0;
+			z-index: 2;
+		}
+
+		.btn-swap {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			color: var(--text-main);
+			width: 44px;
+			height: 44px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.2rem;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+		}
+
+		.btn-swap:hover {
+			background: var(--accent);
+			color: #fff;
+			border-color: var(--accent);
+			transform: scale(1.1) rotate(180deg);
+		}
+
+		.result-box {
+			background: rgba(59, 130, 246, 0.05);
+			border: 1px solid rgba(59, 130, 246, 0.2);
+			border-radius: 12px;
+			padding: 1.5rem;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.result-amount {
+			font-size: 2.5rem;
+			font-weight: 800;
+			color: var(--accent);
+			word-break: break-all;
+		}
+
+		.result-rate {
+			font-size: 0.9rem;
+			color: var(--text-muted);
+		}
+
+		.status-indicator {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+			font-size: 0.8rem;
+			color: var(--text-muted);
+			margin-top: 1rem;
+		}
+
+		.status-dot {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: #22c55e;
+		}
+		.status-dot.offline {
+			background: #eab308;
+		}
+		.status-dot.error {
+			background: #ef4444;
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="converter-container">
+			<div class="converter-card">
+				
+				<!-- Amount & From Currency -->
+				<div class="input-group">
+					<label for="amountInput">Amount</label>
+					<div class="input-row">
+						<input type="number" id="amountInput" class="amount-input" value="100" min="0" step="any" />
+						<select id="fromCurrency" class="currency-select">
+							{currencies.map(c => (
+								<option value={c.code} selected={c.code === 'USD'}>{c.code}</option>
+							))}
+						</select>
+					</div>
+				</div>
+
+				<!-- Swap Button -->
+				<div class="swap-btn-container">
+					<button class="btn-swap" id="btnSwap" title="Swap Currencies">↕</button>
+				</div>
+
+				<!-- To Currency -->
+				<div class="input-group">
+					<label for="toCurrency">Converted To</label>
+					<div class="input-row">
+						<select id="toCurrency" class="currency-select" style="flex: 1;">
+							{currencies.map(c => (
+								<option value={c.code} selected={c.code === 'EUR'}>{c.name}</option>
+							))}
+						</select>
+					</div>
+				</div>
+
+				<!-- Result Display -->
+				<div class="result-box">
+					<div class="result-amount" id="resultAmount">--</div>
+					<div class="result-rate" id="resultRate">Loading rates...</div>
+				</div>
+
+			</div>
+			
+			<div class="status-indicator">
+				<div class="status-dot" id="statusDot"></div>
+				<span id="statusText">Checking network...</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initCurrencyConverter() {
+			const amountInput = document.getElementById('amountInput');
+			const fromCurrency = document.getElementById('fromCurrency');
+			const toCurrency = document.getElementById('toCurrency');
+			const btnSwap = document.getElementById('btnSwap');
+			
+			const resultAmount = document.getElementById('resultAmount');
+			const resultRate = document.getElementById('resultRate');
+			const statusDot = document.getElementById('statusDot');
+			const statusText = document.getElementById('statusText');
+
+			const CACHE_KEY = 'currency_rates_cache';
+			const API_URL = 'https://api.frankfurter.app/latest'; // Free, no key required, open source
+
+			let ratesData = null; // Store base EUR rates
+
+			// Fetch rates from API or LocalStorage
+			async function loadRates() {
+				try {
+					const response = await fetch(API_URL);
+					if (!response.ok) throw new Error('API Error');
+					const data = await response.json();
+					
+					// Frankfurter API returns rates based on EUR by default
+					// Add EUR = 1 to the rates object for easy cross-calculation
+					data.rates['EUR'] = 1;
+					
+					const cacheData = {
+						timestamp: Date.now(),
+						date: data.date,
+						rates: data.rates
+					};
+					
+					localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+					ratesData = cacheData;
+					
+					updateStatus('Live rates updated', 'online');
+					calculate();
+				} catch (error) {
+					// Fallback to offline cache
+					const cachedStr = localStorage.getItem(CACHE_KEY);
+					if (cachedStr) {
+						ratesData = JSON.parse(cachedStr);
+						const cacheDate = new Date(ratesData.timestamp).toLocaleDateString();
+						updateStatus(`Offline mode. Using cached rates from ${cacheDate}`, 'offline');
+						calculate();
+					} else {
+						updateStatus('Network error and no cached data available.', 'error');
+						resultAmount.textContent = 'Error';
+						resultRate.textContent = 'Please connect to the internet to initialize rates.';
+					}
+				}
+			}
+
+			function updateStatus(message, state) {
+				if(!statusText || !statusDot) return;
+				statusText.textContent = message;
+				statusDot.className = 'status-dot';
+				if (state === 'offline') statusDot.classList.add('offline');
+				if (state === 'error') statusDot.classList.add('error');
+			}
+
+			function calculate() {
+				if (!ratesData) return;
+
+				const amount = parseFloat(amountInput.value) || 0;
+				const from = fromCurrency.value;
+				const to = toCurrency.value;
+
+				// Since base is EUR, formula is: (Amount / RateFrom) * RateTo
+				const rateFrom = ratesData.rates[from];
+				const rateTo = ratesData.rates[to];
+
+				if (!rateFrom || !rateTo) {
+					resultAmount.textContent = '--';
+					resultRate.textContent = 'Rate unavailable for selected currency.';
+					return;
+				}
+
+				const crossRate = rateTo / rateFrom;
+				const finalAmount = amount * crossRate;
+
+				// Format numbers nicely
+				resultAmount.textContent = finalAmount.toLocaleString('en-US', { 
+					minimumFractionDigits: 2, 
+					maximumFractionDigits: 2 
+				}) + ' ' + to;
+				
+				resultRate.textContent = `1 ${from} = ${crossRate.toFixed(5)} ${to}`;
+			}
+
+			function swapCurrencies() {
+				const temp = fromCurrency.value;
+				fromCurrency.value = toCurrency.value;
+				toCurrency.value = temp;
+				calculate();
+			}
+
+			// Event Listeners
+			amountInput?.addEventListener('input', calculate);
+			fromCurrency?.addEventListener('change', calculate);
+			toCurrency?.addEventListener('change', calculate);
+			btnSwap?.addEventListener('click', swapCurrencies);
+
+			// Initialize
+			loadRates();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initCurrencyConverter);
+		} else {
+			initCurrencyConverter();
+		}
+	</script>
+</ToolLayout>
