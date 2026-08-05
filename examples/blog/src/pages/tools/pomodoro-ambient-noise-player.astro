@@ -1,0 +1,472 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Pomodoro & Ambient Noise Player for Focus",
+	description: "Boost your productivity with a customizable Pomodoro focus timer combined with browser-synthesized ambient noise (Rain, White Noise, Brown Noise). 100% private, free, and works offline.",
+	icon: "⏱️",
+	tag: "Remote Work & Productivity",
+	keywords: "pomodoro timer, ambient noise generator, white noise player, focus timer, rain sound generator, brown noise for adhd, remote work focus tool",
+	pinned: false,
+	priority: 91
+};
+
+const faqList = [
+	{
+		question: "How does the Pomodoro Technique work?",
+		answer: "The Pomodoro Technique breaks work into focused 25-minute intervals (called 'Pomodoros') separated by short 5-minute breaks. After completing 4 Pomodoros, you take a longer 15-30 minute break to recharge."
+	},
+	{
+		question: "How are the ambient noise sounds generated without audio files?",
+		answer: "This tool utilizes your browser's native Web Audio API to dynamically synthesize audio waves (White, Pink, and Brown noise algorithms) in real-time. This means instant playback, zero data usage, and full offline capabilities!"
+	},
+	{
+		question: "What is the difference between White Noise and Brown Noise?",
+		answer: "White noise contains equal energy across all frequencies, sounding like a crisp TV static. Brown noise emphasizes deeper, lower frequencies, sounding similar to heavy rainfall or distant ocean waves, which many find easier on the ears for deep focus."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.pomo-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.pomo-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.8rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.2rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-title {
+			font-size: 1.1rem;
+			font-weight: 700;
+			color: var(--text-main);
+			align-self: flex-start;
+		}
+
+		/* Timer Mode Tabs */
+		.mode-tabs {
+			display: flex;
+			gap: 0.4rem;
+			background: var(--code-bg);
+			padding: 0.3rem;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+			width: 100%;
+		}
+
+		.tab-btn {
+			flex: 1;
+			background: transparent;
+			border: none;
+			color: var(--text-muted);
+			padding: 0.5em 0.8em;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			text-align: center;
+		}
+
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+		}
+
+		/* Timer Display */
+		.timer-display {
+			font-size: 4rem;
+			font-weight: 900;
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			color: var(--text-main);
+			letter-spacing: 2px;
+			margin: 0.5rem 0;
+		}
+
+		.timer-controls {
+			display: flex;
+			gap: 0.8rem;
+			width: 100%;
+		}
+
+		.btn-pomo {
+			flex: 1;
+			padding: 0.8em 1.2em;
+			border-radius: 10px;
+			font-size: 1rem;
+			font-weight: 700;
+			cursor: pointer;
+			border: none;
+			transition: all 0.2s ease;
+		}
+
+		.btn-start {
+			background: var(--accent);
+			color: #ffffff !important;
+		}
+
+		.btn-start:hover {
+			background: var(--accent-hover);
+		}
+
+		.btn-reset {
+			background: var(--code-bg);
+			color: var(--text-main);
+			border: 1px solid var(--card-border);
+		}
+
+		.btn-reset:hover {
+			border-color: var(--accent);
+		}
+
+		/* Sound Controls */
+		.sound-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			width: 100%;
+			background: var(--code-bg);
+			padding: 0.8rem 1rem;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+		}
+
+		.sound-info {
+			display: flex;
+			align-items: center;
+			gap: 0.6rem;
+			font-weight: 600;
+			font-size: 0.9rem;
+		}
+
+		.sound-toggle {
+			background: var(--accent);
+			color: #fff;
+			border: none;
+			padding: 0.4em 0.8em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.sound-toggle.off {
+			background: var(--card-border);
+			color: var(--text-muted);
+		}
+
+		.volume-slider {
+			width: 100%;
+			margin-top: 0.4rem;
+			accent-color: var(--accent);
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="pomo-container">
+			<div class="pomo-grid">
+				<!-- Pomodoro Timer Panel -->
+				<div class="panel-card">
+					<span class="panel-title">⏱️ Pomodoro Timer</span>
+					
+					<div class="mode-tabs">
+						<button class="tab-btn active" id="tabFocus" data-time="1500">Focus (25m)</button>
+						<button class="tab-btn" id="tabShort" data-time="300">Short Break (5m)</button>
+						<button class="tab-btn" id="tabLong" data-time="900">Long Break (15m)</button>
+					</div>
+
+					<div class="timer-display" id="timerDisplay">25:00</div>
+
+					<div class="timer-controls">
+						<button class="btn-pomo btn-start" id="btnStartTimer">Start</button>
+						<button class="btn-pomo btn-reset" id="btnResetTimer">Reset</button>
+					</div>
+				</div>
+
+				<!-- Ambient Sound Synthesizer Panel -->
+				<div class="panel-card">
+					<span class="panel-title">🎧 Ambient Noise Synthesizer</span>
+
+					<!-- Brown Noise (Rain / Deep Ocean) -->
+					<div class="sound-row" style="flex-direction: column; align-items: stretch;">
+						<div style="display: flex; justify-content: space-between; align-items: center;">
+							<div class="sound-info">🌧️ Brown Noise (Rain / Ocean)</div>
+							<button class="sound-toggle off" id="btnToggleBrown">Play</button>
+						</div>
+						<input type="range" id="volBrown" class="volume-slider" min="0" max="1" step="0.01" value="0.5" />
+					</div>
+
+					<!-- Pink Noise (Soft Wind) -->
+					<div class="sound-row" style="flex-direction: column; align-items: stretch;">
+						<div style="display: flex; justify-content: space-between; align-items: center;">
+							<div class="sound-info">🍃 Pink Noise (Soft Wind)</div>
+							<button class="sound-toggle off" id="btnTogglePink">Play</button>
+						</div>
+						<input type="range" id="volPink" class="volume-slider" min="0" max="1" step="0.01" value="0.5" />
+					</div>
+
+					<!-- White Noise (Crisp Static) -->
+					<div class="sound-row" style="flex-direction: column; align-items: stretch;">
+						<div style="display: flex; justify-content: space-between; align-items: center;">
+							<div class="sound-info">📻 White Noise (TV Static)</div>
+							<button class="sound-toggle off" id="btnToggleWhite">Play</button>
+						</div>
+						<input type="range" id="volWhite" class="volume-slider" min="0" max="1" step="0.01" value="0.5" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initPomodoroAndAudio() {
+			// --- 1. Pomodoro Logic ---
+			const timerDisplay = document.getElementById('timerDisplay');
+			const btnStartTimer = document.getElementById('btnStartTimer');
+			const btnResetTimer = document.getElementById('btnResetTimer');
+			const tabs = document.querySelectorAll('.mode-tabs .tab-btn');
+
+			let totalSeconds = 1500;
+			let remainingSeconds = 1500;
+			let timerInterval = null;
+			let isRunning = false;
+
+			function updateDisplay() {
+				const mins = Math.floor(remainingSeconds / 60);
+				const secs = remainingSeconds % 60;
+				const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+				if (timerDisplay) timerDisplay.textContent = formatted;
+				document.title = isRunning ? `(${formatted}) Pomodoro Timer` : 'Pomodoro & Ambient Noise Player';
+			}
+
+			function startTimer() {
+				if (isRunning) {
+					clearInterval(timerInterval);
+					isRunning = false;
+					if (btnStartTimer) btnStartTimer.textContent = 'Start';
+					return;
+				}
+
+				isRunning = true;
+				if (btnStartTimer) btnStartTimer.textContent = 'Pause';
+
+				timerInterval = setInterval(() => {
+					if (remainingSeconds > 0) {
+						remainingSeconds--;
+						updateDisplay();
+					} else {
+						clearInterval(timerInterval);
+						isRunning = false;
+						if (btnStartTimer) btnStartTimer.textContent = 'Start';
+						alert('⏱️ Pomodoro interval finished!');
+					}
+				}, 1000);
+			}
+
+			function resetTimer() {
+				clearInterval(timerInterval);
+				isRunning = false;
+				remainingSeconds = totalSeconds;
+				if (btnStartTimer) btnStartTimer.textContent = 'Start';
+				updateDisplay();
+			}
+
+			tabs.forEach(tab => {
+				tab.addEventListener('click', () => {
+					tabs.forEach(t => t.classList.remove('active'));
+					tab.classList.add('active');
+					totalSeconds = parseInt(tab.getAttribute('data-time') || '1500', 10);
+					resetTimer();
+				});
+			});
+
+			btnStartTimer?.addEventListener('click', startTimer);
+			btnResetTimer?.addEventListener('click', resetTimer);
+
+			// --- 2. Web Audio API Noise Generator ---
+			let audioCtx = null;
+
+			function getAudioContext() {
+				if (!audioCtx) {
+					const AudioContext = window.AudioContext || window.webkitAudioContext;
+					audioCtx = new AudioContext();
+				}
+				if (audioCtx.state === 'suspended') {
+					audioCtx.resume();
+				}
+				return audioCtx;
+			}
+
+			// Factory for Noise Nodes
+			function createNoiseNode(type) {
+				const ctx = getAudioContext();
+				const bufferSize = 2 * ctx.sampleRate;
+				const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+				const output = buffer.getChannelData(0);
+
+				let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+				let lastOut = 0.0;
+
+				for (let i = 0; i < bufferSize; i++) {
+					const white = Math.random() * 2 - 1;
+
+					if (type === 'white') {
+						output[i] = white;
+					} else if (type === 'pink') {
+						b0 = 0.99886 * b0 + white * 0.0555179;
+						b1 = 0.99332 * b1 + white * 0.0750759;
+						b2 = 0.96900 * b2 + white * 0.1538520;
+						b3 = 0.86650 * b3 + white * 0.3104856;
+						b4 = 0.55000 * b4 + white * 0.5329522;
+						b5 = -0.7616 * b5 - white * 0.0168980;
+						output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+						output[i] *= 0.11;
+						b6 = white * 0.115926;
+					} else if (type === 'brown') {
+						output[i] = (lastOut + (0.02 * white)) / 1.02;
+						lastOut = output[i];
+						output[i] *= 3.5;
+					}
+				}
+
+				const noiseSource = ctx.createBufferSource();
+				noiseSource.buffer = buffer;
+				noiseSource.loop = true;
+
+				const gainNode = ctx.createGain();
+				noiseSource.connect(gainNode);
+				gainNode.connect(ctx.destination);
+
+				return { source: noiseSource, gain: gainNode };
+			}
+
+			// Setup Sound Controllers
+			function setupSoundController(type, toggleBtnId, volSliderId) {
+				const btn = document.getElementById(toggleBtnId);
+				const slider = document.getElementById(volSliderId);
+				let nodeInstance = null;
+				let isPlaying = false;
+
+				btn?.addEventListener('click', () => {
+					if (!isPlaying) {
+						nodeInstance = createNoiseNode(type);
+						nodeInstance.gain.gain.value = parseFloat(slider?.value || '0.5');
+						nodeInstance.source.start();
+						isPlaying = true;
+						btn.textContent = 'Stop';
+						btn.classList.remove('off');
+					} else {
+						if (nodeInstance) {
+							nodeInstance.source.stop();
+							nodeInstance = null;
+						}
+						isPlaying = false;
+						btn.textContent = 'Play';
+						btn.classList.add('off');
+					}
+				});
+
+				slider?.addEventListener('input', () => {
+					if (nodeInstance && isPlaying) {
+						nodeInstance.gain.gain.value = parseFloat(slider.value);
+					}
+				});
+			}
+
+			setupSoundController('brown', 'btnToggleBrown', 'volBrown');
+			setupSoundController('pink', 'btnTogglePink', 'volPink');
+			setupSoundController('white', 'btnToggleWhite', 'volWhite');
+
+			updateDisplay();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initPomodoroAndAudio);
+		} else {
+			initPomodoroAndAudio();
+		}
+	</script>
+</ToolLayout>
