@@ -1,0 +1,408 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Social Media Image Resizer & Cropper",
+	description: "Crop and resize images instantly for Instagram, Twitter/X, LinkedIn, YouTube, and Facebook. Features exact platform dimension presets, drag-and-zoom editing, and 100% client-side privacy.",
+	icon: "🖼️",
+	tag: "E-commerce & Social Media",
+	keywords: "social media image resizer, instagram photo cropper, twitter banner resizer, youtube thumbnail cropper, linkedin header image, image aspect ratio cropper",
+	pinned: false,
+	priority: 90
+};
+
+const faqList = [
+	{
+		question: "Why should I resize images specifically for each social media platform?",
+		answer: "Social media platforms automatically compress and crop images that do not conform to their recommended aspect ratios. Pre-cropping your images ensures no key text or visual content gets awkwardly cut off in user feeds."
+	},
+	{
+		question: "Is my uploaded image sent to any server?",
+		answer: "No. All image processing, canvas cropping, and export functions happen 100% locally in your web browser. Your private photos never leave your device."
+	},
+	{
+		question: "What output formats are supported?",
+		answer: "You can export your cropped images in WebP (for minimal file size and best modern web compatibility), PNG (for lossless graphics and transparency), or JPEG."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+
+const presets = [
+	{ name: "Instagram Square (1:1)", width: 1080, height: 1080, ratio: 1 },
+	{ name: "Instagram Story / Reels / TikTok (9:16)", width: 1080, height: 1920, ratio: 9/16 },
+	{ name: "Instagram Portrait (4:5)", width: 1080, height: 1350, ratio: 4/5 },
+	{ name: "Twitter / X Post (16:9)", width: 1200, height: 675, ratio: 16/9 },
+	{ name: "Twitter / X Header (3:1)", width: 1500, height: 500, ratio: 3/1 },
+	{ name: "LinkedIn Post (1.91:1)", width: 1200, height: 627, ratio: 1200/627 },
+	{ name: "LinkedIn Banner (4:1)", width: 1584, height: 396, ratio: 4/1 },
+	{ name: "YouTube Banner (16:9)", width: 2560, height: 1440, ratio: 16/9 },
+	{ name: "YouTube Thumbnail (16:9)", width: 1280, height: 720, ratio: 16/9 },
+	{ name: "Facebook Post (1:1)", width: 1200, height: 1200, ratio: 1 }
+];
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.resizer-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.control-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		select, input[type="file"], input[type="range"] {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		input[type="range"] {
+			accent-color: var(--accent);
+			padding: 0.4em 0;
+		}
+
+		.editor-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.2rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.canvas-container {
+			position: relative;
+			width: 100%;
+			max-width: 650px;
+			height: 400px;
+			background: #111;
+			border-radius: 12px;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: grab;
+		}
+
+		.canvas-container:active {
+			cursor: grabbing;
+		}
+
+		canvas {
+			max-width: 100%;
+			max-height: 100%;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+		}
+
+		.btn-download {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.8em 2em;
+			border-radius: 10px;
+			font-size: 1rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-download:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.upload-dropzone {
+			border: 2px dashed var(--card-border);
+			border-radius: 12px;
+			padding: 2rem;
+			text-align: center;
+			background: var(--code-bg);
+			cursor: pointer;
+			transition: border-color 0.2s;
+		}
+
+		.upload-dropzone:hover {
+			border-color: var(--accent);
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="resizer-container">
+			<!-- Upload & Presets Form -->
+			<div class="control-grid">
+				<div class="form-group" style="grid-column: 1 / -1;">
+					<label>1. Select Image</label>
+					<div class="upload-dropzone" id="dropzone">
+						<span id="uploadPrompt">📁 Click or Drag & Drop an Image Here</span>
+						<input type="file" id="imageInput" accept="image/*" style="display: none;" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="presetSelect">2. Platform Preset</label>
+					<select id="presetSelect">
+						{presets.map(p => (
+							<option value={p.ratio} data-w={p.width} data-h={p.height}>{p.name}</option>
+						))}
+					</select>
+				</div>
+
+				<div class="form-group">
+					<label for="formatSelect">3. Output Format</label>
+					<select id="formatSelect">
+						<option value="image/webp">WebP (Optimized)</option>
+						<option value="image/png">PNG (Lossless)</option>
+						<option value="image/jpeg">JPEG (Standard)</option>
+					</select>
+				</div>
+
+				<div class="form-group" style="grid-column: 1 / -1;">
+					<label for="zoomSlider">4. Zoom & Position Adjustment</label>
+					<input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1" disabled />
+				</div>
+			</div>
+
+			<!-- Live Canvas Crop Preview -->
+			<div class="editor-card">
+				<div class="canvas-container" id="canvasContainer">
+					<canvas id="cropCanvas"></canvas>
+				</div>
+				<button class="btn-download" id="btnDownload" disabled>⬇️ Download Cropped Image</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initResizer() {
+			const dropzone = document.getElementById('dropzone');
+			const imageInput = document.getElementById('imageInput');
+			const presetSelect = document.getElementById('presetSelect');
+			const formatSelect = document.getElementById('formatSelect');
+			const zoomSlider = document.getElementById('zoomSlider');
+			const cropCanvas = document.getElementById('cropCanvas');
+			const canvasContainer = document.getElementById('canvasContainer');
+			const btnDownload = document.getElementById('btnDownload');
+			const uploadPrompt = document.getElementById('uploadPrompt');
+
+			const ctx = cropCanvas?.getContext('2d');
+
+			let loadedImg = null;
+			let imgState = {
+				scale: 1,
+				offsetX: 0,
+				offsetY: 0,
+				isDragging: false,
+				startX: 0,
+				startY: 0
+			};
+
+			function renderCanvas() {
+				if (!loadedImg || !ctx || !cropCanvas) return;
+
+				const opt = presetSelect.options[presetSelect.selectedIndex];
+				const targetW = parseInt(opt.getAttribute('data-w') || '1080', 10);
+				const targetH = parseInt(opt.getAttribute('data-h') || '1080', 10);
+
+				cropCanvas.width = targetW;
+				cropCanvas.height = targetH;
+
+				ctx.clearRect(0, 0, targetW, targetH);
+
+				const scale = Math.max(targetW / loadedImg.width, targetH / loadedImg.height) * imgState.scale;
+				const drawW = loadedImg.width * scale;
+				const drawH = loadedImg.height * scale;
+
+				const x = (targetW - drawW) / 2 + imgState.offsetX;
+				const y = (targetH - drawH) / 2 + imgState.offsetY;
+
+				ctx.drawImage(loadedImg, x, y, drawW, drawH);
+			}
+
+			function handleImageFile(file) {
+				if (!file || !file.type.startsWith('image/')) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					const img = new Image();
+					img.onload = () => {
+						loadedImg = img;
+						imgState = { scale: 1, offsetX: 0, offsetY: 0, isDragging: false, startX: 0, startY: 0 };
+						if (zoomSlider) {
+							zoomSlider.value = '1';
+							zoomSlider.disabled = false;
+						}
+						if (btnDownload) btnDownload.disabled = false;
+						if (uploadPrompt) uploadPrompt.textContent = `✅ Loaded: ${file.name}`;
+						renderCanvas();
+					};
+					img.src = e.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+
+			// Event listeners
+			dropzone?.addEventListener('click', () => imageInput?.click());
+			
+			dropzone?.addEventListener('dragover', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--accent)';
+			});
+
+			dropzone?.addEventListener('dragleave', () => {
+				dropzone.style.borderColor = 'var(--card-border)';
+			});
+
+			dropzone?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--card-border)';
+				if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+					handleImageFile(e.dataTransfer.files[0]);
+				}
+			});
+
+			imageInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) {
+					handleImageFile(e.target.files[0]);
+				}
+			});
+
+			presetSelect?.addEventListener('change', renderCanvas);
+
+			zoomSlider?.addEventListener('input', (e) => {
+				imgState.scale = parseFloat(e.target.value);
+				renderCanvas();
+			});
+
+			// Canvas Mouse Dragging
+			canvasContainer?.addEventListener('mousedown', (e) => {
+				if (!loadedImg) return;
+				imgState.isDragging = true;
+				imgState.startX = e.clientX - imgState.offsetX;
+				imgState.startY = e.clientY - imgState.offsetY;
+			});
+
+			window.addEventListener('mousemove', (e) => {
+				if (!imgState.isDragging || !loadedImg) return;
+				imgState.offsetX = e.clientX - imgState.startX;
+				imgState.offsetY = e.clientY - imgState.startY;
+				renderCanvas();
+			});
+
+			window.addEventListener('mouseup', () => {
+				imgState.isDragging = false;
+			});
+
+			// Download Cropped Result
+			btnDownload?.addEventListener('click', () => {
+				if (!cropCanvas || !loadedImg) return;
+				const mime = formatSelect?.value || 'image/webp';
+				const ext = mime.split('/')[1];
+				const link = document.createElement('a');
+				link.download = `cropped-social-media-image.${ext}`;
+				link.href = cropCanvas.toDataURL(mime, 0.92);
+				link.click();
+			});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initResizer);
+		} else {
+			initResizer();
+		}
+	</script>
+</ToolLayout>
