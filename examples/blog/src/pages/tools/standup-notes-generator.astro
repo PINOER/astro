@@ -1,0 +1,401 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Remote Team Standup Notes Generator",
+	description: "Generate clean, structured daily standup notes (Yesterday, Today, Blockers) formatted for Slack, Discord, and Markdown instantly. 100% private and client-side.",
+	icon: "📝",
+	tag: "Remote Work & Collaboration",
+	keywords: "standup notes generator, daily standup template, agile standup tool, remote team standup, slack mrkdwn standup, scrum meeting notes",
+	pinned: false,
+	priority: 92
+};
+
+const faqList = [
+	{
+		question: "Why are structured asynchronous standup notes important for remote teams?",
+		answer: "In asynchronous and remote teams across different timezones, structured standup notes allow teammates to quickly scan your daily updates without holding disruptive live meetings. It provides clear visibility into progress and flags blockers early."
+	},
+	{
+		question: "How does the format conversion for Slack and Discord work?",
+		answer: "Slack uses a custom markup syntax (e.g. single asterisks *bold* for bold text). This tool automatically reformats your standup notes into Slack's exact mrkdwn or standard Discord markdown at the click of a button."
+	},
+	{
+		question: "Is my daily work progress stored anywhere?",
+		answer: "No, 100% client-side privacy. All text entry, formatting, and copying happen directly in your browser without saving or sending data to any external server."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.standup-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		label .sub-tag {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			font-weight: normal;
+		}
+
+		input[type="text"], select, textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		input:focus, select:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.output-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.output-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 0.8rem;
+		}
+
+		.output-title {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		.format-tabs {
+			display: flex;
+			gap: 0.4rem;
+			background: var(--code-bg);
+			padding: 0.25rem;
+			border-radius: 8px;
+			border: 1px solid var(--card-border);
+		}
+
+		.tab-btn {
+			background: transparent;
+			border: none;
+			color: var(--text-muted);
+			padding: 0.35em 0.8em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+		}
+
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.standup-output {
+			width: 100%;
+			height: 220px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="standup-container">
+			<div class="form-grid">
+				<!-- Member & Status Header -->
+				<div class="form-group">
+					<label for="memberName">Your Name / Role</label>
+					<input type="text" id="memberName" placeholder="e.g. Alex (Fullstack Dev)" value="Alex (Frontend Lead)" />
+				</div>
+
+				<div class="form-group">
+					<label for="statusSelect">Overall Progress Status</label>
+					<select id="statusSelect">
+						<option value="🟢 On Track">🟢 On Track (All good)</option>
+						<option value="🟡 Minor Delay">🟡 Minor Delay (Slight risk)</option>
+						<option value="🔴 Blocked">🔴 Blocked (Needs team help)</option>
+						<option value="🚀 Shipped">🚀 Shipped / Release Day</option>
+					</select>
+				</div>
+
+				<!-- Yesterday -->
+				<div class="form-group full-width">
+					<label for="inputYesterday">
+						<span>⏪ What did you complete yesterday?</span>
+						<span class="sub-tag">One item per line</span>
+					</label>
+					<textarea id="inputYesterday" style="height: 80px;" placeholder="- Refactored user authentication flow&#10;- Merged PR #142 for checkout page fix">Finished UI layout for Standup Notes generator
+Merged bugfix PR for mobile menu styling</textarea>
+				</div>
+
+				<!-- Today -->
+				<div class="form-group full-width">
+					<label for="inputToday">
+						<span>⏩ What are you working on today?</span>
+						<span class="sub-tag">One item per line</span>
+					</label>
+					<textarea id="inputToday" style="height: 80px;" placeholder="- Complete Stripe Webhook integration&#10;- Code review for API endpoints">Implement Slack and Discord formatting options
+Review unit test coverage for new release</textarea>
+				</div>
+
+				<!-- Blockers -->
+				<div class="form-group full-width">
+					<label for="inputBlockers">
+						<span>🚫 Any blockers or dependencies?</span>
+						<span class="sub-tag">Type "None" if clear</span>
+					</label>
+					<input type="text" id="inputBlockers" placeholder="e.g. Waiting for API documentation approval" value="None" />
+				</div>
+			</div>
+
+			<!-- Output Card -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">📋 Formatted Standup Output</span>
+					<div style="display: flex; gap: 0.8rem; align-items: center;">
+						<div class="format-tabs">
+							<button class="tab-btn active" id="tabSlack">Slack</button>
+							<button class="tab-btn" id="tabDiscord">Discord / Markdown</button>
+						</div>
+						<button class="btn-copy" id="btnCopy">📋 Copy Notes</button>
+					</div>
+				</div>
+				<textarea id="standupOutput" class="standup-output" readonly></textarea>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initStandupGenerator() {
+			const memberName = document.getElementById('memberName');
+			const statusSelect = document.getElementById('statusSelect');
+			const inputYesterday = document.getElementById('inputYesterday');
+			const inputToday = document.getElementById('inputToday');
+			const inputBlockers = document.getElementById('inputBlockers');
+
+			const tabSlack = document.getElementById('tabSlack');
+			const tabDiscord = document.getElementById('tabDiscord');
+			const standupOutput = document.getElementById('standupOutput');
+			const btnCopy = document.getElementById('btnCopy');
+
+			let activeFormat = 'slack'; // 'slack' or 'discord'
+
+			function parseLines(text) {
+				if (!text.trim()) return ['• None'];
+				return text.split('\n')
+					.map(l => l.trim())
+					.filter(l => l.length > 0)
+					.map(l => l.startsWith('-') || l.startsWith('•') ? l : `• ${l}`);
+			}
+
+			function buildStandup() {
+				if (!standupOutput) return;
+
+				const name = memberName?.value.trim() || 'Team Member';
+				const status = statusSelect?.value || '🟢 On Track';
+				const yesterdayList = parseLines(inputYesterday?.value || '');
+				const todayList = parseLines(inputToday?.value || '');
+				const blockers = inputBlockers?.value.trim() || 'None';
+
+				const todayDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+				let result = '';
+
+				if (activeFormat === 'slack') {
+					// Slack mrkdwn syntax (uses *bold*)
+					result = `*Daily Standup - ${todayDate}*\n` +
+						`👤 *Name:* ${name} | *Status:* ${status}\n\n` +
+						`*⏪ Yesterday:* \n${yesterdayList.join('\n')}\n\n` +
+						`*⏩ Today:* \n${todayList.join('\n')}\n\n` +
+						`*🚫 Blockers:* \n${blockers.startsWith('•') ? blockers : `• ${blockers}`}`;
+				} else {
+					// Standard Markdown / Discord syntax (uses **bold**)
+					result = `**Daily Standup - ${todayDate}**\n` +
+						`👤 **Name:** ${name} | **Status:** ${status}\n\n` +
+						`**⏪ Yesterday:** \n${yesterdayList.join('\n')}\n\n` +
+						`**⏩ Today:** \n${todayList.join('\n')}\n\n` +
+						`**🚫 Blockers:** \n${blockers.startsWith('•') ? blockers : `• ${blockers}`}`;
+				}
+
+				standupOutput.value = result;
+			}
+
+			// Event listeners
+			[memberName, statusSelect, inputYesterday, inputToday, inputBlockers].forEach(el => {
+				el?.addEventListener('input', buildStandup);
+				el?.addEventListener('change', buildStandup);
+			});
+
+			tabSlack?.addEventListener('click', () => {
+				tabSlack.classList.add('active');
+				tabDiscord.classList.remove('active');
+				activeFormat = 'slack';
+				buildStandup();
+			});
+
+			tabDiscord?.addEventListener('click', () => {
+				tabDiscord.classList.add('active');
+				tabSlack.classList.remove('active');
+				activeFormat = 'discord';
+				buildStandup();
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!standupOutput || !standupOutput.value) return;
+				navigator.clipboard.writeText(standupOutput.value).then(() => {
+					const orig = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = orig; }, 2000);
+				});
+			});
+
+			buildStandup();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initStandupGenerator);
+		} else {
+			initStandupGenerator();
+		}
+	</script>
+</ToolLayout>
