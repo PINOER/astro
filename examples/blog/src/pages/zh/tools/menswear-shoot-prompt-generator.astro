@@ -3,7 +3,7 @@ import ToolLayout from 'src/layouts/ToolLayout.astro';
 
 export const frontmatter = {
 	title: "AI 男装电商商拍与精准换装/换背景提示词生成器",
-	description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特姿态视角控制（9大角度）、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
+	description: "专为男装电商卖家设计的 AI 商拍工具！涵盖男装换装、背景切换、模特姿态视角控制、相机与焦段控制、模特换头、服装与鞋包穿搭组合，适用于 Midjourney, Flux, SDXL 与豆包。",
 	icon: "👔",
 	tag: "男装商拍",
 	keywords: "AI 男装换装 电商商拍 模特角度 模特换头 男装换背景 鞋包穿搭 提示词生成器 midjourney flux 豆包",
@@ -235,7 +235,18 @@ const faqSchema = {
 					<option value="handsome 20s East Asian male model with short textured haircut, athletic build">20代东亚帅气男模 (短发/健壮身材/街头风)</option>
 					<option value="tall attractive Asian male model in clean minimalist style">高挑东亚极简男模 (日系冷淡风)</option>
 					<option value="muscular Black male model with short fade hair">肌肉型黑人男模 (美式高街/运动潮流)</option>
+					<option value="custom">✨ 自定义模特描述 (Custom Model)...</option>
 				</select>
+			</div>
+
+			<!-- 自定义模特输入框（默认隐藏，选中自定义时展开） -->
+			<div class="form-group full-width" id="customModelGroup" style="display: none;">
+				<label for="customModelInput">
+					<span>自定义模特描述</span>
+					<span class="sub-tag">支持中文输入，自动实时翻译</span>
+					<span id="customModelStatus" class="translate-status"></span>
+				</label>
+				<input type="text" id="customModelInput" placeholder="例如：25岁拉丁裔男模，卷发，小麦色皮肤，阳光健美体型..." />
 			</div>
 
 			<!-- 模特姿态与拍摄角度 -->
@@ -298,20 +309,36 @@ const faqSchema = {
 				<input type="text" id="customSceneInput" placeholder="例如：上海外滩夜景霓虹灯光、雨后繁华都市街头、海边日落沙滩..." />
 			</div>
 
-			<!-- 相机与光线 -->
+			<!-- 相机设备 -->
 			<div class="form-group">
-				<label for="cameraSelect">相机设备</label>
+				<label for="cameraSelect">相机设备 (Camera Body)</label>
 				<select id="cameraSelect">
-					<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐画质)</option>
+					<option value="shot on Sony Alpha A7R V">索尼 Sony A7R V (现代极锐商拍)</option>
 					<option value="shot on Leica M11">徕卡 Leica M11 (经典人文色彩)</option>
-					<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad (顶级中画幅)</option>
-					<option value="shot on iPhone 15 Pro Max">iPhone 15 Pro Max (真实生活感)</option>
+					<option value="shot on Hasselblad H6D-100c">哈苏 Hasselblad H6D-100c (顶级中画幅)</option>
+					<option value="shot on Canon EOS R5">佳能 Canon EOS R5 (细腻肤色与商业质感)</option>
+					<option value="shot on Nikon Z9">尼康 Nikon Z9 (高对比度锐利商拍)</option>
+					<option value="shot on Fujifilm GFX 100 II">富士 Fujifilm GFX 100 II (1亿像素中画幅胶片模拟)</option>
+					<option value="shot on iPhone 15 Pro Max">iPhone 15 Pro Max (真实街头生活感)</option>
 				</select>
 			</div>
 
+			<!-- 镜头与视角（按 85mm / 50mm / 35mm / 24mm 区分） -->
 			<div class="form-group">
-				<label for="lightingSelect">光线风格</label>
+				<label for="lensSelect">镜头焦段与视角 (Lens & Focal Length)</label>
+				<select id="lensSelect">
+					<option value="85mm f/1.2 prime portrait lens, shallow depth of field, creamy bokeh blur background">85mm 焦段 (人像特写 / 奶油虚化 / 突出服装质感)</option>
+					<option value="50mm f/1.4 prime lens, natural eye-level perspective, clean standard lookbook framing">50mm 焦段 (标准视角 / 眼高视角 / Lookbook首选)</option>
+					<option value="35mm f/1.4 lens, street style framing with subtle environmental context">35mm 焦段 (街头人文 / 兼顾环境氛围街拍)</option>
+					<option value="24mm wide angle lens, dynamic low angle perspective, striking body tension">24mm 焦段 (广角张力 / 低角度动态视觉冲击)</option>
+				</select>
+			</div>
+
+			<!-- 光线风格（包含百叶窗照射光线） -->
+			<div class="form-group">
+				<label for="lightingSelect">光线风格 (Lighting Setup)</label>
 				<select id="lightingSelect">
+					<option value="sunlight filtering through venetian window blinds creating dramatic striped shadow patterns across model and clothes">百叶窗斜射光影 (Venetian Blind Sunlight & Shadow)</option>
 					<option value="soft natural sunlight filtering through windows">自然漫射阳光 (Soft Natural Sunlight)</option>
 					<option value="golden hour warm sunset backlighting">黄金小时逆光夕阳 (Golden Hour Glow)</option>
 					<option value="clean studio softbox lighting, sharp fabric texture">柔光箱摄影棚光线 (突出面料质感)</option>
@@ -371,8 +398,13 @@ const faqSchema = {
 			const customSceneStatus = document.getElementById('customSceneStatus');
 
 			const modelSelect = document.getElementById('modelSelect');
+			const customModelGroup = document.getElementById('customModelGroup');
+			const customModelInput = document.getElementById('customModelInput');
+			const customModelStatus = document.getElementById('customModelStatus');
+
 			const angleSelect = document.getElementById('angleSelect');
 			const cameraSelect = document.getElementById('cameraSelect');
+			const lensSelect = document.getElementById('lensSelect');
 			const lightingSelect = document.getElementById('lightingSelect');
 			const arSelect = document.getElementById('arSelect');
 
@@ -382,10 +414,12 @@ const faqSchema = {
 			let translatedOutfit = 'heavyweight black cotton hoodie paired with washed straight jeans';
 			let translatedAccessory = '';
 			let translatedCustomScene = '';
+			let translatedCustomModel = '';
 
 			let outfitTimer = null;
 			let accessoryTimer = null;
 			let customSceneTimer = null;
+			let customModelTimer = null;
 
 			function containsChinese(text) {
 				return /[\u4e00-\u9fa5]/.test(text);
@@ -403,6 +437,13 @@ const faqSchema = {
 				}
 			}
 
+			function getModelValue() {
+				if (modelSelect?.value === 'custom') {
+					return translatedCustomModel ? translatedCustomModel : 'handsome male model';
+				}
+				return modelSelect?.value || 'handsome male model';
+			}
+
 			function getSceneValue() {
 				if (sceneSelect?.value === 'custom') {
 					return translatedCustomScene ? `in ${translatedCustomScene}` : 'in a modern urban setting';
@@ -416,6 +457,7 @@ const faqSchema = {
 				const outfit = translatedOutfit || 'heavyweight black cotton hoodie';
 				const accessoryStr = translatedAccessory ? `styled with ${translatedAccessory}` : '';
 				const sceneVal = getSceneValue();
+				const modelVal = getModelValue();
 
 				let modePrefix = '';
 				let components = [];
@@ -426,10 +468,11 @@ const faqSchema = {
 						`Commercial menswear photography, precisely transplanting garment design from Reference Image onto Target Model`,
 						`replacing outfit with ${outfit}`,
 						accessoryStr,
-						`worn by ${modelSelect?.value || ''}`,
+						`worn by ${modelVal}`,
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'ultra-detailed fabric texture, natural drape wrinkles, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -442,6 +485,7 @@ const faqSchema = {
 						angleSelect?.value || '',
 						`into setting: ${sceneVal}`,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'realistic light integration, shallow depth of field, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -449,25 +493,26 @@ const faqSchema = {
 				} else if (currentMode === 'head') {
 					modePrefix = '[Model / Head Swap Focus]';
 					components = [
-						`Commercial menswear photography, replacing model face with ${modelSelect?.value || ''}`,
+						`Commercial menswear photography, replacing model face with ${modelVal}`,
 						`wearing ${outfit}`,
 						accessoryStr,
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
-						lightingSelect?.value || '',
+						lensSelect?.value || '',
 						'natural skin texture, seamless face swap, 8k resolution, raw photo',
 						arSelect?.value || ''
 					];
 				} else {
 					modePrefix = '[Full Custom Shoot]';
 					components = [
-						`Commercial menswear photography featuring ${modelSelect?.value || ''}`,
+						`Commercial menswear photography featuring ${modelVal}`,
 						`wearing ${outfit}`,
 						accessoryStr,
 						angleSelect?.value || '',
 						sceneVal,
 						cameraSelect?.value || '',
+						lensSelect?.value || '',
 						lightingSelect?.value || '',
 						'ultra-detailed fabric texture, 8k resolution, raw photo',
 						arSelect?.value || ''
@@ -487,6 +532,16 @@ const faqSchema = {
 				});
 			});
 
+			// 模型下拉框切换监听（支持自定义模特展开）
+			modelSelect?.addEventListener('change', () => {
+				if (modelSelect.value === 'custom') {
+					if (customModelGroup) customModelGroup.style.display = 'flex';
+				} else {
+					if (customModelGroup) customModelGroup.style.display = 'none';
+				}
+				buildPrompt();
+			});
+
 			// 背景下拉框切换监听（支持自定义背景展开）
 			sceneSelect?.addEventListener('change', () => {
 				if (sceneSelect.value === 'custom') {
@@ -495,6 +550,30 @@ const faqSchema = {
 					if (customSceneGroup) customSceneGroup.style.display = 'none';
 				}
 				buildPrompt();
+			});
+
+			// 防抖翻译：自定义模特
+			customModelInput?.addEventListener('input', () => {
+				clearTimeout(customModelTimer);
+				const raw = customModelInput.value.trim();
+				if (!raw) {
+					translatedCustomModel = '';
+					if (customModelStatus) customModelStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (!containsChinese(raw)) {
+					translatedCustomModel = raw;
+					if (customModelStatus) customModelStatus.textContent = '';
+					buildPrompt();
+					return;
+				}
+				if (customModelStatus) customModelStatus.textContent = '翻译中...';
+				customModelTimer = setTimeout(async () => {
+					translatedCustomModel = await translateText(raw);
+					if (customModelStatus) customModelStatus.textContent = '✓ 已转英文';
+					buildPrompt();
+				}, 500);
 			});
 
 			// 防抖翻译：主服装
@@ -570,7 +649,7 @@ const faqSchema = {
 			});
 
 			// 下拉框改变监听
-			[modelSelect, angleSelect, cameraSelect, lightingSelect, arSelect].forEach(el => {
+			[modelSelect, angleSelect, cameraSelect, lensSelect, lightingSelect, arSelect].forEach(el => {
 				el?.addEventListener('change', buildPrompt);
 			});
 
