@@ -1,0 +1,366 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Working Hours & Out-of-Office Email Auto-Responder Generator",
+	description: "Generate professional Out-of-Office (OOO) and working hours auto-responder email templates instantly. Perfect for remote teams, vacations, sick leaves, and asynchronous workflows with 100% client-side privacy.",
+	icon: "🌴",
+	tag: "Remote Work & Email",
+	keywords: "out of office email generator, OOO email generator, vacation auto responder, sick leave email template, remote work email responder, out of office message",
+	pinned: false,
+	priority: 96
+};
+
+const faqList = [
+	{
+		question: "What should be included in a professional Out-of-Office (OOO) email?",
+		answer: "A clear OOO email should specify: 1) The exact dates you will be away, 2) The reason (optional, e.g., vacation, conference), 3) Expected response time upon return, and 4) Contact details of a colleague handling urgent requests."
+	},
+	{
+		question: "Should I include my personal mobile number in an OOO responder?",
+		answer: "It depends on your preference. For external clients, it's safer to direct urgent matters to a designated backup teammate or team inbox rather than giving out personal phone numbers."
+	},
+	{
+		question: "Is any data stored on servers when using this tool?",
+		answer: "No. Everything runs 100% locally in your web browser. Your names, dates, and contact details stay completely private on your device."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.ooo-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		input[type="text"], input[type="date"], select, textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.92rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		input:focus, select:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.output-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.output-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.output-title {
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-copy:hover {
+			background: var(--accent-hover);
+			transform: translateY(-1px);
+		}
+
+		.email-output {
+			width: 100%;
+			height: 220px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="ooo-container">
+			<div class="form-grid">
+				<!-- Reason/Scenario Selection -->
+				<div class="form-group">
+					<label for="scenarioSelect">Reason for Absence</label>
+					<select id="scenarioSelect">
+						<option value="vacation">🌴 Vacation / Annual Leave (PTO)</option>
+						<option value="sick">🤒 Sick Leave / Medical Absence</option>
+						<option value="maternity">👶 Maternity / Paternity Leave</option>
+						<option value="conference">🎤 Conference / Professional Training</option>
+						<option value="timezone">🌐 Working Across Timezones (Async Working Hours)</option>
+					</select>
+				</div>
+
+				<!-- Tone Selection -->
+				<div class="form-group">
+					<label for="toneSelect">Email Tone</label>
+					<select id="toneSelect">
+						<option value="formal">👔 Professional & Formal</option>
+						<option value="friendly">😊 Friendly & Casual</option>
+						<option value="concise">⚡ Short & Concise</option>
+					</select>
+				</div>
+
+				<!-- Dates -->
+				<div class="form-group">
+					<label for="startDate">Start Date</label>
+					<input type="date" id="startDate" />
+				</div>
+
+				<div class="form-group">
+					<label for="endDate">End / Return Date</label>
+					<input type="date" id="endDate" />
+				</div>
+
+				<!-- Backup Contact -->
+				<div class="form-group">
+					<label for="colleagueName">Backup Colleague / Team Name</label>
+					<input type="text" id="colleagueName" placeholder="e.g. Alex Smith or Support Team" value="Alex Smith" />
+				</div>
+
+				<div class="form-group">
+					<label for="colleagueEmail">Backup Contact Email</label>
+					<input type="text" id="colleagueEmail" placeholder="e.g. alex@company.com" value="alex@company.com" />
+				</div>
+
+				<!-- Your Name -->
+				<div class="form-group full-width">
+					<label for="senderName">Your Name</label>
+					<input type="text" id="senderName" placeholder="e.g. John Doe" value="John Doe" />
+				</div>
+			</div>
+
+			<!-- Output Card -->
+			<div class="output-card">
+				<div class="output-header">
+					<span class="output-title">✉️ Generated Out-of-Office Auto-Responder</span>
+					<button class="btn-copy" id="btnCopy">📋 Copy Template</button>
+				</div>
+				<textarea id="emailOutput" class="email-output" readonly></textarea>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initOOOGenerator() {
+			const scenarioSelect = document.getElementById('scenarioSelect');
+			const toneSelect = document.getElementById('toneSelect');
+			const startDate = document.getElementById('startDate');
+			const endDate = document.getElementById('endDate');
+			const colleagueName = document.getElementById('colleagueName');
+			const colleagueEmail = document.getElementById('colleagueEmail');
+			const senderName = document.getElementById('senderName');
+			const emailOutput = document.getElementById('emailOutput');
+			const btnCopy = document.getElementById('btnCopy');
+
+			// Set default dates (today & 7 days later)
+			const today = new Date();
+			const nextWeek = new Date();
+			nextWeek.setDate(today.getDate() + 7);
+
+			if (startDate && !startDate.value) startDate.value = today.toISOString().split('T')[0];
+			if (endDate && !endDate.value) endDate.value = nextWeek.toISOString().split('T')[0];
+
+			function formatDate(dateStr) {
+				if (!dateStr) return '[Date]';
+				const d = new Date(dateStr);
+				return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+			}
+
+			function generateTemplate() {
+				if (!emailOutput) return;
+
+				const scenario = scenarioSelect?.value || 'vacation';
+				const tone = toneSelect?.value || 'formal';
+				const start = formatDate(startDate?.value);
+				const end = formatDate(endDate?.value);
+				const colleague = colleagueName?.value.trim() || 'my team';
+				const email = colleagueEmail?.value.trim() || 'support@company.com';
+				const name = senderName?.value.trim() || 'Best regards';
+
+				let subject = '';
+				let body = '';
+
+				if (scenario === 'vacation') {
+					subject = `Out of Office: ${name} [${start} - ${end}]`;
+					if (tone === 'formal') {
+						body = `Subject: ${subject}\n\nThank you for reaching out. I am currently out of the office on annual leave from ${start} through ${end} with limited access to email.\n\nFor urgent matters regarding ongoing projects, please contact ${colleague} at ${email}. Otherwise, I will respond to your email as soon as possible upon my return on ${end}.\n\nBest regards,\n${name}`;
+					} else if (tone === 'friendly') {
+						body = `Subject: ${subject}\n\nHi there!\n\nThanks for your message. I am currently away on vacation from ${start} to ${end}. I won't be checking my inbox regularly.\n\nIf you need immediate assistance, please drop a note to ${colleague} (${email}), and they will take good care of you!\n\nTalk soon,\n${name}`;
+					} else {
+						body = `Subject: ${subject}\n\nHello, I am out of the office starting ${start} and returning on ${end}.\n\nFor urgent inquiries, please email ${colleague} at ${email}.\n\nThanks,\n${name}`;
+					}
+				} else if (scenario === 'sick') {
+					subject = `Out of Office: ${name} (Sick Leave)`;
+					if (tone === 'formal') {
+						body = `Subject: ${subject}\n\nThank you for your email. I am currently out of the office due to illness and will have no access to email. I expect to return on ${end}.\n\nIf your request requires urgent attention, please contact ${colleague} at ${email}.\n\nSincerely,\n${name}`;
+					} else if (tone === 'friendly') {
+						body = `Subject: ${subject}\n\nHi! I am currently out sick today and taking some time to recover. I will get back to you as soon as I return on ${end}.\n\nFor urgent requests, please reach out to ${colleague} (${email}).\n\nBest,\n${name}`;
+					} else {
+						body = `Subject: ${subject}\n\nI am currently out of the office on sick leave until ${end}. Please contact ${colleague} (${email}) for urgent help.\n\nThanks,\n${name}`;
+					}
+				} else if (scenario === 'maternity') {
+					subject = `Out of Office: Parental Leave (${name})`;
+					body = `Subject: ${subject}\n\nThank you for your message. I am currently on parental leave and will be out of the office until ${end}.\n\nI will not be checking my email during this time. For any immediate project needs or urgent inquiries, please contact ${colleague} at ${email}.\n\nWarm regards,\n${name}`;
+				} else if (scenario === 'conference') {
+					subject = `Out of Office: Attending Event/Conference [${start}]`;
+					body = `Subject: ${subject}\n\nThank you for getting in touch. I am currently attending a conference from ${start} to ${end} and will have intermittent access to my inbox.\n\nIf your message requires immediate attention, please reach out to ${colleague} at ${email}.\n\nBest regards,\n${name}`;
+				} else if (scenario === 'timezone') {
+					subject = `Async Working Hours Notice: ${name}`;
+					body = `Subject: ${subject}\n\nThank you for your message! Please note that I am working across timezones and may respond outside of standard business hours.\n\nI strive to respond to all non-urgent emails within 24 hours. For critical issues, please flag your email as [URGENT] or reach out to ${colleague} at ${email}.\n\nBest regards,\n${name}`;
+				}
+
+				emailOutput.value = body;
+			}
+
+			// Add event listeners
+			[scenarioSelect, toneSelect, startDate, endDate, colleagueName, colleagueEmail, senderName].forEach(el => {
+				el?.addEventListener('change', generateTemplate);
+				el?.addEventListener('input', generateTemplate);
+			});
+
+			btnCopy?.addEventListener('click', () => {
+				if (!emailOutput || !emailOutput.value) return;
+				navigator.clipboard.writeText(emailOutput.value).then(() => {
+					const orig = btnCopy.textContent;
+					btnCopy.textContent = 'Copied!';
+					setTimeout(() => { btnCopy.textContent = orig; }, 2000);
+				});
+			});
+
+			generateTemplate();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initOOOGenerator);
+		} else {
+			initOOOGenerator();
+		}
+	</script>
+</ToolLayout>
