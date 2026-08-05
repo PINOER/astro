@@ -1,0 +1,495 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "Open Graph (OG) Meta Tag & Social Preview Generator",
+	description: "Generate standard Open Graph and Twitter Card HTML meta tags for your website. Preview how your link cards look on Twitter/X, Facebook, LinkedIn, Slack, and Discord in real-time.",
+	icon: "🏷️",
+	tag: "E-commerce & SEO",
+	keywords: "open graph meta generator, og tag generator, twitter card previewer, social media link preview, og image tag, seo meta tags, astro html header tags",
+	pinned: false,
+	priority: 86
+};
+
+const faqList = [
+	{
+		question: "What are Open Graph (OG) meta tags?",
+		answer: "Open Graph meta tags are snippets of code inserted into your website's <head> section. They control how your web page URL appears when shared across social media platforms like Facebook, LinkedIn, Twitter/X, Slack, and Discord."
+	},
+	{
+		question: "What is the recommended OG image size?",
+		answer: "The recommended image dimensions for Open Graph shared cards are 1200 x 630 pixels (an aspect ratio of 1.91:1). Keeping the file size under 8MB ensures fast link card loading."
+	},
+	{
+		question: "Where should I paste the generated meta tags?",
+		answer: "Paste the generated HTML snippet inside the <head> ... </head> element of your webpage layout (e.g. Layout.astro, index.html, or head template)."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.og-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.editor-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding-bottom: 0.5rem;
+			border-bottom: 1px solid var(--card-border);
+		}
+
+		.panel-title {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.4rem;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.sub-tag {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			font-weight: normal;
+		}
+
+		input[type="text"], textarea {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			box-sizing: border-box;
+			outline: none;
+			transition: border-color 0.2s, box-shadow 0.2s;
+		}
+
+		input:focus, textarea:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.platform-tabs {
+			display: flex;
+			gap: 0.4rem;
+			background: var(--code-bg);
+			padding: 0.25rem;
+			border-radius: 8px;
+			border: 1px solid var(--card-border);
+		}
+
+		.tab-btn {
+			background: transparent;
+			border: none;
+			color: var(--text-muted);
+			padding: 0.35em 0.8em;
+			border-radius: 6px;
+			font-size: 0.8rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.tab-btn.active {
+			background: var(--accent);
+			color: #ffffff !important;
+		}
+
+		/* Social Card Mockups */
+		.social-preview-card {
+			background: #15202b;
+			border: 1px solid #38444d;
+			border-radius: 14px;
+			overflow: hidden;
+			color: #ffffff;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+		}
+
+		.card-img-box {
+			width: 100%;
+			height: 180px;
+			background: #192734;
+			background-size: cover;
+			background-position: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: #8899a6;
+			font-size: 0.85rem;
+		}
+
+		.card-content {
+			padding: 0.8rem 1rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.3rem;
+		}
+
+		.card-domain {
+			font-size: 0.8rem;
+			color: #8899a6;
+		}
+
+		.card-title {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: #ffffff;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.card-desc {
+			font-size: 0.82rem;
+			color: #8899a6;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+		.btn-copy {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.5em 1em;
+			border-radius: 8px;
+			font-size: 0.82rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-copy:hover {
+			background: var(--accent-hover);
+		}
+
+		.code-output {
+			width: 100%;
+			height: 180px;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 10px;
+			padding: 1rem;
+			color: var(--text-main);
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			font-size: 0.82rem;
+			line-height: 1.5;
+			resize: vertical;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="og-container">
+			<div class="editor-grid">
+				<!-- Input Form Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">✍️ Meta Content Editor</span>
+					</div>
+
+					<div class="form-group">
+						<label for="inputTitle">
+							<span>Page Title (og:title) *</span>
+							<span class="sub-tag" id="titleCount">0 / 60</span>
+						</label>
+						<input type="text" id="inputTitle" placeholder="e.g. High Performance Wireless Earbuds" value="High Performance Wireless Earbuds" />
+					</div>
+
+					<div class="form-group">
+						<label for="inputDesc">
+							<span>Description (og:description) *</span>
+							<span class="sub-tag" id="descCount">0 / 155</span>
+						</label>
+						<textarea id="inputDesc" style="height: 70px;" placeholder="e.g. Experience crystal clear sound with noise cancellation and 30-hour battery life.">Experience crystal clear sound with active noise cancellation and 30-hour battery life. Free shipping on orders today.</textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="inputUrl">Canonical Page URL (og:url)</label>
+						<input type="text" id="inputUrl" placeholder="https://yourstore.com/product" value="https://yourstore.com/product" />
+					</div>
+
+					<div class="form-group">
+						<label for="inputImg">OG Image URL (og:image 1200x630)</label>
+						<input type="text" id="inputImg" placeholder="https://yourstore.com/og-image.jpg" value="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200" />
+					</div>
+
+					<div class="form-group">
+						<label for="inputSite">Site Name / Twitter Handle</label>
+						<input type="text" id="inputSite" placeholder="e.g. MyBrand / @mybrand" value="MyBrand Store" />
+					</div>
+				</div>
+
+				<!-- Social Card Live Preview Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">📱 Live Card Preview</span>
+						<div class="platform-tabs">
+							<button class="tab-btn active" id="tabTwitter">Twitter / X</button>
+							<button class="tab-btn" id="tabFacebook">Facebook</button>
+						</div>
+					</div>
+
+					<!-- Visual Card Preview -->
+					<div class="social-preview-card" id="cardContainer">
+						<div class="card-img-box" id="cardImg">Image Preview</div>
+						<div class="card-content">
+							<span class="card-domain" id="cardDomain">yourstore.com</span>
+							<span class="card-title" id="cardTitle">Page Title</span>
+							<span class="card-desc" id="cardDesc">Description text will appear here...</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Generated HTML Meta Code Panel -->
+			<div class="panel-card">
+				<div class="panel-header">
+					<span class="panel-title">⚡ Generated HTML &lt;head&gt; Meta Code</span>
+					<button class="btn-copy" id="btnCopyCode">📋 Copy HTML Code</button>
+				</div>
+				<textarea id="codeOutput" class="code-output" readonly></textarea>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initOgGenerator() {
+			const inputTitle = document.getElementById('inputTitle');
+			const inputDesc = document.getElementById('inputDesc');
+			const inputUrl = document.getElementById('inputUrl');
+			const inputImg = document.getElementById('inputImg');
+			const inputSite = document.getElementById('inputSite');
+
+			const titleCount = document.getElementById('titleCount');
+			const descCount = document.getElementById('descCount');
+
+			const cardContainer = document.getElementById('cardContainer');
+			const cardImg = document.getElementById('cardImg');
+			const cardDomain = document.getElementById('cardDomain');
+			const cardTitle = document.getElementById('cardTitle');
+			const cardDesc = document.getElementById('cardDesc');
+
+			const codeOutput = document.getElementById('codeOutput');
+			const btnCopyCode = document.getElementById('btnCopyCode');
+
+			const tabTwitter = document.getElementById('tabTwitter');
+			const tabFacebook = document.getElementById('tabFacebook');
+
+			let activeTab = 'twitter';
+
+			function getDomain(urlStr) {
+				try {
+					const u = new URL(urlStr.startsWith('http') ? urlStr : 'https://' + urlStr);
+					return u.hostname;
+				} catch (e) {
+					return 'yourstore.com';
+				}
+			}
+
+			function update() {
+				const title = inputTitle?.value || '';
+				const desc = inputDesc?.value || '';
+				const url = inputUrl?.value || 'https://yourstore.com';
+				const img = inputImg?.value || '';
+				const site = inputSite?.value || 'SiteName';
+
+				// Character counters
+				if (titleCount) titleCount.textContent = `${title.length} / 60`;
+				if (descCount) descCount.textContent = `${desc.length} / 155`;
+
+				// Update Preview
+				if (cardTitle) cardTitle.textContent = title || 'Page Title';
+				if (cardDesc) cardDesc.textContent = desc || 'Description...';
+				if (cardDomain) cardDomain.textContent = getDomain(url);
+
+				if (cardImg) {
+					if (img) {
+						cardImg.style.backgroundImage = `url('${img}')`;
+						cardImg.textContent = '';
+					} else {
+						cardImg.style.backgroundImage = 'none';
+						cardImg.textContent = '1200 x 630 Image Preview';
+					}
+				}
+
+				// Styling per tab
+				if (cardContainer) {
+					if (activeTab === 'facebook') {
+						cardContainer.style.background = '#242526';
+						cardContainer.style.borderColor = '#3e4042';
+					} else {
+						cardContainer.style.background = '#15202b';
+						cardContainer.style.borderColor = '#38444d';
+					}
+				}
+
+				// Generate Code Snippet
+				const htmlCode = `<!-- Primary Meta Tags -->
+<title>${title}</title>
+<meta name="title" content="${title}" />
+<meta name="description" content="${desc}" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="${title}" />
+<meta property="og:description" content="${desc}" />
+<meta property="og:image" content="${img}" />
+<meta property="og:site_name" content="${site}" />
+
+<!-- Twitter / X Card -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="${url}" />
+<meta property="twitter:title" content="${title}" />
+<meta property="twitter:description" content="${desc}" />
+<meta property="twitter:image" content="${img}" />`;
+
+				if (codeOutput) codeOutput.value = htmlCode;
+			}
+
+			// Listeners
+			[inputTitle, inputDesc, inputUrl, inputImg, inputSite].forEach(el => {
+				el?.addEventListener('input', update);
+			});
+
+			tabTwitter?.addEventListener('click', () => {
+				tabTwitter.classList.add('active');
+				tabFacebook.classList.remove('active');
+				activeTab = 'twitter';
+				update();
+			});
+
+			tabFacebook?.addEventListener('click', () => {
+				tabFacebook.classList.add('active');
+				tabTwitter.classList.remove('active');
+				activeTab = 'facebook';
+				update();
+			});
+
+			btnCopyCode?.addEventListener('click', () => {
+				if (!codeOutput || !codeOutput.value) return;
+				navigator.clipboard.writeText(codeOutput.value).then(() => {
+					const orig = btnCopyCode.textContent;
+					btnCopyCode.textContent = 'Copied!';
+					setTimeout(() => { btnCopyCode.textContent = orig; }, 2000);
+				});
+			});
+
+			update();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initOgGenerator);
+		} else {
+			initOgGenerator();
+		}
+	</script>
+</ToolLayout>
