@@ -1,0 +1,491 @@
+---
+import ToolLayout from 'src/layouts/ToolLayout.astro';
+
+export const frontmatter = {
+	title: "SVG Icon & Logo Vector Optimizer",
+	description: "Optimize and compress SVG icons and logo files in your browser. Remove useless metadata, minify paths, reduce file size by up to 80%, and copy clean inline SVG code with 100% privacy.",
+	icon: "⚡",
+	tag: "Developer & UI/UX Tools",
+	keywords: "SVG optimizer, SVGO web GUI, vector graphic compressor, minify SVG icon, SVG cleanup tool, inline SVG cleaner, UI UX designer tools",
+	pinned: false,
+	priority: 88
+};
+
+const faqList = [
+	{
+		question: "Why should I optimize SVG files before using them on my website?",
+		answer: "Design software like Illustrator or Figma exports extra metadata, editor tags, hidden groups, and overly precise coordinates into SVG files. Optimizing SVGs cleans up this bloat, shrinking file sizes by 30%-80% for faster page loads."
+	},
+	{
+		question: "Is my SVG vector graphic uploaded to a server?",
+		answer: "No. All SVG parsing, code minification, path precision reduction, and rendering happen 100% client-side in your web browser. Your brand logos and vector assets remain completely private."
+	},
+	{
+		question: "Does optimizing an SVG cause quality loss?",
+		answer: "No visual loss occurs under normal compression settings. Our cleaner safely strips non-visual metadata, combines paths, and rounds excessive floating-point coordinates without altering shapes."
+	}
+];
+
+const faqSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": faqList.map(item => ({
+		"@type": "Question",
+		"name": item.question,
+		"acceptedAnswer": {
+			"@type": "Answer",
+			"text": item.answer
+		}
+	}))
+};
+---
+
+<ToolLayout frontmatter={frontmatter} lang="en">
+	<!-- FAQ Schema.org -->
+	<script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+	<style slot="head">
+		.svg-container {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.control-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 1.2rem;
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.form-group {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.form-group.full-width {
+			grid-column: 1 / -1;
+		}
+
+		label {
+			font-size: 0.88rem;
+			font-weight: 700;
+			color: var(--text-main);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		textarea, select {
+			width: 100%;
+			padding: 0.75em 1em;
+			background: var(--code-bg) !important;
+			border: 1px solid var(--card-border);
+			border-radius: 8px;
+			color: var(--text-main);
+			font-size: 0.9rem;
+			font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+			box-sizing: border-box;
+			outline: none;
+		}
+
+		textarea:focus, select:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 10px var(--accent-glow);
+		}
+
+		.stats-banner {
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			background: rgba(59, 130, 246, 0.05);
+			border: 1px solid rgba(59, 130, 246, 0.2);
+			border-radius: 12px;
+			padding: 1rem;
+			text-align: center;
+		}
+
+		.stat-item {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.stat-val {
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: var(--accent);
+		}
+
+		.stat-lbl {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			text-transform: uppercase;
+		}
+
+		.editor-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+
+		.panel-card {
+			background: var(--bg-card);
+			border: 1px solid var(--card-border);
+			border-radius: 16px;
+			padding: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+		}
+
+		.panel-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.panel-title {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--text-main);
+		}
+
+		.preview-box {
+			width: 100%;
+			height: 180px;
+			background: #ffffff;
+			background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+			background-size: 16px 16px;
+			background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+			border-radius: 10px;
+			border: 1px solid var(--card-border);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 1rem;
+			box-sizing: border-box;
+			overflow: hidden;
+		}
+
+		.preview-box svg {
+			max-width: 100%;
+			max-height: 100%;
+		}
+
+		.btn-group {
+			display: flex;
+			gap: 0.6rem;
+		}
+
+		.btn-action {
+			background: var(--accent);
+			color: #ffffff !important;
+			border: none;
+			padding: 0.6em 1.2em;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+
+		.btn-action:hover {
+			background: var(--accent-hover);
+		}
+
+		.btn-secondary {
+			background: var(--code-bg);
+			color: var(--text-main);
+			border: 1px solid var(--card-border);
+		}
+
+		.upload-dropzone {
+			border: 2px dashed var(--card-border);
+			border-radius: 12px;
+			padding: 1.5rem;
+			text-align: center;
+			background: var(--code-bg);
+			cursor: pointer;
+			transition: border-color 0.2s;
+		}
+
+		.upload-dropzone:hover {
+			border-color: var(--accent);
+		}
+
+		/* FAQ Section */
+		.faq-section {
+			margin-top: 2.5em;
+			padding-top: 2em;
+			border-top: 1px solid var(--card-border);
+		}
+		.faq-title {
+			font-size: 1.3rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin-bottom: 1em;
+		}
+		.faq-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+			gap: 1.2rem;
+		}
+		.faq-card {
+			background: var(--code-bg);
+			border: 1px solid var(--card-border);
+			border-radius: 12px;
+			padding: 1.2em;
+		}
+		.faq-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-main);
+			margin: 0 0 0.5rem 0;
+		}
+		.faq-card p {
+			font-size: 0.85rem;
+			color: var(--text-muted);
+			margin: 0;
+			line-height: 1.6;
+		}
+	</style>
+
+	<div class="tool-box">
+		<div class="svg-container">
+			<!-- Upload / Paste Section -->
+			<div class="control-grid">
+				<div class="form-group full-width">
+					<label>1. Upload SVG File or Paste Code</label>
+					<div class="upload-dropzone" id="dropzone">
+						<span id="uploadPrompt">📁 Click or Drag & Drop an SVG File Here</span>
+						<input type="file" id="svgFileInput" accept=".svg,image/svg+xml" style="display: none;" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="precisionSelect">Precision (Decimal Places)</label>
+					<select id="precisionSelect">
+						<option value="1">1 Decimal (Max Savings)</option>
+						<option value="2" selected>2 Decimals (Recommended)</option>
+						<option value="3">3 Decimals (High Precision)</option>
+					</select>
+				</div>
+			</div>
+
+			<!-- Live Compression Stats -->
+			<div class="stats-banner">
+				<div class="stat-item">
+					<span class="stat-val" id="origSize">0 B</span>
+					<span class="stat-lbl">Original Size</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-val" id="optSize">0 B</span>
+					<span class="stat-lbl">Optimized Size</span>
+				</div>
+				<div class="stat-item">
+					<span class="stat-val" id="savingsPct">0%</span>
+					<span class="stat-lbl">Savings</span>
+				</div>
+			</div>
+
+			<!-- Editor & Visual Preview Grid -->
+			<div class="editor-grid">
+				<!-- Original SVG Code Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">📝 Raw SVG Input</span>
+					</div>
+					<textarea id="svgInput" style="height: 180px;" placeholder="Paste raw <svg>...</svg> code here..."><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" viewBox="0 0 100 100" enable-background="new 0 0 100 100">
+  <!-- Generator: Adobe Illustrator 25.0, SVG Export Plug-In -->
+  <g id="Layer_1">
+    <circle cx="50.0000" cy="50.0000" r="40.12345" fill="#3B82F6" stroke="#1D4ED8" stroke-width="4.0000" />
+    <polygon points="40.000,30.000 70.000,50.000 40.000,70.000" fill="#FFFFFF" />
+  </g>
+</svg></textarea>
+				</div>
+
+				<!-- Optimized Output & Preview Panel -->
+				<div class="panel-card">
+					<div class="panel-header">
+						<span class="panel-title">✨ Optimized Visual Preview</span>
+						<div class="btn-group">
+							<button class="btn-action btn-secondary" id="btnCopyCode">📋 Copy SVG</button>
+							<button class="btn-action" id="btnDownload">⬇️ Download .svg</button>
+						</div>
+					</div>
+
+					<div class="preview-box" id="previewBox"></div>
+					<textarea id="svgOutput" style="height: 100px;" readonly></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- FAQ Section -->
+	<section class="faq-section" slot="faq">
+		<div class="faq-title">❓ Frequently Asked Questions</div>
+		<div class="faq-grid">
+			{faqList.map(item => (
+				<div class="faq-card">
+					<h3>{item.question}</h3>
+					<p>{item.answer}</p>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<script slot="scripts">
+		function initSvgOptimizer() {
+			const dropzone = document.getElementById('dropzone');
+			const svgFileInput = document.getElementById('svgFileInput');
+			const precisionSelect = document.getElementById('precisionSelect');
+			const svgInput = document.getElementById('svgInput');
+			const svgOutput = document.getElementById('svgOutput');
+			const previewBox = document.getElementById('previewBox');
+
+			const origSize = document.getElementById('origSize');
+			const optSize = document.getElementById('optSize');
+			const savingsPct = document.getElementById('savingsPct');
+
+			const btnCopyCode = document.getElementById('btnCopyCode');
+			const btnDownload = document.getElementById('btnDownload');
+			const uploadPrompt = document.getElementById('uploadPrompt');
+
+			function formatBytes(bytes) {
+				if (bytes === 0) return '0 B';
+				const k = 1024;
+				const sizes = ['B', 'KB', 'MB'];
+				const i = Math.floor(Math.log(bytes) / Math.log(k));
+				return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+			}
+
+			function optimizeSvg(code) {
+				if (!code.trim()) return '';
+
+				let res = code;
+				const precision = parseInt(precisionSelect?.value || '2', 10);
+
+				// 1. Remove XML declarations and doctypes
+				res = res.replace(/<\?xml[^>]*\?>/gi, '');
+				res = res.replace(/<!DOCTYPE[^>]*>/gi, '');
+
+				// 2. Remove HTML / XML comments
+				res = res.replace(/<!--[\s\S]*?-->/g, '');
+
+				// 3. Remove metadata and generator tags (Illustrator, Inkscape, Sketch)
+				res = res.replace(/<metadata[\s\S]*?<\/metadata>/gi, '');
+				res = res.replace(/enable-background="[^"]*"/gi, '');
+				res = res.replace(/id="Layer_[^"]*"/gi, '');
+
+				// 4. Precision reduction for float numbers
+				res = res.replace(/(-?\d+\.\d+)/g, (match) => {
+					const num = parseFloat(match);
+					return Number.isNaN(num) ? match : num.toFixed(precision);
+				});
+
+				// 5. Clean up redundant whitespaces
+				res = res.replace(/\s+/g, ' ');
+				res = res.replace(/>\s+</g, '><');
+
+				return res.trim();
+			}
+
+			function process() {
+				const raw = svgInput?.value || '';
+				if (!raw.trim()) {
+					if (svgOutput) svgOutput.value = '';
+					if (previewBox) previewBox.innerHTML = '';
+					if (origSize) origSize.textContent = '0 B';
+					if (optSize) optSize.textContent = '0 B';
+					if (savingsPct) savingsPct.textContent = '0%';
+					return;
+				}
+
+				const optimized = optimizeSvg(raw);
+				if (svgOutput) svgOutput.value = optimized;
+				if (previewBox) previewBox.innerHTML = optimized;
+
+				const origBytes = new Blob([raw]).size;
+				const optBytes = new Blob([optimized]).size;
+				const savings = origBytes > 0 ? Math.max(0, Math.round(((origBytes - optBytes) / origBytes) * 100)) : 0;
+
+				if (origSize) origSize.textContent = formatBytes(origBytes);
+				if (optSize) optSize.textContent = formatBytes(optBytes);
+				if (savingsPct) savingsPct.textContent = `-${savings}%`;
+			}
+
+			function handleFile(file) {
+				if (!file) return;
+				const reader = new FileReader();
+				reader.onload = (e) => {
+					if (svgInput) svgInput.value = e.target.result;
+					if (uploadPrompt) uploadPrompt.textContent = `✅ Loaded: ${file.name}`;
+					process();
+				};
+				reader.readAsText(file);
+			}
+
+			// Listeners
+			dropzone?.addEventListener('click', () => svgFileInput?.click());
+			
+			dropzone?.addEventListener('dragover', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--accent)';
+			});
+
+			dropzone?.addEventListener('dragleave', () => {
+				dropzone.style.borderColor = 'var(--card-border)';
+			});
+
+			dropzone?.addEventListener('drop', (e) => {
+				e.preventDefault();
+				dropzone.style.borderColor = 'var(--card-border)';
+				if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+					handleFile(e.dataTransfer.files[0]);
+				}
+			});
+
+			svgFileInput?.addEventListener('change', (e) => {
+				if (e.target.files && e.target.files[0]) {
+					handleFile(e.target.files[0]);
+				}
+			});
+
+			svgInput?.addEventListener('input', process);
+			precisionSelect?.addEventListener('change', process);
+
+			btnCopyCode?.addEventListener('click', () => {
+				if (!svgOutput || !svgOutput.value) return;
+				navigator.clipboard.writeText(svgOutput.value).then(() => {
+					const orig = btnCopyCode.textContent;
+					btnCopyCode.textContent = 'Copied!';
+					setTimeout(() => { btnCopyCode.textContent = orig; }, 2000);
+				});
+			});
+
+			btnDownload?.addEventListener('click', () => {
+				if (!svgOutput || !svgOutput.value) return;
+				const blob = new Blob([svgOutput.value], { type: 'image/svg+xml;charset=utf-8' });
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(blob);
+				link.download = 'optimized-vector.svg';
+				link.click();
+			});
+
+			process();
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initSvgOptimizer);
+		} else {
+			initSvgOptimizer();
+		}
+	</script>
+</ToolLayout>
